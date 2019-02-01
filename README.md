@@ -3,6 +3,8 @@ Scientific data visualization in Blender.
 
 BlenDaViz is a Python library for Blender made for scientific data visualization. It can be used directly in the Blender Python console.
 
+![Line plot](doc/line_plot_demo.png?raw=true "Line plot in BlenDaViz")
+
 # Set Up
 Clone BlenDaViz on your computer:
 ```
