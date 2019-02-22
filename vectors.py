@@ -16,16 +16,24 @@ Created on Tue Feb 19 2019
 '''
 Test:
 import BlenDaViz as bz
-bz.vec((1,0,0), (0,1,0), 1, color='k')
+myvec = bz.vec((1,0,0), (0,1,0), 1, color='k')
+myvec.change_loc((1,1,1))
+
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete()
 
 import BlenDaViz as bz
 import numpy as np
 import integrate as int
+import matplotlib.cm as cm
+cm = cm.coolwarm
 for x in np.linspace(-1.5,1.5,15):
     for y in np.linspace(-1.5, 1.5, 15):
         loc = (x, y, 0)
-        dir = int.BHopf(np.array(loc))
-        bz.vec(loc, dir, length=.5, color='r')
+        dir = -int.BHopf(np.array(loc))
+        color = cm(dir[2]/(-1*int.BHopf(np.array((0,0,0)))[2]))[:3]
+        print(color)
+        bz.vec(loc, dir, length=.5, color=color)
 
 '''
 
@@ -35,7 +43,7 @@ for x in np.linspace(-1.5,1.5,15):
 # - 3) Check user input.
 # - 4) Add documentation.
 
-def vec(root_point, direction, length, alpha=None, color=None ):
+def vec(root_point, direction, length, alpha=None, color=None, thin=None):
     """
     add a 3d vector mesh at a location in your scene
 
@@ -54,6 +62,9 @@ def vec(root_point, direction, length, alpha=None, color=None ):
 
     *color*:
       The color of the arrow
+
+    *thin*:
+        thinning factor, will make the arrow this much thinner
     """
     import inspect
 
@@ -86,19 +97,18 @@ class arrow(object):
         import numpy as np
         from mathutils import Vector
         import matplotlib.cm as cm
-        #checks on input
         #deselect all objects
         bpy.ops.object.select_all(action='DESELECT')
 
-        if not isinstance(self.root_point, tuple):
-            print("Error: root_point not a tuple of numbers.")
+        if not isinstance(self.root_point, tuple) and not isinstance(self.root_point, np.ndarray):
+            print("Error: root_point not a tuple of numbers or ndarray.")
             return -1
 
 
         if not self.mesh_object is None:
-            bpy.ops.obj.select_all(action='DESELECT') # don't you always need to deselect?
+            bpy.ops.object.select_all(action='DESELECT') # don't you always need to deselect?
             self.mesh_object.select = True
-            bpy.ops.obj.delete()
+            bpy.ops.object.delete()
             self.mesh_object = None
 
         # Delete existing materials.
@@ -114,13 +124,13 @@ class arrow(object):
 
 
 
-        self.mesh_object = bpy.data.objects.new("vector", bpy.data.objects['arrow_Mesh'].data)
-        self.mesh_data = self.mesh_object.data
+        self.mesh_data = bpy.data.objects['arrow_Mesh'].data.copy()
+        self.mesh_object = bpy.data.objects.new("vector", self.mesh_data )
         self.mesh_object.select = True
 
         # Assign a material to the surface.
         self.mesh_material = bpy.data.materials.new('MaterialMesh')
-        self.mesh_data.materials.append(self.mesh_material)
+        self.mesh_data.materials.append(self.mesh_material) # inherits previous material, changing this probably changes all?
 
 
         # Make root_point and direction mathutil.Vector type vectors
@@ -128,6 +138,11 @@ class arrow(object):
         self.direction = Vector(self.direction)
         self.direction.normalize()
 
+        bpy.context.scene.objects.link(self.mesh_object)
+        if self.thin is not None:
+            #print('thinning...')
+            bpy.ops.transform.resize(value=(self.thin, 1, 1))
+            bpy.ops.transform.resize(value=(1/self.thin, 1/self.thin, 1/self.thin))
         # rotate using Quaternions! Why Quaternions? Because awesome!
         self.mesh_object.location = self.root_point
         self.mesh_object.rotation_mode = 'QUATERNION'
@@ -144,15 +159,26 @@ class arrow(object):
             else:
                 from . import colors
                 color_rgb = colors.string_to_rgb(self.color)
-        print(color_rgb)
         self.mesh_material.diffuse_color = color_rgb
         self.mesh_object.active_material = self.mesh_material
 
-
-
-        bpy.context.scene.objects.link(self.mesh_object)
         bpy.ops.transform.resize(value=(self.length, self.length, self.length))
 
+
+
+    def change_loc(self, newroot):
+        """
+        updates the location of an existing vector.
+        *root_point*:
+            The location where the vector is 'rooted'
+        """
+        import numpy as np
+        from mathutils import Vector
+        if not isinstance(newroot, tuple) and not isinstance(newroot, np.ndarray):
+            print("Error: root_point not a tuple of numbers or ndarray.")
+            return -1
+        self.root_point = Vector(newroot)
+        self.mesh_object.location = self.root_point
 
 
 
