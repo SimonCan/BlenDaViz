@@ -32,7 +32,7 @@ vol.plot()
 # streamlines:
 # - 1) Different metrics.
 
-def vol(phi, x, y, z, alpha=None, color_map=None):
+def vol(phi, x, y, z, emission=None, color_map=None):
     """
     Plot a 3d volume rendering of a scalar field.
 
@@ -48,11 +48,11 @@ def vol(phi, x, y, z, alpha=None, color_map=None):
     *x, y, z*:
       1d arrays for the coordinates.
 
-    *alpha*:
-      1d array of floats between 0 and 1 containing the alpha values for phi.
-      If specified as 2d array fo shape [2, n_alpha] the value of phi
-      for which the alpha is true is used. Those phis must be monotonously
-      increasing.
+    *emission*:
+      1d or 2d array of floats containing the emission values for phi.
+      If specified as 2d array fo shape [2, n_emission] the emission[0, :] are the values
+      phi which must be monotonously increasing and emission[1, ;] are their corresponding
+      emission values.
 
     *color_map*:
       Color map for the values stored in the array 'c'.
@@ -84,8 +84,10 @@ class Volume(object):
         self.x = 0
         self.y = 0
         self.z = 0
-        self.alpha = None
+        self.emission = None
         self.color_map = None
+        self.mesh_object = None
+        self.mesh_material = None
 
 
     def plot(self):
@@ -103,10 +105,10 @@ class Volume(object):
             print("Error: x OR y OR z array invalid.")
             return -1
         if not isinstance(self.phi, np.ndarray):
-            print("Error: phi must be array.")
+            print("Error: phi must be numpy array.")
             return -1
-        if not isinstance(self.alpha, np.ndarray):
-            print("Error: alpha must be array.")
+        if not isinstance(self.emission, np.ndarray):
+            print("Error: emission must be numpy array.")
             return -1
 
         # Using volumetric textures or voxels?
@@ -122,91 +124,56 @@ class Volume(object):
         if not self.mesh_material is None:
             bpy.data.materials.remove(self.mesh_material)
 
-        # Create the vertices from the data.
-        vertices = []
-        for idx in range(self.x.size):
-            vertices.append((self.x.flatten()[idx], self.y.flatten()[idx], self.z.flatten()[idx]))
+        # Create cuboid.
+        bpy.ops.mesh.primitive_cube_add()
+        self.mesh_object = bpy.context.object
 
-        # Create the faces from the data.
-        faces = []
-        count = 0
-        for idx in range((self.x.shape[0]-1)*(self.x.shape[1])):
-            if count < self.x.shape[1]-1:
-                faces.append((idx, idx+1, (idx+self.x.shape[1])+1, (idx+self.x.shape[1])))
-                count += 1
-            else:
-                count = 0
+        # Define the RGB value for each voxel.
+        phi_max = np.max(self.phi)
+        phi_min = np.min(self.phi)
+        if self.color_map is None:
+            self.color_map = cm.viridis
+        pixels[0::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 0]
+        pixels[1::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 1]
+        pixels[2::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 2]
 
-        # Create mesh and object.
-        self.mesh_data = bpy.data.meshes.new("DataMesh")
-        self.mesh_object = bpy.data.objects.new("ObjMesh", self.mesh_data)
-        self.mesh_object.select = True
-
-        # Create mesh from the given data.
-        self.mesh_data.from_pydata(vertices, [], faces)
-        self.mesh_data.update(calc_edges=True)
-
-        # Assign a material to the surface.
-        self.mesh_material = bpy.data.materials.new('MaterialMesh')
-        self.mesh_data.materials.append(self.mesh_material)
-
-        # Create the texture.
-        if isinstance(self.c, np.ndarray):
-            mesh_image = bpy.data.images.new('ImageMesh', self.c.shape[0], self.c.shape[1])
-            pixels = np.array(mesh_image.pixels)
-            c_max = np.max(self.c)
-            c_min = np.min(self.c)
-
-            # Assign the RGBa values to the pixels.
-            if self.color_map is None:
-                self.color_map = cm.viridis
-            pixels[0::4] = self.color_map((self.c.flatten() - c_min)/(c_max - c_min))[:, 0]
-            pixels[1::4] = self.color_map((self.c.flatten() - c_min)/(c_max - c_min))[:, 1]
-            pixels[2::4] = self.color_map((self.c.flatten() - c_min)/(c_max - c_min))[:, 2]
-            pixels[3::4] = 1
-            mesh_image.pixels[:] = np.swapaxes(pixels.reshape([self.x.shape[0],
-                                                               self.x.shape[1], 4]), 0, 1).flatten()[:]
-
-            # Assign the texture to the material.
-            self.mesh_material.use_nodes = True
-            self.mesh_texture = self.mesh_material.node_tree.nodes.new('ShaderNodeTexImage')
-            self.mesh_texture.image = mesh_image
-            links = self.mesh_material.node_tree.links
-            link = links.new(self.mesh_texture.outputs[0],
-                             self.mesh_material.node_tree.nodes.get("Diffuse BSDF").inputs[0])
-
-            # Link the mesh object with the scene.
-            bpy.context.scene.objects.link(self.mesh_object)
-
-            # UV mapping for the new texture.
-            bpy.context.scene.objects.active = self.mesh_object
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.uv.unwrap(method='ANGLE_BASED', margin=0)
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-            # UV mapping of the material on the mesh.
-            polygon_idx = 0
-            for polygon in self.mesh_object.data.polygons:
-                for idx in polygon.loop_indices:
-                    x_idx = polygon_idx // (self.x.shape[1] - 1)
-                    y_idx = polygon_idx % (self.x.shape[1] - 1)
-                    if (idx-4*polygon_idx) == 1 or (idx-4*polygon_idx) == 2:
-                        y_idx += 1
-                    if (idx-4*polygon_idx) == 2 or (idx-4*polygon_idx) == 3:
-                        x_idx += 1
-                    uv_new = np.array([(float(x_idx)+0.5)/self.x.shape[0],
-                                       (float(y_idx)+0.5)/self.x.shape[1]])
-                    self.mesh_object.data.uv_layers[0].data[idx].uv[0] = uv_new[0]
-                    self.mesh_object.data.uv_layers[0].data[idx].uv[1] = uv_new[1]
-                polygon_idx += 1
+        # Define the emission for each voxel.
+        emission = np.zeros_like(self.phi)
+        if self.emission.ndim == 1:
+            phi_emission = np.zeros([2, self.emission.size])
+            phi_emission[0, :] = np.linspace(self.phi.min(), self.size.max(), self.emission.size)
+            phi_emission[1, :] = self.emission
         else:
-            # Transform color string into rgb.
-            from . import colors
+            phi_emission = self.emission
 
-            print(colors.string_to_rgb(self.c))
-            self.mesh_material.diffuse_color = colors.string_to_rgb(self.c)
+        for emission_idx in self.emission.shape[-1]-1:
+            mask = self.phi >= phi_emission[0, emission_idx] and self.phi < phi_emission[0, emission_idx+1]
+            weight_left = self.phi[mask] - phi_emission[0, emission_idx]
+            weight_right = -self.phi[mask] + phi_emission[0, emission_idx+1]
+            emission[mask] = (weight_left*phi_emission[1, emission_idx] + weight_right*phi_emission[1, emission_idx+1]) \
+                             /(weight_left + weight_right)
+        del(emission)
 
-            # Link the mesh object with the scene.
-            bpy.context.scene.objects.link(self.mesh_object)
+        # Assign a material to the cuboid.
+        self.mesh_material = bpy.data.materials.new('MaterialMesh')
+        self.mesh_material.use_nodes = True
+
+        # Add the RGB and emission values to the material.
+        nodes = node_tree.nodes
+        # Remove diffusive BSDF node.
+        nodes.remove(nodes[1])
+        # Add the emission shader.
+        node_emission = nodes.new(type='ShaderNodeEmission')
+        # Link the emission output to the material output.
+        node_tree.links.new(node_emission.outputs['Emission'],
+                            nodes[0].inputs['Volume'])
+        # Add the RGB source node.
+
+        # Link the RGB output to the emission shader  color input.
+
+        # Add the emission source node.
+
+        # Link the emission output to the emission shader strength input.
+
 
         return 0
