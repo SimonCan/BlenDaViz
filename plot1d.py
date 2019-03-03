@@ -249,9 +249,12 @@ class PathLine(object):
 
             # Set the material/color.
             self.mesh_material = bpy.data.materials.new('material')
-            self.mesh_material.alpha = self.alpha
             self.mesh_material.diffuse_color = color_rgb
             self.mesh_material.roughness = self.roughness
+            self.mesh_material.alpha = self.alpha
+            if self.alpha < 1.0:
+                self.mesh_material.transparency_method = 'Z_TRANSPARENCY'
+                self.mesh_material.use_transparency = True
             self.curve_object.active_material = self.mesh_material
 
             # Set the emission.
