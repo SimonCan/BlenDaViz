@@ -184,7 +184,6 @@ class Volume(object):
 Test:
 import numpy as np
 import importlib
-importlib.reload(blt)
 x = np.linspace(-2, 2, 5)
 y = np.linspace(-2, 2, 5)
 z = np.linspace(-2, 2, 5)
@@ -194,7 +193,10 @@ w = np.array([0, 0, 1, 0, 1])
 import blendaviz as blt
 importlib.reload(blt)
 importlib.reload(blt.plot3d)
-qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=np.random.random([5]))
+qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='magnitude')
+qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red')
+qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=['r', 'b', 'green', 'y', 'black'])
+qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=np.random.random(len(x)))
 '''
 
 # TODO:
@@ -298,7 +300,7 @@ class Quiver3d(object):
         import bpy
         import numpy as np
         from mathutils import Vector
-#        from . import colors
+        from . import colors
         import matplotlib.cm as cm
 
         # Check the validity of the input arrays.
@@ -368,9 +370,8 @@ class Quiver3d(object):
                     self.vmin = self.color.min()
                 if self.vmax == None:
                     self.vmax = self.color.max()
-            color_rgb = np.zeros([self.x.shape[0], 3])
-            color_rgb = self.color_map((self.color - self.vmin)/(self.vmax - self.vmin))[:, :3]
-            self.mesh_material = []
+                color_rgb = np.zeros([self.x.shape[0], 3])
+                color_rgb = self.color_map((self.color - self.vmin)/(self.vmax - self.vmin))[:, :3]
         elif self.color == 'magnitude':
             if self.color_map is None:
                 self.color_map = cm.viridis
@@ -380,24 +381,30 @@ class Quiver3d(object):
             if self.vmax == None:
                 self.vmax = magnitude.max()
             color_rgb = np.zeros([self.x.shape[0], 3])
-            color_rgb = self.color_map((magnitude - self.min)/(self.vmax - self.min))[:, :3]
-            self.mesh_material = []
+            color_rgb = self.color_map((magnitude - self.vmin)/(self.vmax - self.vmin))[:, :3]
 
-#        # Transform color string into rgb.
-#        color_rgb = self.color
-#        if isinstance(self.color, np.ndarray):
-#            if self.color.shape[0] != self.x.size:
-#                print("Error: the size of the color array does not match.")
-#                return -1
-#            color_rgb = np.zeros([self.color.shape[0], 3])
-#            for color_index, color_string in enumerate(self.color):
-#                if isinstance(color_string, str):
-#                    color_rgb[color_index, :] = colors.string_to_rgb(color_string)
-#                else:
-#                    color_rgb[color_index, :] = self.color[color_index, :]
-#        else:
-#            if isinstance(self.color, str):
-#                color_rgb = colors.string_to_rgb(self.color)
+        # Copy rgb values if given.
+        if isinstance(self.color, np.ndarray):
+            if self.color.ndim == 2:
+                color_rgb = self.color
+
+        # Transform color string into rgb.
+        if isinstance(self.color, list):
+            if len(self.color) != self.x.size:
+                return -1
+            color_rgb = np.zeros([len(self.color), 3])
+            for color_index, color_string in enumerate(self.color):
+                if isinstance(color_string, str):
+                    color_rgb[color_index, :] = colors.string_to_rgb(color_string)
+                elif len(color_string) == 3:
+                    color_rgb[color_index, :] = self.color[color_index]
+        else:
+            if isinstance(self.color, str):
+                if self.color != 'magnitude':
+                    color_rgb = colors.string_to_rgb(self.color)
+
+        # Prepare the materials list.
+        self.mesh_material = []
 
         # Plot the arrows.
         for idx in range(len(self.x)):
@@ -445,15 +452,16 @@ class Quiver3d(object):
             self.arrow_mesh.append(bpy.context.object)
 
             # Set the material/color.
-            self.mesh_material.append(bpy.data.materials.new('material'))
-            self.mesh_material[idx].diffuse_color = color_rgb[idx, :]
-            self.arrow_mesh[2*idx].active_material = self.mesh_material[idx]
-            self.arrow_mesh[2*idx+1].active_material = self.mesh_material[idx]
-
-#            if color_is_array:
-#                self.mesh_material[idx].diffuse_color = tuple(color_rgb[idx])
-#            else:
-#                self.mesh_material[idx].diffuse_color = color_rgb
+            if isinstance(color_rgb, np.ndarray):
+                self.mesh_material.append(bpy.data.materials.new('material'))
+                self.mesh_material[idx].diffuse_color = color_rgb[idx, :]
+                self.arrow_mesh[2*idx].active_material = self.mesh_material[idx]
+                self.arrow_mesh[2*idx+1].active_material = self.mesh_material[idx]
+            elif idx == 0:
+                self.mesh_material.append(bpy.data.materials.new('material'))
+                self.mesh_material[0].diffuse_color = color_rgb
+                self.arrow_mesh[2*idx].active_material = self.mesh_material[0]
+                self.arrow_mesh[2*idx+1].active_material = self.mesh_material[0]
 
         # Group the meshes together.
         for mesh in self.arrow_mesh[::-1]:
