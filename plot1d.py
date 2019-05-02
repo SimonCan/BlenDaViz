@@ -137,9 +137,9 @@ class PathLine(object):
 
 
     def plot(self):
-        '''
+        """
         Plot a as a line, tube or shapes.
-        '''
+        """
 
         import bpy
         import numpy as np
@@ -258,7 +258,7 @@ class PathLine(object):
             self.curve_object.active_material = self.mesh_material
 
             # Set the emission.
-            if not self.emission == None:
+            if not self.emission is None:
                 self.mesh_material.use_nodes = True
                 node_tree = self.mesh_material.node_tree
                 nodes = node_tree.nodes
@@ -311,9 +311,9 @@ class PathLine(object):
         if self.marker == 'torus':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_torus_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                major_radius=self.radius[idx], minor_radius=0.25*self.radius[idx],
-                                                abso_major_rad=1.25*self.radius[idx], abso_minor_rad=0.75*self.radius[idx],
-                                                rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
+                                                 major_radius=self.radius[idx], minor_radius=0.25*self.radius[idx],
+                                                 abso_major_rad=1.25*self.radius[idx], abso_minor_rad=0.75*self.radius[idx],
+                                                 rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'uv_sphere':
             for idx in range(len(self.x)):
@@ -321,7 +321,7 @@ class PathLine(object):
                                                      size=self.radius[idx],
                                                      rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
-        if type(self.marker) == bpy.types.Object:
+        if isinstance(self.marker, bpy.types.Object):
             if self.marker.type == 'MESH':
                 bpy.context.object.select = False
                 self.marker.select = True
@@ -387,7 +387,7 @@ class PathLine(object):
                 self.mesh_material.diffuse_color = color_rgb
                 self.mesh_material.roughness = self.roughness
 
-                if not self.emission == None:
+                if not self.emission is None:
                     self.mesh_material.use_nodes = True
                     node_tree = self.mesh_material.node_tree
                     nodes = node_tree.nodes
@@ -424,6 +424,4 @@ class PathLine(object):
         # Switch back to original mode.
 #        bpy.ops.object.mode_xset(mode=current_mode)
 
-
-
-
+        return 0

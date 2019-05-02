@@ -11,8 +11,11 @@ Created on Wed Dec 16 10:34:00 2018
 Test:
 import numpy as np
 import importlib
+import sys
+sys.path.append('~/codes/blendaviz')
 import blender as blt
 importlib.reload(blt.plot3d)
+importlib.reload(blt.colors)
 importlib.reload(blt)
 x0 = np.linspace(-3, 3, 20)
 y0 = np.linspace(-3, 3, 20)
@@ -91,9 +94,9 @@ class Volume(object):
 
 
     def plot(self):
-        '''
+        """
         Plot the 3d texture.
-        '''
+        """
 
         import bpy
         import numpy as np
@@ -101,7 +104,7 @@ class Volume(object):
 
         # Check the validity of the input arrays.
         if (not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray)
-            or not isinstance(self.z, np.ndarray)):
+                or not isinstance(self.z, np.ndarray)):
             print("Error: x OR y OR z array invalid.")
             return -1
         if not isinstance(self.phi, np.ndarray):
@@ -150,7 +153,8 @@ class Volume(object):
             mask = self.phi >= phi_emission[0, emission_idx] and self.phi < phi_emission[0, emission_idx+1]
             weight_left = self.phi[mask] - phi_emission[0, emission_idx]
             weight_right = -self.phi[mask] + phi_emission[0, emission_idx+1]
-            emission[mask] = (weight_left*phi_emission[1, emission_idx] + weight_right*phi_emission[1, emission_idx+1]) \
+            emission[mask] = (weight_left*phi_emission[1, emission_idx] + \
+                              weight_right*phi_emission[1, emission_idx+1]) \
                              /(weight_left + weight_right)
         del(emission)
 
@@ -190,11 +194,16 @@ z = np.linspace(-2, 2, 5)
 u = np.array([1, 0, 0, 1, 0])
 v = np.array([0, 1, 0, 1, 1])
 w = np.array([0, 0, 1, 0, 1])
+import sys
+sys.path.append('~/codes/blendaviz')
 import blendaviz as blt
 importlib.reload(blt)
 importlib.reload(blt.plot3d)
+importlib.reload(blt.colors)
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='magnitude')
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red')
+qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red', alpha=np.random.random(5))
+qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red', emission=np.random.random(5))
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=['r', 'b', 'green', 'y', 'black'])
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=np.random.random(len(x)))
 '''
@@ -220,7 +229,9 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
     call signature:
 
     quiver(x, y, z, u, v, w, pivot='middle', length=1,
-           radius_shaft=0.25, radius_tip=0.5)
+           radius_shaft=0.25, radius_tip=0.5,
+           color=(0, 1, 2), alpha=1, emission=None, roughness=1,
+           vmin=None, vmax=None, color_map=None)
 
     Keyword arguments:
     *x, y, z*:
@@ -314,15 +325,14 @@ class Quiver3d(object):
 
 
     def plot(self):
-        '''
+        """
         Plot the arrows.
-        '''
+        """
 
         import bpy
         import numpy as np
         from mathutils import Vector
         from . import colors
-        import matplotlib.cm as cm
 
         # Check the validity of the input arrays.
         if not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray) \
@@ -382,47 +392,12 @@ class Quiver3d(object):
             else:
                 bpy.data.materials.remove(self.mesh_material)
 
-        # Assign the colormap to the rgb values.
-        if isinstance(self.color, np.ndarray):
-            if self.color.ndim == 1:
-                if self.color_map is None:
-                    self.color_map = cm.viridis
-                if self.vmin == None:
-                    self.vmin = self.color.min()
-                if self.vmax == None:
-                    self.vmax = self.color.max()
-                color_rgb = np.zeros([self.x.shape[0], 3])
-                color_rgb = self.color_map((self.color - self.vmin)/(self.vmax - self.vmin))[:, :3]
-        elif self.color == 'magnitude':
-            if self.color_map is None:
-                self.color_map = cm.viridis
-            magnitude = np.sqrt(self.u**2 + self.v**2 + self.w**2)
-            if self.vmin == None:
-                self.vmin = magnitude.min()
-            if self.vmax == None:
-                self.vmax = magnitude.max()
-            color_rgb = np.zeros([self.x.shape[0], 3])
-            color_rgb = self.color_map((magnitude - self.vmin)/(self.vmax - self.vmin))[:, :3]
-
-        # Copy rgb values if given.
-        if isinstance(self.color, np.ndarray):
-            if self.color.ndim == 2:
-                color_rgb = self.color
-
-        # Transform color string into rgb.
-        if isinstance(self.color, list):
-            if len(self.color) != self.x.size:
-                return -1
-            color_rgb = np.zeros([len(self.color), 3])
-            for color_index, color_string in enumerate(self.color):
-                if isinstance(color_string, str):
-                    color_rgb[color_index, :] = colors.string_to_rgb(color_string)
-                elif len(color_string) == 3:
-                    color_rgb[color_index, :] = self.color[color_index]
-        else:
-            if isinstance(self.color, str):
-                if self.color != 'magnitude':
-                    color_rgb = colors.string_to_rgb(self.color)
+        # Prepare the material colors.
+        if isinstance(self.color, str):
+            if self.color == 'magnitude':
+                self.color = np.sqrt(self.u**2 + self.v**2 + self.w**2)
+        color_rgb = colors.make_rgb_array(self.color, self.x.shape[0],
+                                          self.color_map, self.vmin, self.vmax)
 
         # Prepare the materials list.
         self.mesh_material = []
@@ -472,7 +447,7 @@ class Quiver3d(object):
                                             location=location+normed*length/4, rotation=rotation)
             self.arrow_mesh.append(bpy.context.object)
 
-            self.__set_material(idx)
+            self.__set_material(idx, color_rgb)
 
         # Group the meshes together.
         for mesh in self.arrow_mesh[::-1]:
@@ -481,17 +456,28 @@ class Quiver3d(object):
         self.arrow_mesh = bpy.context.object
         self.arrow_mesh.select = False
 
+        return 0
 
-    def __set_material(self, idx):
-        '''
+
+    def __set_material(self, idx, color_rgb):
+        """
         Set the mesh material.
-        '''
+
+        call signature:
+
+        __set_material(idx, color_rgb):
+
+        Keyword arguments:
+
+        *idx*:
+          Index of the material.
+
+        *color_rgb*:
+          The rgb values of the colors to be used.
+        """
 
         import bpy
         import numpy as np
-        from mathutils import Vector
-        from . import colors
-        import matplotlib.cm as cm
 
         # Deterimne if we need a list of materials, i.e. for every arrow mesh one.
         if any([isinstance(self.color, np.ndarray),
@@ -502,6 +488,20 @@ class Quiver3d(object):
         else:
             list_material = False
 
+        # Transform single values to arrays.
+        if list_material:
+            if color_rgb.shape[0] != self.x.shape[0]:
+                print('color_rgb.shape = {0}'.format(color_rgb.shape))
+                color_rgb = np.repeat(color_rgb, self.x.shape[0], axis=0)
+                print('color_rgb.shape = {0}'.format(color_rgb.shape))
+            if not isinstance(self.alpha, np.ndarray):
+                self.alpha = np.ones(self.x.shape[0])*self.alpha
+            if not isinstance(self.roughness, np.ndarray):
+                self.roughness = np.ones(self.x.shape[0])*self.roughness
+            if not self.emission is None:
+                if not isinstance(self.emission, np.ndarray):
+                    self.emission = np.ones(self.x.emission[0])*self.emission
+
         # Set the material.
         if list_material:
             self.mesh_material.append(bpy.data.materials.new('material'))
@@ -510,47 +510,74 @@ class Quiver3d(object):
         else:
             if idx == 0:
                 self.mesh_material.append(bpy.data.materials.new('material'))
-                self.mesh_material[0].diffuse_color = color_rgb
+                self.mesh_material[0].diffuse_color = color_rgb[idx]
             self.arrow_mesh[2*idx].active_material = self.mesh_material[0]
             self.arrow_mesh[2*idx+1].active_material = self.mesh_material[0]
 
-        # Set the color.
+        # Set the diffusive color.
         if list_material:
-            self.mesh_material[idx].diffuse_color = color_rgb[idx, :]
+            self.mesh_material[idx].diffuse_color = color_rgb[idx]
         else:
+            self.mesh_material[0].diffuse_color = color_rgb[0]
 
         # Set the material alpha value.
-        if isinstance(self.alpha, np.ndarray):
-            self.mesh_material[idx].alpha = self.alpha[idx]
-            if self.alpha[idx] < 1.0:
-                self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
-                self.mesh_material[idx].use_transparency = True
+        if list_material:
+            if isinstance(self.alpha, np.ndarray):
+                self.mesh_material[idx].alpha = self.alpha[idx]
+                if self.alpha[idx] < 1.0:
+                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
+                    self.mesh_material[idx].use_transparency = True
+            else:
+                self.mesh_material[idx].alpha = self.alpha
+                if self.alpha < 1.0:
+                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
+                    self.mesh_material[idx].use_transparency = True
         elif idx == 0:
-            self.mesh_material.alpha = self.alpha
+            self.mesh_material[0].alpha = self.alpha
             if self.alpha < 1.0:
-                self.mesh_material.transparency_method = 'Z_TRANSPARENCY'
-                self.mesh_material.use_transparency = True
+                self.mesh_material[0].transparency_method = 'Z_TRANSPARENCY'
+                self.mesh_material[0].use_transparency = True
 
         # Set the material roughness.
-        if isinstance(self.roughness, np.ndarray):
-            self.mesh_material[idx].roughness = self.roughness[idx]
+        if list_material:
+            if isinstance(self.roughness, np.ndarray):
+                self.mesh_material[idx].roughness = self.roughness[idx]
+            else:
+                self.mesh_material[idx].roughness = self.roughness
         elif idx == 0:
-            self.mesh_material.roughness = self.roughness
+            self.mesh_material[0].roughness = self.roughness
 
         # Set the material emission.
-        if isinstance(self.emission, np.ndarray):
-            self.mesh_material[idx].use_nodes = True
-            node_tree = self.mesh_material[idx].node_tree
-            nodes = node_tree.nodes
-            # Remove and Diffusive BSDF node.
-            nodes.remove(nodes[1])
-            node_emission = nodes.new(type='ShaderNodeEmission')
-            # Change the input of the ouput node to emission.
-            node_tree.links.new(node_emission.outputs['Emission'],
-                                nodes[0].inputs['Surface'])
-            # Adapt emission and color.
-            if color_is_array:
+        if not self.emission is None:
+            if list_material:
+                self.mesh_material[idx].use_nodes = True
+                node_tree = self.mesh_material[idx].node_tree
+                nodes = node_tree.nodes
+                # Remove Diffusive BSDF node.
+                nodes.remove(nodes[1])
+                node_emission = nodes.new(type='ShaderNodeEmission')
+                # Change the input of the ouput node to emission.
+                node_tree.links.new(node_emission.outputs['Emission'],
+                                    nodes[0].inputs['Surface'])
+                # Adapt emission and color.
                 node_emission.inputs['Color'].default_value = tuple(color_rgb[idx]) + (1, )
+                if isinstance(self.emission, np.ndarray):
+                    node_emission.inputs['Strength'].default_value = self.emission[idx]
+                else:
+                    node_emission.inputs['Strength'].default_value = self.emission
             else:
-                node_emission.inputs['Color'].default_value = color_rgb + (1, )
-            node_emission.inputs['Strength'].default_value = self.emission[idx]
+                self.mesh_material[0].use_nodes = True
+                node_tree = self.mesh_material[0].node_tree
+                nodes = node_tree.nodes
+                # Remove Diffusive BSDF node.
+                nodes.remove(nodes[1])
+                node_emission = nodes.new(type='ShaderNodeEmission')
+                # Change the input of the ouput node to emission.
+                node_tree.links.new(node_emission.outputs['Emission'],
+                                    nodes[0].inputs['Surface'])
+                # Adapt emission and color.
+                node_emission.inputs['Color'].default_value = color_rgb[idx] + (1, )
+                if isinstance(self.emission, np.ndarray):
+                    node_emission.inputs['Strength'].default_value = self.emission
+                else:
+                    node_emission.inputs['Strength'].default_value = self.emission

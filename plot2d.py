@@ -7,11 +7,11 @@ Created on Wed Oct 31 20:30:00 2018
 @author: Simon Candelaresi
 """
 
+
 '''
 Test:
 import sys
-sys.path.insert(0, '/home/iomsn/python')
-
+sys.path.append('~/codes/blendaviz')
 import numpy as np
 import importlib
 import blender as blt
@@ -96,9 +96,9 @@ class Surface(object):
 
 
     def plot(self):
-        '''
+        """
         Plot the 2d mesh.
-        '''
+        """
 
         import bpy
         import numpy as np
@@ -191,8 +191,8 @@ class Surface(object):
             self.mesh_texture = self.mesh_material.node_tree.nodes.new('ShaderNodeTexImage')
             self.mesh_texture.image = mesh_image
             links = self.mesh_material.node_tree.links
-            link = links.new(self.mesh_texture.outputs[0],
-                             self.mesh_material.node_tree.nodes.get("Diffuse BSDF").inputs[0])
+            links.new(self.mesh_texture.outputs[0],
+                      self.mesh_material.node_tree.nodes.get("Diffuse BSDF").inputs[0])
 
             # Link the mesh object with the scene.
             bpy.context.scene.objects.link(self.mesh_object)
