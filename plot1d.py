@@ -25,7 +25,7 @@ pl.z = np.linspace(0, 1, 5)
 pl.plot()
 '''
 
-def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1), alpha=1,
+def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1), #alpha=1,
          emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
          marker=None, marker_orientation=(0, 0), layers=None):
     """
@@ -33,7 +33,7 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1), alpha=1,
 
     call signature:
 
-    plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0), alpha=1,
+    plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
          emission=None, rotation_x=0, rotation_y=0, rotation_z=0,
          roughness=1, marker='sphere', marker_orientation=(0, 0))
 
@@ -60,12 +60,9 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1), alpha=1,
       e.g. 'red' or character, e.g. 'r', or n-array of strings/character,
       or [n, 3] array with rgb values.
 
-    *alpha*:
-      Alpha (opacity) value for the line/markers.
-      Real number or array.
 
     *emission*
-      Light emission by the line or markers. This overrides 'alpha'
+      Light emission by the line or markers.
       and 'roughness'.
       Real number for a line plot and array for markers.
 
@@ -122,7 +119,6 @@ class PathLine(object):
         self.rotation_z = 0
         self.rotation = (0, 0, 0)
         self.color = (0, 1, 0, 1)
-        self.alpha = 1.0
         self.roughness = 1.0
         self.emission = None
         self.marker = None
@@ -251,10 +247,11 @@ class PathLine(object):
             self.mesh_material = bpy.data.materials.new('material')
             self.mesh_material.diffuse_color = color_rgba
             self.mesh_material.roughness = self.roughness
-            self.mesh_material.alpha = self.alpha
-            if self.alpha < 1.0:
-                self.mesh_material.transparency_method = 'Z_TRANSPARENCY'
-                self.mesh_material.use_transparency = True
+            #alpha handling has been changed, not sure if correct
+            #self.mesh_material.alpha = self.alpha
+#            if self.color[-1] < 1.0:
+#                self.mesh_material.transparency_method = 'Z_TRANSPARENCY'
+#                self.mesh_material.use_transparency = True
             self.curve_object.active_material = self.mesh_material
 
             # Set the emission.
@@ -269,11 +266,11 @@ class PathLine(object):
                 node_tree.links.new(node_emission.outputs['Emission'],
                                     nodes[0].inputs['Surface'])
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = color_rgba + (1, )
+                node_emission.inputs['Color'].default_value = color_rgba
                 node_emission.inputs['Strength'].default_value = self.emission
 
             # Link the curve object with the scene.
-            bpy.context.scene.objects.link(self.curve_object)
+            bpy.context.scene.collection.objects.link(self.curve_object)
 
         # Plot the markers.
         if not self.marker is None:
@@ -339,7 +336,7 @@ class PathLine(object):
                 if color_rgba.ndim == 2:
                     color_is_array = True
 
-            if any([isinstance(self.alpha, np.ndarray),
+            if any([#isinstance(self.alpha, np.ndarray),
                     color_is_array,
                     isinstance(self.roughness, np.ndarray),
                     isinstance(self.emission, np.ndarray)]):
@@ -348,10 +345,10 @@ class PathLine(object):
                 for idx in range(len(self.x)):
                     self.mesh_material.append(bpy.data.materials.new('material'))
 
-                    if isinstance(self.alpha, np.ndarray):
-                        self.mesh_material[idx].alpha = self.alpha[idx]
-                    else:
-                        self.mesh_material[idx].alpha = self.alpha
+#                    if isinstance(self.alpha, np.ndarray):
+#                        self.mesh_material[idx].alpha = self.alpha[idx]
+#                    else:
+#                        self.mesh_material[idx].alpha = self.alpha
 
                     if color_is_array:
                         self.mesh_material[idx].diffuse_color = tuple(color_rgba[idx])
@@ -383,7 +380,7 @@ class PathLine(object):
                     self.marker_mesh[idx].active_material = self.mesh_material[idx]
             else:
                 self.mesh_material = bpy.data.materials.new('material')
-                self.mesh_material.alpha = self.alpha
+                #self.mesh_material.alpha = self.alpha
                 self.mesh_material.diffuse_color = color_rgba
                 self.mesh_material.roughness = self.roughness
 

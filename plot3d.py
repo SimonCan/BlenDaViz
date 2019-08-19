@@ -211,7 +211,6 @@ qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=np.random.random(len(x)))
 # TODO:
 # + 1) Add color option and color according to length or scalar field.
 # + 2) vmax and vmin for colormap
-# - 3) Add alpha.
 # - 4) Scale length of arrows according to value.
 # - 4.1) Scale width of arrows according to value.
 # - 5) stem thickness
@@ -221,7 +220,7 @@ qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=np.random.random(len(x)))
 
 def quiver(x, y, z, u, v, w, pivot='middle', length=1,
            radius_shaft=0.25, radius_tip=0.5,
-           color=(0, 1, 0), alpha=1, emission=None, roughness=1,
+           color=(0, 1, 0, 1), emission=None, roughness=1,
            vmin=None, vmax=None, color_map=None):
     """
     Plot arrows for a given vector field.
@@ -230,7 +229,7 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
 
     quiver(x, y, z, u, v, w, pivot='middle', length=1,
            radius_shaft=0.25, radius_tip=0.5,
-           color=(0, 1, 0), alpha=1, emission=None, roughness=1,
+           color=(0, 1, 0), emission=None, roughness=1,
            vmin=None, vmax=None, color_map=None)
 
     Keyword arguments:
@@ -258,9 +257,9 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
       and multiply by 0.25 for radius_shaft and 0.5 for radius_tip.
 
     *color*:
-      rgb values of the form (r, g, b) with 0 <= r, g, b <= 1, or string,
+      rgba values of the form (r, g, b) with 0 <= r, g, b <= 1, or string,
       e.g. 'red' or character, e.g. 'r', or list of strings/character,
-      or [n, 3] array with rgb values or array of the same shape as input array
+      or [n, 3] array with rgba values or array of the same shape as input array
       or 'magnitude' (use vector length).
 
     *alpha*:
@@ -313,8 +312,7 @@ class Quiver3d(object):
         self.length = 1
         self.radius_shaft = 0.25
         self.radius_tip = 0.5
-        self.color = (0, 1, 0)
-        self.alpha = 1
+        self.color = (0, 1, 0, 1)
         self.emission = None
         self.roughness = 1
         self.vmin = None
@@ -396,7 +394,7 @@ class Quiver3d(object):
         if isinstance(self.color, str):
             if self.color == 'magnitude':
                 self.color = np.sqrt(self.u**2 + self.v**2 + self.w**2)
-        color_rgb = colors.make_rgb_array(self.color, self.x.shape[0],
+        color_rgba = colors.make_rgba_array(self.color, self.x.shape[0],
                                           self.color_map, self.vmin, self.vmax)
 
         # Prepare the materials list.
@@ -447,7 +445,7 @@ class Quiver3d(object):
                                             location=location+normed*length/4, rotation=rotation)
             self.arrow_mesh.append(bpy.context.object)
 
-            self.__set_material(idx, color_rgb)
+            self.__set_material(idx, color_rgba)
 
         # Group the meshes together.
         for mesh in self.arrow_mesh[::-1]:
@@ -459,21 +457,21 @@ class Quiver3d(object):
         return 0
 
 
-    def __set_material(self, idx, color_rgb):
+    def __set_material(self, idx, color_rgba):
         """
         Set the mesh material.
 
         call signature:
 
-        __set_material(idx, color_rgb):
+        __set_material(idx, color_rgba):
 
         Keyword arguments:
 
         *idx*:
           Index of the material.
 
-        *color_rgb*:
-          The rgb values of the colors to be used.
+        *color_rgba*:
+          The rgba values of the colors to be used.
         """
 
         import bpy
@@ -481,7 +479,6 @@ class Quiver3d(object):
 
         # Deterimne if we need a list of materials, i.e. for every arrow mesh one.
         if any([isinstance(self.color, np.ndarray),
-                isinstance(self.alpha, np.ndarray),
                 isinstance(self.emission, np.ndarray),
                 isinstance(self.roughness, np.ndarray)]):
             list_material = True
@@ -490,12 +487,10 @@ class Quiver3d(object):
 
         # Transform single values to arrays.
         if list_material:
-            if color_rgb.shape[0] != self.x.shape[0]:
-                print('color_rgb.shape = {0}'.format(color_rgb.shape))
-                color_rgb = np.repeat(color_rgb, self.x.shape[0], axis=0)
-                print('color_rgb.shape = {0}'.format(color_rgb.shape))
-            if not isinstance(self.alpha, np.ndarray):
-                self.alpha = np.ones(self.x.shape[0])*self.alpha
+            if color_rgba.shape[0] != self.x.shape[0]:
+                print('color_rgba.shape = {0}'.format(color_rgba.shape))
+                color_rgba = np.repeat(color_rgba, self.x.shape[0], axis=0)
+                print('color_rgba.shape = {0}'.format(color_rgba.shape))
             if not isinstance(self.roughness, np.ndarray):
                 self.roughness = np.ones(self.x.shape[0])*self.roughness
             if not self.emission is None:
@@ -510,15 +505,15 @@ class Quiver3d(object):
         else:
             if idx == 0:
                 self.mesh_material.append(bpy.data.materials.new('material'))
-                self.mesh_material[0].diffuse_color = color_rgb[idx]
+                self.mesh_material[0].diffuse_color = color_rgba[idx]
             self.arrow_mesh[2*idx].active_material = self.mesh_material[0]
             self.arrow_mesh[2*idx+1].active_material = self.mesh_material[0]
 
         # Set the diffusive color.
         if list_material:
-            self.mesh_material[idx].diffuse_color = color_rgb[idx]
+            self.mesh_material[idx].diffuse_color = color_rgba[idx]
         else:
-            self.mesh_material[0].diffuse_color = color_rgb[0]
+            self.mesh_material[0].diffuse_color = color_rgba[0]
 
         # Set the material alpha value.
         if list_material:
@@ -560,7 +555,7 @@ class Quiver3d(object):
                 node_tree.links.new(node_emission.outputs['Emission'],
                                     nodes[0].inputs['Surface'])
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = tuple(color_rgb[idx]) + (1, )
+                node_emission.inputs['Color'].default_value = tuple(color_rgba[idx]) + (1, )
                 if isinstance(self.emission, np.ndarray):
                     node_emission.inputs['Strength'].default_value = self.emission[idx]
                 else:
@@ -576,7 +571,7 @@ class Quiver3d(object):
                 node_tree.links.new(node_emission.outputs['Emission'],
                                     nodes[0].inputs['Surface'])
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = color_rgb[idx] + (1, )
+                node_emission.inputs['Color'].default_value = color_rgba[idx] + (1, )
                 if isinstance(self.emission, np.ndarray):
                     node_emission.inputs['Strength'].default_value = self.emission
                 else:
@@ -631,9 +626,9 @@ def contour(phi, x, y, z, contours=3,
       Number of contours to be plotted, or array of contour levels.
 
     *color*:
-      rgb values of the form (r, g, b) with 0 <= r, g, b <= 1, or string,
+      rgba values of the form (r, g, b) with 0 <= r, g, b <= 1, or string,
       e.g. 'red' or character, e.g. 'r', or list of strings/character,
-      or [n, 3] array with rgb values or array of the same shape as input array.
+      or [n, 3] array with rgba values or array of the same shape as input array.
 
     *alpha*:
       Alpha (opacity) value for the contours.
@@ -733,7 +728,7 @@ class Contour3d(object):
         if isinstance(self.color, str):
             if self.color == 'magnitude':
                 self.color = np.sqrt(self.u**2 + self.v**2 + self.w**2)
-        color_rgb = colors.make_rgb_array(self.color, self.x.shape[0],
+        color_rgba = colors.make_rgba_array(self.color, self.x.shape[0],
                                           self.color_map, self.vmin, self.vmax)
 
         # Prepare the materials list.
@@ -784,7 +779,7 @@ class Contour3d(object):
                                             location=location+normed*length/4, rotation=rotation)
             self.arrow_mesh.append(bpy.context.object)
 
-            self.__set_material(idx, color_rgb)
+            self.__set_material(idx, color_rgba)
 
         # Group the meshes together.
         for mesh in self.arrow_mesh[::-1]:
@@ -796,21 +791,21 @@ class Contour3d(object):
         return 0
 
 
-    def __set_material(self, idx, color_rgb):
+    def __set_material(self, idx, color_rgba):
         """
         Set the mesh material.
 
         call signature:
 
-        __set_material(idx, color_rgb):
+        __set_material(idx, color_rgba):
 
         Keyword arguments:
 
         *idx*:
           Index of the material.
 
-        *color_rgb*:
-          The rgb values of the colors to be used.
+        *color_rgba*:
+          The rgba values of the colors to be used.
         """
 
         import bpy
@@ -827,10 +822,10 @@ class Contour3d(object):
 
         # Transform single values to arrays.
         if list_material:
-            if color_rgb.shape[0] != self.x.shape[0]:
-                print('color_rgb.shape = {0}'.format(color_rgb.shape))
-                color_rgb = np.repeat(color_rgb, self.x.shape[0], axis=0)
-                print('color_rgb.shape = {0}'.format(color_rgb.shape))
+            if color_rgba.shape[0] != self.x.shape[0]:
+                print('color_rgba.shape = {0}'.format(color_rgba.shape))
+                color_rgba = np.repeat(color_rgba, self.x.shape[0], axis=0)
+                print('color_rgba.shape = {0}'.format(color_rgba.shape))
             if not isinstance(self.alpha, np.ndarray):
                 self.alpha = np.ones(self.x.shape[0])*self.alpha
             if not isinstance(self.roughness, np.ndarray):
@@ -847,15 +842,15 @@ class Contour3d(object):
         else:
             if idx == 0:
                 self.mesh_material.append(bpy.data.materials.new('material'))
-                self.mesh_material[0].diffuse_color = color_rgb[idx]
+                self.mesh_material[0].diffuse_color = color_rgba[idx]
             self.arrow_mesh[2*idx].active_material = self.mesh_material[0]
             self.arrow_mesh[2*idx+1].active_material = self.mesh_material[0]
 
         # Set the diffusive color.
         if list_material:
-            self.mesh_material[idx].diffuse_color = color_rgb[idx]
+            self.mesh_material[idx].diffuse_color = color_rgba[idx]
         else:
-            self.mesh_material[0].diffuse_color = color_rgb[0]
+            self.mesh_material[0].diffuse_color = color_rgba[0]
 
         # Set the material alpha value.
         if list_material:
@@ -897,7 +892,7 @@ class Contour3d(object):
                 node_tree.links.new(node_emission.outputs['Emission'],
                                     nodes[0].inputs['Surface'])
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = tuple(color_rgb[idx]) + (1, )
+                node_emission.inputs['Color'].default_value = tuple(color_rgba[idx]) + (1, )
                 if isinstance(self.emission, np.ndarray):
                     node_emission.inputs['Strength'].default_value = self.emission[idx]
                 else:
@@ -913,7 +908,7 @@ class Contour3d(object):
                 node_tree.links.new(node_emission.outputs['Emission'],
                                     nodes[0].inputs['Surface'])
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = color_rgb[idx] + (1, )
+                node_emission.inputs['Color'].default_value = color_rgba[idx] + (1, )
                 if isinstance(self.emission, np.ndarray):
                     node_emission.inputs['Strength'].default_value = self.emission
                 else:

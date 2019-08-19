@@ -7,7 +7,7 @@ Created on Mon Aug 27 18:00:35 2018
 @author: Simon Candelaresi
 """
 
-def string_to_rgb(color_string):
+def string_to_rgba(color_string):
     """
     Converts a color string or character into an rgb value.
 
@@ -58,14 +58,14 @@ def string_to_rgb(color_string):
     return rgb
 
 
-def make_rgb_array(color, length, color_map=None, vmin=None, vmax=None):
+def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
     """
     Creates an rgb array for the civen color, which can be rgb, scalar array
     or string (array).
 
     call signature:
 
-    make_rgb_array(color, length, color_map, vmin, vmax):
+    make_rgba_array(color, length, color_map, vmin, vmax):
 
     Keyword arguments:
 

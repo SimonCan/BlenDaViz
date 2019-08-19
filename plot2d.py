@@ -195,10 +195,10 @@ class Surface(object):
                       self.mesh_material.node_tree.nodes.get("Diffuse BSDF").inputs[0])
 
             # Link the mesh object with the scene.
-            bpy.context.scene.objects.link(self.mesh_object)
+            bpy.context.scene.collection.objects.link(self.mesh_object)
 
             # UV mapping for the new texture.
-            bpy.context.scene.objects.active = self.mesh_object
+            bpy.context.scene.collection.objects.active = self.mesh_object
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.uv.unwrap(method='ANGLE_BASED', margin=0)
             bpy.ops.object.mode_set(mode='OBJECT')
@@ -219,13 +219,13 @@ class Surface(object):
                     self.mesh_object.data.uv_layers[0].data[idx].uv[1] = uv_new[1]
                 polygon_idx += 1
         else:
-            # Transform color string into rgb.
+            # Transform color string into rgba.
             from . import colors
 
-            print(colors.string_to_rgb(self.c))
-            self.mesh_material.diffuse_color = colors.string_to_rgb(self.c)
+            print(colors.string_to_rgba(self.c))
+            self.mesh_material.diffuse_color = colors.string_to_rgba(self.c)
 
             # Link the mesh object with the scene.
-            bpy.context.scene.objects.link(self.mesh_object)
+            bpy.context.scene.collection.objects.link(self.mesh_object)
 
         return 0

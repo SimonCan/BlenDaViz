@@ -43,7 +43,7 @@ for x in np.linspace(-1.5,1.5,15):
 # - 3) Check user input.
 # - 4) Add documentation.
 
-def vec(root_point, direction, length, alpha=None, color=None, thin=None):
+def vec(root_point, direction, length, color=None, thin=None):
     """
     add a 3d vector mesh at a location in your scene
 
@@ -56,9 +56,6 @@ def vec(root_point, direction, length, alpha=None, color=None, thin=None):
 
     *length*:
       the length of the arrow
-
-    *alpha*:
-      opacity
 
     *color*:
       The color of the arrow
@@ -85,7 +82,6 @@ class arrow(object):
         self.root_point = (0,0,0) #  The point where the base of the arrow will lie
         self.direction = (0,0,0) # the direction vector
         self.length = 1
-        self.alpha = None
         self.color = None
         self.mesh_data = None
         self.mesh_material = None
@@ -107,7 +103,7 @@ class arrow(object):
 
         if not self.mesh_object is None:
             bpy.ops.object.select_all(action='DESELECT') # don't you always need to deselect?
-            self.mesh_object.select = True
+            self.mesh_object.select_set(state = True)
             bpy.ops.object.delete()
             self.mesh_object = None
 
@@ -118,15 +114,16 @@ class arrow(object):
         if bpy.data.objects.get("arrow_Mesh") is None:
             #load the invisible arrow
             print('reading arrow from file') #diagnostic, REMOVE
-            arrowpath = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'arrow.obj')
+            arrowpath = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'arrow.obj') # find arrow.obj in same folder as this file.
             bpy.ops.import_scene.obj(filepath=arrowpath)
-            bpy.context.scene.objects.unlink(bpy.data.objects['arrow_Mesh']) #mesh still accessible?
+            bpy.context.scene.collection.objects.unlink(bpy.data.objects['arrow_Mesh']) #unlink so this arrow is invisible
 
 
 
         self.mesh_data = bpy.data.objects['arrow_Mesh'].data.copy()
         self.mesh_object = bpy.data.objects.new("vector", self.mesh_data )
-        self.mesh_object.select = True
+        bpy.context.scene.collection.objects.link(self.mesh_object)#must link before you select!
+        self.mesh_object.select_set(state = True)
 
         # Assign a material to the surface.
         self.mesh_material = bpy.data.materials.new('MaterialMesh')
@@ -138,7 +135,6 @@ class arrow(object):
         self.direction = Vector(self.direction)
         self.direction.normalize()
 
-        bpy.context.scene.objects.link(self.mesh_object)
         if self.thin is not None:
             #print('thinning...')
             bpy.ops.transform.resize(value=(self.thin, 1, 1))
@@ -151,15 +147,15 @@ class arrow(object):
 
 
 
-        color_rgb = self.color
+        color_rgba = self.color
         if isinstance(self.color, str):
             if self.color == 'random':
                 from numpy.random import rand
-                color_rgb=(rand(), rand(), rand())
+                color_rgba=(rand(), rand(), rand(), 1)
             else:
                 from . import colors
-                color_rgb = colors.string_to_rgb(self.color)
-        self.mesh_material.diffuse_color = color_rgb
+                color_rgba = colors.string_to_rgb(self.color)
+        self.mesh_material.diffuse_color = color_rgba
         self.mesh_object.active_material = self.mesh_material
 
         bpy.ops.transform.resize(value=(self.length, self.length, self.length))
