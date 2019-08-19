@@ -120,8 +120,8 @@ def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
                     color_rgba[color_index, :] = color[color_index] + (1,)
                 if isinstance(color_string, list):
                     color_rgba[color_index, :] = color[color_index] + [1]
-                if isinstance(color_string, ndarray):
-                    color_rgba[color_index, 0:2] = color[color_index]
+                if isinstance(color_string, np.ndarray):
+                    color_rgba[color_index, 0:3] = color[color_index]
                     color_rgba[color_index, 3] = 1
 
     else:

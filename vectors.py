@@ -155,6 +155,18 @@ class arrow(object):
             else:
                 from . import colors
                 color_rgba = colors.string_to_rgb(self.color)
+
+        #cleanup so old code with 3-tuples works
+        if len(color_rgba) == 3:
+            #print('Deprecation warning: from blender 2.80 you should RGBA not RGB')
+            if isinstance(color_rgba, tuple):
+                color_rgba = np.array(color_rgba + (1,))
+            if isinstance(color_rgba, list):
+                color_rgba = np.array(color_rgba + [1])
+            if isinstance(color_rgba, np.ndarray):
+                color_rgba = np.ones(4)
+                color_rgba[0:3] = self.color
+
         self.mesh_material.diffuse_color = color_rgba
         self.mesh_object.active_material = self.mesh_material
 

@@ -193,12 +193,32 @@ class PathLine(object):
             color_rgba = np.zeros([self.color.shape[0], 4])
             for color_index, color_string in enumerate(self.color):
                 if isinstance(color_string, str):
-                    color_rgba[color_index, :] = colors.string_to_rgb(color_string)
+                    color_rgba[color_index, :] = colors.string_to_rgba(color_string)
                 else:
+                    if len(color_rgba[color_index, :]) == 3:
+                        if isinstance(color_string, tuple):
+                            color_rgba[color_index, :] = color[color_index] + (1,)
+                        if isinstance(color_string, list):
+                            color_rgba[color_index, :] = color[color_index] + [1]
+                        if isinstance(color_string, ndarray):
+                            color_rgba[color_index, 0:2] = color[color_index]
+                            color_rgba[color_index, 3] = 1
                     color_rgba[color_index, :] = self.color[color_index, :]
         else:
             if isinstance(self.color, str):
-                color_rgba = colors.string_to_rgb(self.color)
+                color_rgba = colors.string_to_rgba(self.color)
+
+        #cleanup so old code with 3-tuples works
+        if len(color_rgba) == 3:
+            #print('Deprecation warning: from blender 2.80 you should RGBA not RGB')
+            if isinstance(color_rgba, tuple):
+                color_rgba = np.array(color_rgba + (1,))
+            if isinstance(color_rgba, list):
+                color_rgba = np.array(color_rgba + [1])
+            if isinstance(color_rgba, np.ndarray):
+                color_rgba = np.ones(4)
+                color_rgba[0:3] = self.color
+
 
         # Switch to object mode.
 #        current_mode = bpy.context.mode
