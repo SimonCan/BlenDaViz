@@ -25,7 +25,7 @@ pl.z = np.linspace(0, 1, 5)
 pl.plot()
 '''
 
-def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0), alpha=1,
+def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1), alpha=1,
          emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
          marker=None, marker_orientation=(0, 0), layers=None):
     """
@@ -121,7 +121,7 @@ class PathLine(object):
         self.rotation_y = 0
         self.rotation_z = 0
         self.rotation = (0, 0, 0)
-        self.color = (0, 1, 0)
+        self.color = (0, 1, 0, 1)
         self.alpha = 1.0
         self.roughness = 1.0
         self.emission = None
@@ -189,20 +189,20 @@ class PathLine(object):
                 bpy.data.materials.remove(self.mesh_material)
 
         # Transform color string into rgb.
-        color_rgb = self.color
+        color_rgba = self.color
         if isinstance(self.color, np.ndarray):
             if self.color.shape[0] != self.x.size:
                 print("Error: the size of the color array does not match.")
                 return -1
-            color_rgb = np.zeros([self.color.shape[0], 3])
+            color_rgba = np.zeros([self.color.shape[0], 4])
             for color_index, color_string in enumerate(self.color):
                 if isinstance(color_string, str):
-                    color_rgb[color_index, :] = colors.string_to_rgb(color_string)
+                    color_rgba[color_index, :] = colors.string_to_rgb(color_string)
                 else:
-                    color_rgb[color_index, :] = self.color[color_index, :]
+                    color_rgba[color_index, :] = self.color[color_index, :]
         else:
             if isinstance(self.color, str):
-                color_rgb = colors.string_to_rgb(self.color)
+                color_rgba = colors.string_to_rgb(self.color)
 
         # Switch to object mode.
 #        current_mode = bpy.context.mode
@@ -249,7 +249,7 @@ class PathLine(object):
 
             # Set the material/color.
             self.mesh_material = bpy.data.materials.new('material')
-            self.mesh_material.diffuse_color = color_rgb
+            self.mesh_material.diffuse_color = color_rgba
             self.mesh_material.roughness = self.roughness
             self.mesh_material.alpha = self.alpha
             if self.alpha < 1.0:
@@ -269,7 +269,7 @@ class PathLine(object):
                 node_tree.links.new(node_emission.outputs['Emission'],
                                     nodes[0].inputs['Surface'])
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = color_rgb + (1, )
+                node_emission.inputs['Color'].default_value = color_rgba + (1, )
                 node_emission.inputs['Strength'].default_value = self.emission
 
             # Link the curve object with the scene.
@@ -335,8 +335,8 @@ class PathLine(object):
         # Set the material and color.
         if not self.marker is None:
             color_is_array = False
-            if isinstance(color_rgb, np.ndarray):
-                if color_rgb.ndim == 2:
+            if isinstance(color_rgba, np.ndarray):
+                if color_rgba.ndim == 2:
                     color_is_array = True
 
             if any([isinstance(self.alpha, np.ndarray),
@@ -354,9 +354,9 @@ class PathLine(object):
                         self.mesh_material[idx].alpha = self.alpha
 
                     if color_is_array:
-                        self.mesh_material[idx].diffuse_color = tuple(color_rgb[idx])
+                        self.mesh_material[idx].diffuse_color = tuple(color_rgba[idx])
                     else:
-                        self.mesh_material[idx].diffuse_color = color_rgb
+                        self.mesh_material[idx].diffuse_color = color_rgba
 
                     if isinstance(self.roughness, np.ndarray):
                         self.mesh_material[idx].roughness = self.roughness[idx]
@@ -375,16 +375,16 @@ class PathLine(object):
                                             nodes[0].inputs['Surface'])
                         # Adapt emission and color.
                         if color_is_array:
-                            node_emission.inputs['Color'].default_value = tuple(color_rgb[idx]) + (1, )
+                            node_emission.inputs['Color'].default_value = tuple(color_rgba[idx])
                         else:
-                            node_emission.inputs['Color'].default_value = color_rgb + (1, )
+                            node_emission.inputs['Color'].default_value = color_rgba
                         node_emission.inputs['Strength'].default_value = self.emission[idx]
 
                     self.marker_mesh[idx].active_material = self.mesh_material[idx]
             else:
                 self.mesh_material = bpy.data.materials.new('material')
                 self.mesh_material.alpha = self.alpha
-                self.mesh_material.diffuse_color = color_rgb
+                self.mesh_material.diffuse_color = color_rgba
                 self.mesh_material.roughness = self.roughness
 
                 if not self.emission is None:
@@ -398,7 +398,7 @@ class PathLine(object):
                     node_tree.links.new(node_emission.outputs['Emission'],
                                         nodes[0].inputs['Surface'])
                     # Adapt emission and color.
-                    node_emission.inputs['Color'].default_value = color_rgb + (1, )
+                    node_emission.inputs['Color'].default_value = color_rgba
                     node_emission.inputs['Strength'].default_value = self.emission
 
                 for idx, mesh in enumerate(self.marker_mesh):
