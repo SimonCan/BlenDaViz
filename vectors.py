@@ -154,7 +154,7 @@ class arrow(object):
                 color_rgba=(rand(), rand(), rand(), 1)
             else:
                 from . import colors
-                color_rgba = colors.string_to_rgb(self.color)
+                color_rgba = colors.string_to_rgba(self.color)
 
         #cleanup so old code with 3-tuples works
         if len(color_rgba) == 3:
