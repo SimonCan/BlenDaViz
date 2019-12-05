@@ -22,40 +22,40 @@ def string_to_rgba(color_string):
     """
 
     if color_string == 'b':
-        rgb = (0, 0, 1, 1)
+        rgba = (0, 0, 1, 1)
     if color_string == 'g':
-        rgb = (0, 1, 0, 1)
+        rgba = (0, 1, 0, 1)
     if color_string == 'r':
-        rgb = (1, 0, 0, 1)
+        rgba = (1, 0, 0, 1)
     if color_string == 'c':
-        rgb = (0, 1, 1, 1)
+        rgba = (0, 1, 1, 1)
     if color_string == 'm':
-        rgb = (1, 0, 1, 1)
+        rgba = (1, 0, 1, 1)
     if color_string == 'y':
-        rgb = (1, 1, 0, 1)
+        rgba = (1, 1, 0, 1)
     if color_string == 'k':
-        rgb = (0, 0, 0, 1)
+        rgba = (0, 0, 0, 1)
     if color_string == 'w':
-        rgb = (1, 1, 1, 1)
+        rgba = (1, 1, 1, 1)
 
     if color_string == 'blue':
-        rgb = (0, 0, 1, 1)
+        rgba = (0, 0, 1, 1)
     if color_string == 'green':
-        rgb = (0, 1, 0, 1)
+        rgba = (0, 1, 0, 1)
     if color_string == 'red':
-        rgb = (1, 0, 0, 1)
+        rgba = (1, 0, 0, 1)
     if color_string == 'cyan':
-        rgb = (0, 1, 1, 1)
+        rgba = (0, 1, 1, 1)
     if color_string == 'magenta':
-        rgb = (1, 0, 1, 1)
+        rgba = (1, 0, 1, 1)
     if color_string == 'yellow':
-        rgb = (1, 1, 0, 1)
+        rgba = (1, 1, 0, 1)
     if color_string == 'black':
-        rgb = (0, 0, 0, 1)
+        rgba = (0, 0, 0, 1)
     if color_string == 'white':
-        rgb = (1, 1, 1, 1)
+        rgba = (1, 1, 1, 1)
 
-    return rgb
+    return rgba
 
 
 def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
@@ -70,7 +70,7 @@ def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
     Keyword arguments:
 
     *color*:
-      Any valid color string or character.
+      Any valid color string, character, tuple, array or list.
 
     *length*:
       Length of the data array (int).
@@ -96,37 +96,36 @@ def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
                 vmin = color.min()
             if vmax is None:
                 vmax = color.max()
-            color_rgba = np.zeros([length, 3])
             color_rgba = color_map((color - vmin)/(vmax - vmin))[:, :]
-
-    # Copy rgba values if given.
-    if isinstance(color, np.ndarray):
         if color.ndim == 2:
-            color_rgba = color
+            if color.shape[1] == 3:
+                color_rgba = np.ones([color.shape[0], 4])
+                color_rgba[:, :3] = color
+            else:
+                color_rgba = color
 
-    # Transform color string into rgba.
+    # Transform list of color string into rgba.
     if isinstance(color, list):
         if len(color) != length:
             return -1
-        color_rgba = np.zeros([len(color), 4])
+        color_rgba = np.ones([len(color), 4])
         for color_index, color_string in enumerate(color):
             if isinstance(color_string, str):
-                color_rgba[color_index, :] = string_to_rgb(color_string)
-            elif len(color_string) == 4:
-                color_rgba[color_index, :] = color[color_index]
-            # add the alpha if color was given as a 3-tuple (blender 2.7x convention)
-            elif len(color_string) == 3:
-                if isinstance(color_string, tuple):
-                    color_rgba[color_index, :] = color[color_index] + (1,)
-                if isinstance(color_string, list):
-                    color_rgba[color_index, :] = color[color_index] + [1]
-                if isinstance(color_string, np.ndarray):
-                    color_rgba[color_index, 0:3] = color[color_index]
-                    color_rgba[color_index, 3] = 1
+                color_rgba[color_index, :] = string_to_rgba(color_string)
+            elif isinstance(color_string, tuple):
+                color_rgba[color_index, :len(color_string)] = color_string
 
-    else:
-        if isinstance(color, str):
-            color_rgba = np.zeros([1, 4])
-            color_rgba[0] = np.array(string_to_rgb(color))
+    # Transform single color string into color array.
+    if isinstance(color, str):
+        color_rgba = np.ones([length, 4])
+        color_rgba[:, :] = np.array(string_to_rgba(color))
+
+    # Transform single color tuple into color array.
+    if isinstance(color, tuple):
+        if len(color) == 3:
+            color_rgba = color + (1,)
+        else:
+            color_rgba = color
+        color_rgba = np.ones([length, 4])*np.array(color_rgba)
 
     return color_rgba
