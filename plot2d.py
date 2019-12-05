@@ -23,19 +23,11 @@ y0 = np.linspace(-3, 3, 20)
 x, y = np.meshgrid(x0, y0, indexing='ij')
 z = np.ones_like(x)*np.linspace(0, 2, 20)
 alpha = 0.5
-# z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
+z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
 
 m = blt.mesh(x, y, z, c='r', alpha=alpha)
 m.plot()
 '''
-
-# TODO:
-# + 1) Generate 2d mesh.
-# + 2) Add color.
-# + 3) Check user input.
-# - 4) Add documentation.
-# - 5) alpha as float or array.
-# + 99) Code analysis.
 
 def mesh(x, y, z=None, c=None, alpha=None, color_map=None):
     """

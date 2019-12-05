@@ -23,17 +23,9 @@ z0 = np.linspace(-3, 3, 20)
 x, y, z = np.meshgrid(x0, y0, z0, indexing='ij')
 phi = np.exp(-(x**2+y**2+z**2))*np.cos(z)
 alpha = np.sin(np.linspace(phi.min(), phi.max(), 100))
-vol = vol.mesh(phi, x, y, z, alpha=)
+vol = blt.vol(phi, x, y, z)
 vol.plot()
 '''
-
-# TODO:
-# vol:
-# - 1) Specify alpha values as 1xn or 2xn array.
-# quiver:
-# - 1) Pivot points.
-# streamlines:
-# - 1) Different metrics.
 
 def vol(phi, x, y, z, emission=None, color_map=None):
     """
@@ -46,7 +38,7 @@ def vol(phi, x, y, z, emission=None, color_map=None):
     Keyword arguments:
 
     *phi*:
-      Scalar field in 3d.
+      Scalar field in 3d of shape [nx, ny, nz].
 
     *x, y, z*:
       1d arrays for the coordinates.
@@ -110,9 +102,10 @@ class Volume(object):
         if not isinstance(self.phi, np.ndarray):
             print("Error: phi must be numpy array.")
             return -1
-        if not isinstance(self.emission, np.ndarray):
-            print("Error: emission must be numpy array.")
-            return -1
+        if self.emission:
+            if not isinstance(self.emission, np.ndarray):
+                print("Error: emission must be numpy array.")
+                return -1
 
         # Using volumetric textures or voxels?
 
@@ -207,16 +200,6 @@ qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red', emission=np.random.r
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=['r', 'b', 'green', 'y', 'black'])
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=np.random.random(len(x)))
 '''
-
-# TODO:
-# + 1) Add color option and color according to length or scalar field.
-# + 2) vmax and vmin for colormap
-# + 4) Scale length of arrows according to value.
-# + 4.1) Scale width of arrows according to value.
-# + 5) stem thickness
-# + 6) head size and length
-# - 7) resolution
-# - 8) Mixed input arrays.
 
 def quiver(x, y, z, u, v, w, pivot='middle', length=1,
            radius_shaft=0.25, radius_tip=0.5, scale=1,
