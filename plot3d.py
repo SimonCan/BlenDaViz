@@ -211,15 +211,15 @@ qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=np.random.random(len(x)))
 # TODO:
 # + 1) Add color option and color according to length or scalar field.
 # + 2) vmax and vmin for colormap
-# - 4) Scale length of arrows according to value.
-# - 4.1) Scale width of arrows according to value.
-# - 5) stem thickness
-# - 6) head size and length
+# + 4) Scale length of arrows according to value.
+# + 4.1) Scale width of arrows according to value.
+# + 5) stem thickness
+# + 6) head size and length
 # - 7) resolution
 # - 8) Mixed input arrays.
 
 def quiver(x, y, z, u, v, w, pivot='middle', length=1,
-           radius_shaft=0.25, radius_tip=0.5,
+           radius_shaft=0.25, radius_tip=0.5, scale=1,
            color=(0, 1, 0, 1), emission=None, roughness=1,
            vmin=None, vmax=None, color_map=None):
     """
@@ -241,30 +241,30 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
       x, y and z components of the vector field. Must be of the same shape as the
       x, y and z arrays.
 
-    *pivot*
+    *pivot*:
       Part of the arrow around which it is rotated.
       Can be 'tail', 'mid', 'middle' or 'tip'.
 
-    *length*
+    *length*:
       Length of the arrows.
       Can be a constant, an array of the same shape as
       x, y and z. If specified as string 'magnitude' use the vector's magnitude.
 
-    *radius_shaft, radius_tip*
+    *radius_shaft, radius_tip*:
       Radii of the shaft and tip of the arrows.
       Can be a constant, an array of the same shape as
       x, y and z. If specified as string 'magnitude' use the vector's magnitude
       and multiply by 0.25 for radius_shaft and 0.5 for radius_tip.
+
+    *scale*:
+        Scale the arrows (length, raddius_shaft and radius_tip).
+        Can be constant or array of the same shape as x, y and z.
 
     *color*:
       rgba values of the form (r, g, b) with 0 <= r, g, b <= 1, or string,
       e.g. 'red' or character, e.g. 'r', or list of strings/character,
       or [n, 3] array with rgba values or array of the same shape as input array
       or 'magnitude' (use vector length).
-
-    *alpha*:
-      Alpha (opacity) value for the arrows.
-      Real number or array or 'magnitude' (use vector length).
 
     *emission*
       Light emission by the arrows. This overrides 'alpha' and 'roughness'.
@@ -312,6 +312,7 @@ class Quiver3d(object):
         self.length = 1
         self.radius_shaft = 0.25
         self.radius_tip = 0.5
+        self.scale = 1
         self.color = (0, 1, 0, 1)
         self.emission = None
         self.roughness = 1
@@ -365,6 +366,11 @@ class Quiver3d(object):
                 return -1
             else:
                 self.radius_tip = self.radius_tip.ravel()
+
+        # Scale the arrows.
+        self.length *= self.scale
+        self.radius_shaft *= self.scale
+        self.radius_tip *= self.scale
 
         # Flatten the input array.
         self.x = self.x.ravel()
@@ -449,10 +455,10 @@ class Quiver3d(object):
 
         # Group the meshes together.
         for mesh in self.arrow_mesh[::-1]:
-            mesh.select = True
+            mesh.select_set(state=True)
         bpy.ops.object.join()
         self.arrow_mesh = bpy.context.object
-        self.arrow_mesh.select = False
+        self.arrow_mesh.select_set(state=False)
 
         return 0
 
@@ -480,7 +486,10 @@ class Quiver3d(object):
         # Deterimne if we need a list of materials, i.e. for every arrow mesh one.
         if any([isinstance(self.color, np.ndarray),
                 isinstance(self.emission, np.ndarray),
-                isinstance(self.roughness, np.ndarray)]):
+                isinstance(self.roughness, np.ndarray),
+                isinstance(self.color, list),
+                isinstance(self.emission, list),
+                isinstance(self.roughness, list)]):
             list_material = True
         else:
             list_material = False
@@ -515,23 +524,23 @@ class Quiver3d(object):
         else:
             self.mesh_material[0].diffuse_color = color_rgba[0]
 
-        # Set the material alpha value.
-        if list_material:
-            if isinstance(self.alpha, np.ndarray):
-                self.mesh_material[idx].alpha = self.alpha[idx]
-                if self.alpha[idx] < 1.0:
-                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
-                    self.mesh_material[idx].use_transparency = True
-            else:
-                self.mesh_material[idx].alpha = self.alpha
-                if self.alpha < 1.0:
-                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
-                    self.mesh_material[idx].use_transparency = True
-        elif idx == 0:
-            self.mesh_material[0].alpha = self.alpha
-            if self.alpha < 1.0:
-                self.mesh_material[0].transparency_method = 'Z_TRANSPARENCY'
-                self.mesh_material[0].use_transparency = True
+#        # Set the material alpha value.
+#        if list_material:
+#            if isinstance(self.alpha, np.ndarray):
+#                self.mesh_material[idx].alpha = self.alpha[idx]
+#                if self.alpha[idx] < 1.0:
+#                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
+#                    self.mesh_material[idx].use_transparency = True
+#            else:
+#                self.mesh_material[idx].alpha = self.alpha
+#                if self.alpha < 1.0:
+#                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
+#                    self.mesh_material[idx].use_transparency = True
+#        elif idx == 0:
+#            self.mesh_material[0].alpha = self.alpha
+#            if self.alpha < 1.0:
+#                self.mesh_material[0].transparency_method = 'Z_TRANSPARENCY'
+#                self.mesh_material[0].use_transparency = True
 
         # Set the material roughness.
         if list_material:
