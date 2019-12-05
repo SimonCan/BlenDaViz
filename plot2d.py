@@ -14,7 +14,7 @@ import sys
 sys.path.append('~/codes/blendaviz')
 import numpy as np
 import importlib
-import blender as blt
+import blendaviz as blt
 importlib.reload(blt.plot2d)
 importlib.reload(blt)
 
@@ -123,6 +123,8 @@ class Surface(object):
             if not self.c.shape == self.x.shape:
                 print("Error: c array shape invalid.")
                 return -1
+        if not self.alpha:
+            self.alpha = 1
         if isinstance(self.alpha, np.ndarray):
             if not self.alpha.shape == self.x.shape:
                 print("Error: alpha array shape invalid.")
@@ -133,7 +135,7 @@ class Surface(object):
         # Delete existing meshes.
         if not self.mesh_object is None:
             bpy.ops.object.select_all(action='DESELECT')
-            self.mesh_object.select = True
+            self.mesh_object.select_set(state=True)
             bpy.ops.object.delete()
             self.mesh_object = None
 
@@ -159,7 +161,7 @@ class Surface(object):
         # Create mesh and object.
         self.mesh_data = bpy.data.meshes.new("DataMesh")
         self.mesh_object = bpy.data.objects.new("ObjMesh", self.mesh_data)
-        self.mesh_object.select = True
+#        self.mesh_object.select_set(state=True)
 
         # Create mesh from the given data.
         self.mesh_data.from_pydata(vertices, [], faces)
@@ -192,13 +194,13 @@ class Surface(object):
             self.mesh_texture.image = mesh_image
             links = self.mesh_material.node_tree.links
             links.new(self.mesh_texture.outputs[0],
-                      self.mesh_material.node_tree.nodes.get("Diffuse BSDF").inputs[0])
+                      self.mesh_material.node_tree.nodes.get("Principled BSDF").inputs[0])
 
             # Link the mesh object with the scene.
             bpy.context.scene.collection.objects.link(self.mesh_object)
 
             # UV mapping for the new texture.
-            bpy.context.scene.collection.objects.active = self.mesh_object
+            bpy.context.view_layer.objects.active = self.mesh_object
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.uv.unwrap(method='ANGLE_BASED', margin=0)
             bpy.ops.object.mode_set(mode='OBJECT')
