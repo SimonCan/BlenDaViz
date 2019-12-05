@@ -12,7 +12,7 @@ Created on Wed Sep 27 12:34:00 2017
 Test:
 import numpy as np
 import importlib
-import blender as blt
+import blendaviz as blt
 importlib.reload(blt.plot1d)
 z = np.linspace(0, 6*np.pi, 30)
 x = 3*np.cos(z)
@@ -197,11 +197,11 @@ class PathLine(object):
                 else:
                     if len(color_rgba[color_index, :]) == 3:
                         if isinstance(color_string, tuple):
-                            color_rgba[color_index, :] = color[color_index] + (1,)
+                            color_rgba[color_index, :] = self.color[color_index] + (1,)
                         if isinstance(color_string, list):
-                            color_rgba[color_index, :] = color[color_index] + [1]
-                        if isinstance(color_string, ndarray):
-                            color_rgba[color_index, 0:2] = color[color_index]
+                            color_rgba[color_index, :] = self.color[color_index] + [1]
+                        if isinstance(color_string, np.ndarray):
+                            color_rgba[color_index, 0:2] = self.color[color_index]
                             color_rgba[color_index, 3] = 1
                     color_rgba[color_index, :] = self.color[color_index, :]
         else:
@@ -299,12 +299,12 @@ class PathLine(object):
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_cone_add(location=(self.x[idx], self.y[idx], self.z[idx]),
                                                 radius1=self.radius[idx], depth=2*self.radius[idx],
-                                                rotation=(self.rotation.x[idx], self.rotation_y[idx], self.rotation_z[idx]))
+                                                rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'cube':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_cube_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                radius=self.radius[idx],
+                                                size=self.radius[idx],
                                                 rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'cylinder':
@@ -316,13 +316,13 @@ class PathLine(object):
         if self.marker == 'ico_sphere':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_ico_sphere_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                      size=self.radius[idx],
+                                                      radius=self.radius[idx],
                                                       rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'monkey':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_monkey_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                  radius=self.radius[idx],
+                                                  size=self.radius[idx],
                                                   rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'torus':
@@ -335,7 +335,7 @@ class PathLine(object):
         if self.marker == 'uv_sphere':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_uv_sphere_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                     size=self.radius[idx],
+                                                     radius=self.radius[idx],
                                                      rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if isinstance(self.marker, bpy.types.Object):
@@ -424,10 +424,10 @@ class PathLine(object):
         # Group the meshes together.
         if not self.marker is None:
             for mesh in self.marker_mesh[::-1]:
-                mesh.select = True
+                mesh.select_set(state=True)
             bpy.ops.object.join()
             self.marker_mesh = bpy.context.object
-            self.marker_mesh.select = False
+            self.marker_mesh.select_set(state=False)
 
 #        # Make the plot visible in the requested layers.
 #        mask_layers = [idx in self.layers for idx in range(20)]
