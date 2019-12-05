@@ -185,40 +185,7 @@ class PathLine(object):
                 bpy.data.materials.remove(self.mesh_material)
 
         # Transform color string into rgb.
-        color_rgba = self.color
-        if isinstance(self.color, np.ndarray):
-            if self.color.shape[0] != self.x.size:
-                print("Error: the size of the color array does not match.")
-                return -1
-            color_rgba = np.zeros([self.color.shape[0], 4])
-            for color_index, color_string in enumerate(self.color):
-                if isinstance(color_string, str):
-                    color_rgba[color_index, :] = colors.string_to_rgba(color_string)
-                else:
-                    if len(color_rgba[color_index, :]) == 3:
-                        if isinstance(color_string, tuple):
-                            color_rgba[color_index, :] = self.color[color_index] + (1,)
-                        if isinstance(color_string, list):
-                            color_rgba[color_index, :] = self.color[color_index] + [1]
-                        if isinstance(color_string, np.ndarray):
-                            color_rgba[color_index, 0:2] = self.color[color_index]
-                            color_rgba[color_index, 3] = 1
-                    color_rgba[color_index, :] = self.color[color_index, :]
-        else:
-            if isinstance(self.color, str):
-                color_rgba = colors.string_to_rgba(self.color)
-
-        #cleanup so old code with 3-tuples works
-        if len(color_rgba) == 3:
-            #print('Deprecation warning: from blender 2.80 you should RGBA not RGB')
-            if isinstance(color_rgba, tuple):
-                color_rgba = np.array(color_rgba + (1,))
-            if isinstance(color_rgba, list):
-                color_rgba = np.array(color_rgba + [1])
-            if isinstance(color_rgba, np.ndarray):
-                color_rgba = np.ones(4)
-                color_rgba[0:3] = self.color
-
+        color_rgba = colors.make_rgba_array(self.color, self.x.size)
 
         # Switch to object mode.
 #        current_mode = bpy.context.mode
@@ -241,8 +208,8 @@ class PathLine(object):
 #        self.bounding_box.location = ((x.max()+x.min())/2, (y.max()+y.min())/2, (z.max()+z.min())/2)
 #        self.bounding_box.scale = [x.max()-x.min(), y.max()-y.min(), y.max()-y.min()]
 
+        # Create the bezier curve.
         if self.marker is None:
-            # Create the bezier curve.
             self.curve_data = bpy.data.curves.new('DataCurve', type='CURVE')
             self.curve_data.dimensions = '3D'
             self.curve_object = bpy.data.objects.new('ObjCurve', self.curve_data)
