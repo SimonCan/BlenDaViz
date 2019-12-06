@@ -184,9 +184,6 @@ class PathLine(object):
             else:
                 bpy.data.materials.remove(self.mesh_material)
 
-        # Transform color string into rgb.
-        color_rgba = colors.make_rgba_array(self.color, self.x.size)
-
         # Switch to object mode.
 #        current_mode = bpy.context.mode
 #        bpy.ops.object.mode_set(mode='OBJECT')
@@ -210,6 +207,9 @@ class PathLine(object):
 
         # Create the bezier curve.
         if self.marker is None:
+            # Transform color string into rgb.
+            color_rgba = colors.make_rgba_array(self.color, 1)
+
             self.curve_data = bpy.data.curves.new('DataCurve', type='CURVE')
             self.curve_data.dimensions = '3D'
             self.curve_object = bpy.data.objects.new('ObjCurve', self.curve_data)
@@ -232,7 +232,7 @@ class PathLine(object):
 
             # Set the material/color.
             self.mesh_material = bpy.data.materials.new('material')
-            self.mesh_material.diffuse_color = color_rgba
+            self.mesh_material.diffuse_color = color_rgba[0]
             self.mesh_material.roughness = self.roughness
             #alpha handling has been changed, not sure if correct
             #self.mesh_material.alpha = self.alpha
@@ -258,6 +258,9 @@ class PathLine(object):
 
             # Link the curve object with the scene.
             bpy.context.scene.collection.objects.link(self.curve_object)
+
+        # Transform color string into rgb.
+        color_rgba = colors.make_rgba_array(self.color, self.x.size)
 
         # Plot the markers.
         if not self.marker is None:
