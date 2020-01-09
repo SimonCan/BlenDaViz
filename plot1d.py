@@ -60,7 +60,6 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1), #alpha=1,
       e.g. 'red' or character, e.g. 'r', or n-array of strings/character,
       or [n, 3] array with rgb values.
 
-
     *emission*
       Light emission by the line or markers.
       and 'roughness'.

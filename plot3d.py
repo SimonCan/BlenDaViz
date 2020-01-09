@@ -598,7 +598,7 @@ def contour(phi, x, y, z, contours=3,
            color=(0, 1, 0), alpha=1, emission=None, roughness=1,
            vmin=None, vmax=None, color_map=None):
     """
-    Plot contrours to a given scalar field.
+    Plot contours to a given scalar field.
 
     call signature:
 
@@ -614,7 +614,7 @@ def contour(phi, x, y, z, contours=3,
       x, y and z position of the data. These can be 1d arrays of the same length
       or of shape [nx, ny, nz].
 
-    *contrours*
+    *contours*
       Number of contours to be plotted, or array of contour levels.
 
     *color*:
@@ -905,3 +905,6 @@ class Contour3d(object):
                     node_emission.inputs['Strength'].default_value = self.emission
                 else:
                     node_emission.inputs['Strength'].default_value = self.emission
+
+
+
