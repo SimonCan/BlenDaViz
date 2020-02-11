@@ -16,10 +16,10 @@ import sys
 sys.path.append('~/codes/blendaviz')
 import blendaviz as blt
 importlib.reload(blt)
-importlib.reload(blt.plot3d)
-x = np.linspace(-4, 4, 1000)
-y = np.linspace(-4, 4, 1000)
-z = np.linspace(-4, 4, 1000)
+importlib.reload(blt.streamlines)
+x = np.linspace(-4, 4, 100)
+y = np.linspace(-4, 4, 100)
+z = np.linspace(-4, 4, 100)
 xx, yy, zz = np.meshgrid(x, y, z)
 u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
@@ -28,11 +28,10 @@ stream = blt.streamlines(x, y, z, u, v, w)
 '''
 
 # TODO:
-# - 1) Everything.
 # - 2) Interpolation on non-equidistant grids.
 # - 3) Code style.
 
-def streamlines(x, y, z, u, v, w, seeds=100, periodic=[False, False, False],
+def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
                 interpolation='tricubic', method='dop853', atol=1e-8, rtol=1e-8,
                 color=(0, 1, 0), alpha=1, emission=None, roughness=1,
                 radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
@@ -41,9 +40,10 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=[False, False, False],
 
     call signature:
 
-    streamlines(x, y, z, u, v, w, seeds='random',
+    streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
+                interpolation='tricubic', method='dop853', atol=1e-8, rtol=1e-8,
                 color=(0, 1, 0), alpha=1, emission=None, roughness=1,
-                vmin=None, vmax=None, color_map=None)
+                radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None)
 
     Keyword arguments:
     *x, y, z*:
@@ -109,6 +109,9 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=[False, False, False],
 
     import inspect
 
+    if not periodic:
+        periodic = [False, False, False]
+
     # Assign parameters to the streamline objects.
     streamlines_return = Streamlines3d()
     argument_dict = inspect.getargvalues(inspect.currentframe()).locals
@@ -136,10 +139,10 @@ class Streamlines3d(object):
         self.w = 0
         self.seeds = 100
         self.periodic = [False, False, False]
-        self.interpolation == 'tricubic'
-        self.method='dop853'
-        self.atol=1e-8
-        self.rtol=1e-8
+        self.interpolation = 'tricubic'
+        self.method = 'dop853'
+        self.atol = 1e-8
+        self.rtol = 1e-8
         self.color = (0, 1, 0)
         self.alpha = 1
         self.emission = None
@@ -208,7 +211,7 @@ class Streamlines3d(object):
         tracers = []
         for tracer_idx in range(self.seeds.shape[0]):
             tracers.append(self.__tracer(xx=self.seeds[tracer_idx]))
-        
+
         # Plot the streamlines/tracers.
         self.curve_data = []
         self.curve_object = []
@@ -276,7 +279,8 @@ class Streamlines3d(object):
 
         *splines*:
             Spline interpolation functions for the tricubic interpolation.
-            This can speed up the calculations greatly for repeated streamline tracing on the same data.
+            This can speed up the calculations greatly for repeated streamline tracing
+            on the same data.
             Accepts a list of the spline functions for the three vector components.
         """
 
@@ -300,7 +304,8 @@ class Streamlines3d(object):
                     warnings.filterwarnings("ignore", category=Warning)
                     from eqtools.trispline import Spline
             except:
-                print('Warning: Could not import eqtools.trispline.Spline for tricubic interpolation.\n')
+                print('Warning: Could not import eqtools.trispline.Spline for \
+                       tricubic interpolation.\n')
                 print('Warning: Fall back to trilinear.')
                 self.interpolation = 'trilinear'
 
@@ -332,10 +337,10 @@ class Streamlines3d(object):
             tracers[0, :] = xx
             for i, t in enumerate(time[1:]):
                 tracers[i+1, :] = solver.integrate(t)
-        if self.method in methods_ivp:                                                                                              
+        if self.method in methods_ivp:
             tracers = solve_ivp(odeint_func, (time[0], time[-1]), xx,
-                                     t_eval=time, rtol=self.rtol, atol=self.atol,
-                                     jac=metric, method=self.method).y.T
+                                t_eval=time, rtol=self.rtol, atol=self.atol,
+                                jac=metric, method=self.method).y.T
 
         # Remove points that lie outside the domain and interpolation on the boundary.
         cut_mask = ((tracers[:, 0] > Ox+Lx) + \
@@ -422,17 +427,17 @@ class Streamlines3d(object):
     def __vec_int(self, xx):
         """
         Interpolates the vector field around position xx.
-    
+
         call signature:
-    
+
             vec_int(xx)
-    
+
         Keyword arguments:
-    
+
         *xx*:
           Position vector around which field will be interpolated.
         """
-    
+
         import numpy as np
 
         # Determine some parameters.
@@ -448,7 +453,7 @@ class Streamlines3d(object):
 
         if (self.interpolation == 'mean') or (self.interpolation == 'trilinear'):
             # Find the adjacent indices.
-            i = (xx[0]-Ox)/dx            
+            i = (xx[0]-Ox)/dx
             ii = np.array([int(np.floor(i)), int(np.ceil(i))])
             if not self.periodic[0]:
                 if i < 0:
@@ -461,7 +466,7 @@ class Streamlines3d(object):
                 ii = np.array([int(np.floor(i)), int(np.ceil(i))])
                 if i > nx-1:
                     ii = np.array([int(np.floor(i)), 0])
-    
+
             j = (xx[1]-Oy)/dy
             jj = np.array([int(np.floor(j)), int(np.ceil(j))])
             if not self.periodic[1]:
@@ -475,7 +480,7 @@ class Streamlines3d(object):
                 jj = np.array([int(np.floor(j)), int(np.ceil(j))])
                 if j > ny-1:
                     jj = np.array([int(np.floor(j)), 0])
-    
+
             k = (xx[2]-Oz)/dz
             kk = np.array([int(np.floor(k)), int(np.ceil(k))])
             if not self.periodic[2]:
@@ -489,14 +494,14 @@ class Streamlines3d(object):
                 kk = np.array([int(np.floor(k)), int(np.ceil(k))])
                 if k > nz-1:
                     kk = np.array([int(np.floor(k)), 0])
-    
+
         # Interpolate the field.
         if self.interpolation == 'mean':
             sub_field = [self.u[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]],
                          self.v[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]],
                          self.w[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]]]
             return np.mean(np.array(sub_field), axis=(1, 2, 3))
-    
+
         if self.interpolation == 'trilinear':
             if ii[0] == ii[1]:
                 w1 = np.array([1, 1])
@@ -505,7 +510,7 @@ class Streamlines3d(object):
                     w1 = np.array([nx-i, i-ii[0]])
                 else:
                     w1 = (i-ii[::-1])
-    
+
             if jj[0] == jj[1]:
                 w2 = np.array([1, 1])
             else:
@@ -513,7 +518,7 @@ class Streamlines3d(object):
                     w2 = np.array([ny-j, j-jj[0]])
                 else:
                     w2 = (j-jj[::-1])
-    
+
             if kk[0] == kk[1]:
                 w3 = np.array([1, 1])
             else:
@@ -521,13 +526,13 @@ class Streamlines3d(object):
                     w3 = np.array([nz-k, k-kk[0]])
                 else:
                     w3 = (k-kk[::-1])
-    
+
             weight = abs(w1.reshape((2, 1, 1))*w2.reshape((1, 2, 1))*w3.reshape((1, 1, 2)))
             sub_field = [self.u[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]],
                          self.v[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]],
                          self.w[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]]]
             return np.sum(np.array(sub_field)*weight, axis=(1, 2, 3))/np.sum(weight)
-    
+
         # If the point lies outside the domain, return 0.
         if (ii[0] < -1) or (ii[1] > nx) or (jj[0] < -1) or (jj[1] > ny) \
             or (kk[0] < -1) or (kk[1] > nz):
@@ -656,5 +661,3 @@ class Streamlines3d(object):
                     node_emission.inputs['Strength'].default_value = self.emission
                 else:
                     node_emission.inputs['Strength'].default_value = self.emission
-
-
