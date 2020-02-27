@@ -16,25 +16,27 @@ import sys
 sys.path.append('~/codes/blendaviz')
 import blendaviz as blt
 importlib.reload(blt)
-importlib.reload(blt.streamlines)
+importlib.reload(blt.streamlines3d)
 x = np.linspace(-4, 4, 100)
 y = np.linspace(-4, 4, 100)
 z = np.linspace(-4, 4, 100)
-xx, yy, zz = np.meshgrid(x, y, z)
+xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
 u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
-w = np.ones_like(u)
-stream = blt.streamlines(x, y, z, u, v, w)
+w = np.ones_like(u)*0.1
+stream = blt.streamlines(x, y, z, u, v, w, seeds=50, integration_time=100, integration_steps=100)
 '''
 
 # TODO:
 # - 2) Interpolation on non-equidistant grids.
 # - 3) Code style.
 # - 4) Implement periodic domains.
+# - 5) Different kinds of seeds, like spherical with radius and origin.
 
 def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
                 interpolation='tricubic', method='dop853', atol=1e-8, rtol=1e-8,
-                metric=None, color=(0, 1, 0), alpha=1, emission=None, roughness=1,
+                metric=None, integration_time=1, integration_steps=10,
+                color=(0, 1, 0), alpha=1, emission=None, roughness=1,
                 radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
     """
     Plot streamlines of a given vector field.
@@ -43,7 +45,8 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
 
     streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
                 interpolation='tricubic', method='dop853', atol=1e-8, rtol=1e-8,
-                metric=None, color=(0, 1, 0), alpha=1, emission=None, roughness=1,
+                metric=None, integration_time=1, integration_steps=10,
+                color=(0, 1, 0), alpha=1, emission=None, roughness=1,
                 radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None)
 
     Keyword arguments:
@@ -75,6 +78,14 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
         Metric function that takes a point [x, y, z] and an array
         of shape [3, 3] that has the comkponents g_ij.
         Use 'None' for Cartesian metric.
+
+    *integration_time*:
+      Length of the integration time. You need to adapt this according to your
+      field strength and box size.
+
+    *integration_steps*:
+      Number of integration steps for the field line integration.
+      This determines how fine the curve appears.
 
     *rtol*:
       Relative tolerance of the field line tracer.
@@ -149,6 +160,8 @@ class Streamline3d(object):
         self.atol = 1e-8
         self.rtol = 1e-8
         self.metric = None
+        self.integration_time = 1
+        self.integration_steps = 10
         self.color = (0, 1, 0)
         self.alpha = 1
         self.emission = None
@@ -205,9 +218,9 @@ class Streamline3d(object):
         # Prepare the seeds.
         if isinstance(self.seeds, int):
             self.seeds = np.random.random([self.seeds, 3])
-            self.seeds[:, 0]*(self.x.max()-self.x.min()) + self.x.min()
-            self.seeds[:, 1]*(self.y.max()-self.y.min()) + self.y.min()
-            self.seeds[:, 2]*(self.z.max()-self.z.min()) + self.z.min()
+            self.seeds[:, 0] = self.seeds[:, 0]*(self.x.max()-self.x.min()) + self.x.min()
+            self.seeds[:, 1] = self.seeds[:, 1]*(self.y.max()-self.y.min()) + self.y.min()
+            self.seeds[:, 2] = self.seeds[:, 2]*(self.z.max()-self.z.min()) + self.z.min()
         if not isinstance(self.seeds, np.ndarray):
             print("Error: seeds are not valid.")
             return -1
@@ -241,7 +254,7 @@ class Streamline3d(object):
         # Compute the positions along the streamlines.
         tracers = []
         for tracer_idx in range(self.seeds.shape[0]):
-            tracers.append(self.__tracer(xx=self.seeds[tracer_idx]), splines=splines)
+            tracers.append(self.__tracer(xx=self.seeds[tracer_idx], splines=splines))
 
         # Plot the streamlines/tracers.
         self.curve_data = []
@@ -254,17 +267,17 @@ class Streamline3d(object):
             self.curve_object.append(bpy.data.objects.new('ObjCurve', self.curve_data[-1]))
 
             # Set the origin to the last point.
-            self.curve_object[-1].location = tuple((tracers[tracer_idx][0, -1],
-                                                    tracers[tracer_idx][1, -1],
-                                                    tracers[tracer_idx][2, -1]))
+            self.curve_object[-1].location = tuple((tracers[tracer_idx][-1, 0],
+                                                    tracers[tracer_idx][-1, 1],
+                                                    tracers[tracer_idx][-1, 2]))
 
             # Add the rest of the curve.
             self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
-            self.poly_line[-1].points.add(self.x.shape[0])
-            for param in range(self.x.shape[0]):
-                self.poly_line[-1].points[param].co = (tracers[tracer_idx][0, param] - tracers[tracer_idx][0, -1],
-                                                       tracers[tracer_idx][1, param] - tracers[tracer_idx][1, -1],
-                                                       tracers[tracer_idx][2, param] - tracers[tracer_idx][2, -1], 0)
+            self.poly_line[-1].points.add(tracers[tracer_idx].shape[0])
+            for param in range(tracers[tracer_idx].shape[0]):
+                self.poly_line[-1].points[param].co = (tracers[tracer_idx][param, 0] - tracers[tracer_idx][-1, 0],
+                                                       tracers[tracer_idx][param, 1] - tracers[tracer_idx][-1, 1],
+                                                       tracers[tracer_idx][param, 2] - tracers[tracer_idx][-1, 2], 0)
 
             # Add 3d structure.
             self.curve_data[-1].splines.data.bevel_depth = self.radius
@@ -275,6 +288,11 @@ class Streamline3d(object):
             self.mesh_material.append(bpy.data.materials.new('material'))
             self.mesh_material[-1].diffuse_color = color_rgba[tracer_idx]
             self.mesh_material[-1].roughness = self.roughness
+            self.curve_object[-1].active_material = self.mesh_material[-1]
+
+            # Link the curve object with the scene.
+            bpy.context.scene.collection.objects.link(self.curve_object[-1])
+
 
         # TODO:
 #        # Group the meshes together.
@@ -287,22 +305,19 @@ class Streamline3d(object):
         return 0
 
 
-    def __tracer(self, xx=(0, 0, 0), time=(0, 1), splines=None):
+    def __tracer(self, xx=(0, 0, 0), splines=None):
         """
         Trace a field starting from xx in any rectilinear coordinate system
         with constant dx, dy and dz and with a given metric.
 
         call signature:
 
-          tracer(xx=(0, 0, 0), time=(0, 1), metric=None, splines=None):
+          tracer(xx=(0, 0, 0), metric=None, splines=None):
 
         Keyword arguments:
 
         *xx*:
           Starting point of the field line integration with starting time.
-
-        *time*:
-            Time array for which the tracer is computed.
 
         *splines*:
             Spline interpolation functions for the tricubic interpolation.
@@ -314,6 +329,8 @@ class Streamline3d(object):
         import numpy as np
         from scipy.integrate import ode
         from scipy.integrate import solve_ivp
+
+        time = np.linspace(0, self.integration_time, self.integration_steps)
 
         # Determine some parameters.
         Ox = self.x.min()
@@ -537,9 +554,9 @@ class Streamline3d(object):
                     w3 = (k-kk[::-1])
 
             weight = abs(w1.reshape((2, 1, 1))*w2.reshape((1, 2, 1))*w3.reshape((1, 1, 2)))
-            sub_field = [self.u[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]],
-                         self.v[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]],
-                         self.w[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]]]
+            sub_field = [self.u[[ii[0], ii[1]]][:, [jj[0], jj[1]]][:, :, [kk[0], kk[1]]],
+                         self.v[[ii[0], ii[1]]][:, [jj[0], jj[1]]][:, :, [kk[0], kk[1]]],
+                         self.w[[ii[0], ii[1]]][:, [jj[0], jj[1]]][:, :, [kk[0], kk[1]]]]
             return np.sum(np.array(sub_field)*weight, axis=(1, 2, 3))/np.sum(weight)
 
         # If the point lies outside the domain, return 0.
