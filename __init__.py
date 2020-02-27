@@ -7,7 +7,7 @@
 from .plot1d import *
 from .plot2d import *
 from .plot3d import *
-from .field_lines import *
+from .streamlines3d import *
 from .colors import *
 from .vectors import *
 

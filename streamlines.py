@@ -23,17 +23,18 @@ z = np.linspace(-4, 4, 100)
 xx, yy, zz = np.meshgrid(x, y, z)
 u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
-w = np.zeros_like(u)
+w = np.ones_like(u)
 stream = blt.streamlines(x, y, z, u, v, w)
 '''
 
 # TODO:
 # - 2) Interpolation on non-equidistant grids.
 # - 3) Code style.
+# - 4) Implement periodic domains.
 
 def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
                 interpolation='tricubic', method='dop853', atol=1e-8, rtol=1e-8,
-                color=(0, 1, 0), alpha=1, emission=None, roughness=1,
+                metric=None, color=(0, 1, 0), alpha=1, emission=None, roughness=1,
                 radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
     """
     Plot streamlines of a given vector field.
@@ -42,7 +43,7 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
 
     streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
                 interpolation='tricubic', method='dop853', atol=1e-8, rtol=1e-8,
-                color=(0, 1, 0), alpha=1, emission=None, roughness=1,
+                metric=None, color=(0, 1, 0), alpha=1, emission=None, roughness=1,
                 radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None)
 
     Keyword arguments:
@@ -55,21 +56,25 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
     *seeds*
       Seeds for the streamline tracing.
       If single number, generate randomly distributed seeds withing x, y, z.
-      If array of size [n_seeds, 3] use thi for the seeds positions.
+      If array of size [n_seeds, 3] use for the seeds positions.
 
     *periodic*:
-      Periodicity in the three directions.
+      Periodicity array/list for the three directions.
       If true trace streamlines across the boundary and back.
 
     *interpolation*:
        Interpolation of the vector field.
        'mean': Take the mean of the adjacent grid point.
-       'trilinear': Weigh the adjacent grid points according to their
-                    distance.
+       'trilinear': Weigh the adjacent grid points according to their distance.
        'tricubic': Use a tricubic spline intnerpolation.
 
     *method*:
         Integration method for the scipy.integrate.ode method.
+
+    *metric*:
+        Metric function that takes a point [x, y, z] and an array
+        of shape [3, 3] that has the comkponents g_ij.
+        Use 'None' for Cartesian metric.
 
     *rtol*:
       Relative tolerance of the field line tracer.
@@ -113,7 +118,7 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
         periodic = [False, False, False]
 
     # Assign parameters to the streamline objects.
-    streamlines_return = Streamlines3d()
+    streamlines_return = Streamline3d()
     argument_dict = inspect.getargvalues(inspect.currentframe()).locals
     for argument in argument_dict:
         setattr(streamlines_return, argument, argument_dict[argument])
@@ -121,7 +126,7 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
     return streamlines_return
 
 
-class Streamlines3d(object):
+class Streamline3d(object):
     """
     Streamline class containing geometry, parameters and plotting function.
     """
@@ -143,6 +148,7 @@ class Streamlines3d(object):
         self.method = 'dop853'
         self.atol = 1e-8
         self.rtol = 1e-8
+        self.metric = None
         self.color = (0, 1, 0)
         self.alpha = 1
         self.emission = None
@@ -172,33 +178,36 @@ class Streamlines3d(object):
            or not isinstance(self.z, np.ndarray):
             print("Error: x OR y OR z array invalid.")
             return -1
-        if not (self.x.shape == self.y.shape == self.z.shape == \
-                self.u.shape == self.v.shape == self.w.shape):
+        if not (self.x.shape == self.y.shape == self.z.shape) and \
+               (self.u.shape == self.v.shape == self.w.shape):
             print("Error: input array shapes invalid.")
             return -1
 
-        # Delete existing meshes.
-        # TODO:
-        if not self.streamline_mesh is None:
-            bpy.ops.object.select_all(action='DESELECT')
-            self.streamline_mesh.select = True
-            bpy.ops.object.delete()
-            self.streamline_mesh = None
-        self.streamline_mesh = []
-
-        # Delete existing curve.
-        if not self.curve_data is None:
-            for curve_data in self.curve_data:
-                bpy.data.curves.remove(curve_data)
-
-        # Delete existing materials.
-        if not self.mesh_material is None:
-            for mesh_material in self.mesh_material:
-                bpy.data.materials.remove(mesh_material)
+#        # Delete existing meshes.
+#        # TODO:
+#        if not self.streamline_mesh is None:
+#            bpy.ops.object.select_all(action='DESELECT')
+#            self.streamline_mesh.select = True
+#            bpy.ops.object.delete()
+#            self.streamline_mesh = None
+#        self.streamline_mesh = []
+#
+#        # Delete existing curve.
+#        if not self.curve_data is None:
+#            for curve_data in self.curve_data:
+#                bpy.data.curves.remove(curve_data)
+#
+#        # Delete existing materials.
+#        if not self.mesh_material is None:
+#            for mesh_material in self.mesh_material:
+#                bpy.data.materials.remove(mesh_material)
 
         # Prepare the seeds.
         if isinstance(self.seeds, int):
             self.seeds = np.random.random([self.seeds, 3])
+            self.seeds[:, 0]*(self.x.max()-self.x.min()) + self.x.min()
+            self.seeds[:, 1]*(self.y.max()-self.y.min()) + self.y.min()
+            self.seeds[:, 2]*(self.z.max()-self.z.min()) + self.z.min()
         if not isinstance(self.seeds, np.ndarray):
             print("Error: seeds are not valid.")
             return -1
@@ -207,10 +216,32 @@ class Streamlines3d(object):
         color_rgba = colors.make_rgba_array(self.color, self.seeds.shape[0],
                                             self.color_map, self.vmin, self.vmax)
 
-        # Compute the streamlines.
+        # Set up the field line integration.
+        if self.interpolation == 'tricubic':
+            try:
+                import warnings
+
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=Warning)
+                    from eqtools.trispline import Spline
+            except:
+                print('Warning: Could not import eqtools.trispline.Spline for \
+                       tricubic interpolation.\n')
+                print('Warning: Fall back to trilinear.')
+                self.interpolation = 'trilinear'
+        # Set up the splines for the tricubic interpolation.
+        if self.interpolation == 'tricubic':
+            splines = []
+            splines.append(Spline(self.z, self.y, self.x, np.swapaxes(self.u, 0, 2)))
+            splines.append(Spline(self.z, self.y, self.x, np.swapaxes(self.v, 0, 2)))
+            splines.append(Spline(self.z, self.y, self.x, np.swapaxes(self.w, 0, 2)))
+        else:
+            splines = None
+
+        # Compute the positions along the streamlines.
         tracers = []
         for tracer_idx in range(self.seeds.shape[0]):
-            tracers.append(self.__tracer(xx=self.seeds[tracer_idx]))
+            tracers.append(self.__tracer(xx=self.seeds[tracer_idx]), splines=splines)
 
         # Plot the streamlines/tracers.
         self.curve_data = []
@@ -242,9 +273,10 @@ class Streamlines3d(object):
 
             # Set the material/color.
             self.mesh_material.append(bpy.data.materials.new('material'))
-            self.mesh_material[-1].diffuse_color = color_rgba[0]
+            self.mesh_material[-1].diffuse_color = color_rgba[tracer_idx]
             self.mesh_material[-1].roughness = self.roughness
 
+        # TODO:
 #        # Group the meshes together.
 #        for mesh in self.arrow_mesh[::-1]:
 #            mesh.select = True
@@ -255,7 +287,7 @@ class Streamlines3d(object):
         return 0
 
 
-    def __tracer(self, xx=(0, 0, 0), time=(0, 1), metric=None, splines=None):
+    def __tracer(self, xx=(0, 0, 0), time=(0, 1), splines=None):
         """
         Trace a field starting from xx in any rectilinear coordinate system
         with constant dx, dy and dz and with a given metric.
@@ -272,11 +304,6 @@ class Streamlines3d(object):
         *time*:
             Time array for which the tracer is computed.
 
-        *metric*:
-            Metric function that takes a point [x, y, z] and an array
-            of shape [3, 3] that has the comkponents g_ij.
-            Use 'None' for Cartesian metric.
-
         *splines*:
             Spline interpolation functions for the tricubic interpolation.
             This can speed up the calculations greatly for repeated streamline tracing
@@ -292,45 +319,27 @@ class Streamlines3d(object):
         Ox = self.x.min()
         Oy = self.y.min()
         Oz = self.z.min()
-        Lx = self.x.max()
-        Ly = self.y.max()
-        Lz = self.z.max()
+        Lx = self.x.max()-self.x.min()
+        Ly = self.y.max()-self.y.min()
+        Lz = self.z.max()-self.z.min()
 
-        if self.interpolation == 'tricubic':
-            try:
-                import warnings
-
-                with warnings.catch_warnings():
-                    warnings.filterwarnings("ignore", category=Warning)
-                    from eqtools.trispline import Spline
-            except:
-                print('Warning: Could not import eqtools.trispline.Spline for \
-                       tricubic interpolation.\n')
-                print('Warning: Fall back to trilinear.')
-                self.interpolation = 'trilinear'
-
-        if not metric:
-            metric = lambda xx: np.eye(3)
+        if not self.metric:
+            self.metric = lambda xx: np.eye(3)
 
         # Redefine the derivative y for the scipy ode integrator using the given parameters.
         if (self.interpolation == 'mean') or (self.interpolation == 'trilinear'):
             odeint_func = lambda t, xx: self.__vec_int(xx)
         if self.interpolation == 'tricubic':
-            if splines is None:
-                field_x = Spline(self.z, self.y, self.x, np.swapaxes(self.u, 0, 2))
-                field_y = Spline(self.z, self.y, self.x, np.swapaxes(self.v, 0, 2))
-                field_z = Spline(self.z, self.y, self.x, np.swapaxes(self.w, 0, 2))
-            else:
-                field_x = splines[0]
-                field_y = splines[1]
-                field_z = splines[2]
+            field_x = splines[0]
+            field_y = splines[1]
+            field_z = splines[2]
             odeint_func = lambda t, xx: self.__trilinear_func(xx, field_x, field_y, field_z)
 
         # Set up the ode solver.
         methods_ode = ['vode', 'zvode', 'lsoda', 'dopri5', 'dop853']
         methods_ivp = ['RK45', 'RK23', 'Radau', 'BDF', 'LSODA']
         if self.method in methods_ode:
-            solver = ode(odeint_func, jac=metric)
+            solver = ode(odeint_func, jac=self.metric)
             solver.set_initial_value(xx, time[0])
             solver.set_integrator(self.method, rtol=self.rtol, atol=self.atol)
             tracers = np.zeros([len(time), 3])
@@ -340,7 +349,7 @@ class Streamlines3d(object):
         if self.method in methods_ivp:
             tracers = solve_ivp(odeint_func, (time[0], time[-1]), xx,
                                 t_eval=time, rtol=self.rtol, atol=self.atol,
-                                jac=metric, method=self.method).y.T
+                                jac=self.metric, method=self.method).y.T
 
         # Remove points that lie outside the domain and interpolation on the boundary.
         cut_mask = ((tracers[:, 0] > Ox+Lx) + \
