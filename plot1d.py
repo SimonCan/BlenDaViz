@@ -25,7 +25,7 @@ pl.z = np.linspace(0, 1, 5)
 pl.plot()
 '''
 
-def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1), #alpha=1,
+def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
          emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
          marker=None, marker_orientation=(0, 0), layers=None):
     """
@@ -222,7 +222,8 @@ class PathLine(object):
             for param in range(self.x.shape[0]):
                 self.poly_line.points[param].co = (self.x[param] - self.x[-1],
                                                    self.y[param] - self.y[-1],
-                                                   self.z[param] - self.z[-1], 0)
+                                                   self.z[param] - self.z[-1],
+                                                   0)
 
             # Add 3d structure.
             self.curve_data.splines.data.bevel_depth = self.radius
@@ -325,19 +326,13 @@ class PathLine(object):
                 if color_rgba.ndim == 2:
                     color_is_array = True
 
-            if any([#isinstance(self.alpha, np.ndarray),
-                    color_is_array,
+            if any([color_is_array,
                     isinstance(self.roughness, np.ndarray),
                     isinstance(self.emission, np.ndarray)]):
                 self.mesh_material = []
 
                 for idx in range(len(self.x)):
                     self.mesh_material.append(bpy.data.materials.new('material'))
-
-#                    if isinstance(self.alpha, np.ndarray):
-#                        self.mesh_material[idx].alpha = self.alpha[idx]
-#                    else:
-#                        self.mesh_material[idx].alpha = self.alpha
 
                     if color_is_array:
                         self.mesh_material[idx].diffuse_color = tuple(color_rgba[idx])
@@ -369,7 +364,6 @@ class PathLine(object):
                     self.marker_mesh[idx].active_material = self.mesh_material[idx]
             else:
                 self.mesh_material = bpy.data.materials.new('material')
-                #self.mesh_material.alpha = self.alpha
                 self.mesh_material.diffuse_color = color_rgba
                 self.mesh_material.roughness = self.roughness
 
