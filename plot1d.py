@@ -34,8 +34,8 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
     call signature:
 
     plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
-         emission=None, rotation_x=0, rotation_y=0, rotation_z=0,
-         roughness=1, marker='sphere', marker_orientation=(0, 0))
+         emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
+         marker=None, marker_orientation=(0, 0), layers=None)
 
     Keyword arguments:
 
@@ -56,9 +56,9 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
       Positive integer > 2.
 
     *color*:
-      rgb values of the form (r, g, b) with 0 <= r, g, b <= 1, or string,
+      rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
       e.g. 'red' or character, e.g. 'r', or n-array of strings/character,
-      or [n, 3] array with rgb values.
+      or [n, 4] array with rgba values.
 
     *emission*
       Light emission by the line or markers.
@@ -206,7 +206,7 @@ class PathLine(object):
 
         # Create the bezier curve.
         if self.marker is None:
-            # Transform color string into rgb.
+            # Transform color string into rgba.
             color_rgba = colors.make_rgba_array(self.color, 1)
 
             self.curve_data = bpy.data.curves.new('DataCurve', type='CURVE')
