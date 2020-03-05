@@ -28,15 +28,16 @@ stream = blt.streamlines(x, y, z, u, v, w, seeds=50, integration_time=100, integ
 '''
 
 # TODO:
+# - 1) Color and material options.
 # - 2) Interpolation on non-equidistant grids.
-# - 3) Code style.
+# - 3) Forward and backward tracing.
 # - 4) Implement periodic domains.
 # - 5) Different kinds of seeds, like spherical with radius and origin.
 
 def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
                 interpolation='tricubic', method='dop853', atol=1e-8, rtol=1e-8,
                 metric=None, integration_time=1, integration_steps=10,
-                color=(0, 1, 0), alpha=1, emission=None, roughness=1,
+                color=(0, 1, 0, 1), emission=None, roughness=1,
                 radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
     """
     Plot streamlines of a given vector field.
@@ -46,7 +47,7 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
     streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
                 interpolation='tricubic', method='dop853', atol=1e-8, rtol=1e-8,
                 metric=None, integration_time=1, integration_steps=10,
-                color=(0, 1, 0), alpha=1, emission=None, roughness=1,
+                color=(0, 1, 0, 1), emission=None, roughness=1,
                 radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None)
 
     Keyword arguments:
@@ -94,15 +95,12 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
       Absolute tolerance of the field line tracer.
 
     *color*:
-      rgba values of the form (r, g, b) with 0 <= r, g, b <= 1, or string,
+      rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
       e.g. 'red' or character, e.g. 'r', or list of strings/character,
-      or [n, 3] array with rgba values or array of the same shape as input array.
-
-    *alpha*:
-      Alpha (opacity) value for the streamlines.
+      or [n, 4] array with rgba values or array of the same shape as input array.
 
     *emission*
-      Light emission by the streamlines. This overrides 'alpha' and 'roughness'.
+      Light emission by the streamlines. This overrides 'roughness'.
 
     *roughness*:
       Texture roughness.
@@ -147,12 +145,14 @@ class Streamline3d(object):
         Fill members with default values.
         """
 
-        self.x = 0
-        self.y = 0
-        self.z = 0
-        self.u = 0
-        self.v = 0
-        self.w = 0
+        import numpy as np
+
+        self.x = np.array([0, 1])
+        self.y = np.array([0, 1])
+        self.z = np.array([0, 1])
+        self.u = np.array([0, 1])
+        self.v = np.array([0, 1])
+        self.w = np.array([0, 1])
         self.seeds = 100
         self.periodic = [False, False, False]
         self.interpolation = 'tricubic'
@@ -162,8 +162,7 @@ class Streamline3d(object):
         self.metric = None
         self.integration_time = 1
         self.integration_steps = 10
-        self.color = (0, 1, 0)
-        self.alpha = 1
+        self.color = (0, 1, 0, 1)
         self.emission = None
         self.roughness = 1
         self.radius = 0.1
@@ -173,6 +172,7 @@ class Streamline3d(object):
         self.color_map = None
         self.curve_data = None
         self.curve_object = None
+        self.poly_line = None
         self.streamline_mesh = None
         self.mesh_material = None
 
@@ -277,7 +277,8 @@ class Streamline3d(object):
             for param in range(tracers[tracer_idx].shape[0]):
                 self.poly_line[-1].points[param].co = (tracers[tracer_idx][param, 0] - tracers[tracer_idx][-1, 0],
                                                        tracers[tracer_idx][param, 1] - tracers[tracer_idx][-1, 1],
-                                                       tracers[tracer_idx][param, 2] - tracers[tracer_idx][-1, 2], 0)
+                                                       tracers[tracer_idx][param, 2] - tracers[tracer_idx][-1, 2],
+                                                       0)
 
             # Add 3d structure.
             self.curve_data[-1].splines.data.bevel_depth = self.radius
@@ -285,10 +286,11 @@ class Streamline3d(object):
             self.curve_data[-1].splines.data.fill_mode = 'FULL'
 
             # Set the material/color.
-            self.mesh_material.append(bpy.data.materials.new('material'))
-            self.mesh_material[-1].diffuse_color = color_rgba[tracer_idx]
-            self.mesh_material[-1].roughness = self.roughness
-            self.curve_object[-1].active_material = self.mesh_material[-1]
+            self.__set_material(tracer_idx, color_rgba)
+#            self.mesh_material.append(bpy.data.materials.new('material'))
+#            self.mesh_material[-1].diffuse_color = color_rgba[tracer_idx]
+#            self.mesh_material[-1].roughness = self.roughness
+#            self.curve_object[-1].active_material = self.mesh_material[-1]
 
             # Link the curve object with the scene.
             bpy.context.scene.collection.objects.link(self.curve_object[-1])
@@ -587,7 +589,6 @@ class Streamline3d(object):
 
         # Deterimne if we need a list of materials, i.e. for every arrow mesh one.
         if any([isinstance(self.color, np.ndarray),
-                isinstance(self.alpha, np.ndarray),
                 isinstance(self.emission, np.ndarray),
                 isinstance(self.roughness, np.ndarray)]):
             list_material = True
@@ -596,53 +597,29 @@ class Streamline3d(object):
 
         # Transform single values to arrays.
         if list_material:
-            if color_rgba.shape[0] != self.x.shape[0]:
-                print('color_rgba.shape = {0}'.format(color_rgba.shape))
-                color_rgba = np.repeat(color_rgba, self.x.shape[0], axis=0)
-                print('color_rgba.shape = {0}'.format(color_rgba.shape))
-            if not isinstance(self.alpha, np.ndarray):
-                self.alpha = np.ones(self.x.shape[0])*self.alpha
+            if color_rgba.shape[0] != self.seeds.shape[0]:
+                color_rgba = np.repeat(color_rgba, self.seeds.shape[0], axis=0)
             if not isinstance(self.roughness, np.ndarray):
-                self.roughness = np.ones(self.x.shape[0])*self.roughness
+                self.roughness = np.ones(self.seeds.shape[0])*self.roughness
             if not self.emission is None:
                 if not isinstance(self.emission, np.ndarray):
-                    self.emission = np.ones(self.x.emission[0])*self.emission
+                    self.emission = np.ones(self.seeds.shape[0])*self.emission
 
         # Set the material.
         if list_material:
             self.mesh_material.append(bpy.data.materials.new('material'))
-            self.arrow_mesh[2*idx].active_material = self.mesh_material[idx]
-            self.arrow_mesh[2*idx+1].active_material = self.mesh_material[idx]
+            self.curve_object[idx].active_material.active_material = self.mesh_material[idx]
         else:
             if idx == 0:
                 self.mesh_material.append(bpy.data.materials.new('material'))
                 self.mesh_material[0].diffuse_color = color_rgba[idx]
-            self.arrow_mesh[2*idx].active_material = self.mesh_material[0]
-            self.arrow_mesh[2*idx+1].active_material = self.mesh_material[0]
+            self.curve_object[idx].active_material = self.mesh_material[0]
 
         # Set the diffusive color.
         if list_material:
             self.mesh_material[idx].diffuse_color = color_rgba[idx]
         else:
             self.mesh_material[0].diffuse_color = color_rgba[0]
-
-        # Set the material alpha value.
-        if list_material:
-            if isinstance(self.alpha, np.ndarray):
-                self.mesh_material[idx].alpha = self.alpha[idx]
-                if self.alpha[idx] < 1.0:
-                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
-                    self.mesh_material[idx].use_transparency = True
-            else:
-                self.mesh_material[idx].alpha = self.alpha
-                if self.alpha < 1.0:
-                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
-                    self.mesh_material[idx].use_transparency = True
-        elif idx == 0:
-            self.mesh_material[0].alpha = self.alpha
-            if self.alpha < 1.0:
-                self.mesh_material[0].transparency_method = 'Z_TRANSPARENCY'
-                self.mesh_material[0].use_transparency = True
 
         # Set the material roughness.
         if list_material:
