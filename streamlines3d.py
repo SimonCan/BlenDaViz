@@ -24,19 +24,19 @@ xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
 u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 w = np.ones_like(u)*0.1
-stream = blt.streamlines(x, y, z, u, v, w, seeds=50, integration_time=100, integration_steps=100)
+stream = blt.streamlines(x, y, z, u, v, w, seeds=25, integration_time=100, integration_steps=10)
 '''
 
 # TODO:
 # - 1) Color and material options.
 # - 2) Interpolation on non-equidistant grids.
-# - 3) Forward and backward tracing.
 # - 4) Implement periodic domains.
 # - 5) Different kinds of seeds, like spherical with radius and origin.
 
 def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
                 interpolation='tricubic', method='dop853', atol=1e-8, rtol=1e-8,
                 metric=None, integration_time=1, integration_steps=10,
+                integration_direction='both',
                 color=(0, 1, 0, 1), emission=None, roughness=1,
                 radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
     """
@@ -47,6 +47,7 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
     streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
                 interpolation='tricubic', method='dop853', atol=1e-8, rtol=1e-8,
                 metric=None, integration_time=1, integration_steps=10,
+                integration_direction='both',
                 color=(0, 1, 0, 1), emission=None, roughness=1,
                 radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None)
 
@@ -75,6 +76,12 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
     *method*:
         Integration method for the scipy.integrate.ode method.
 
+    *atol*:
+      Absolute tolerance of the field line tracer.
+
+    *rtol*:
+      Relative tolerance of the field line tracer.
+
     *metric*:
         Metric function that takes a point [x, y, z] and an array
         of shape [3, 3] that has the comkponents g_ij.
@@ -88,11 +95,8 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
       Number of integration steps for the field line integration.
       This determines how fine the curve appears.
 
-    *rtol*:
-      Relative tolerance of the field line tracer.
-
-    *atol*:
-      Absolute tolerance of the field line tracer.
+    *integration_direction:
+      Can be 'forward', 'backward' or 'both' (default).
 
     *color*:
       rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
@@ -162,6 +166,7 @@ class Streamline3d(object):
         self.metric = None
         self.integration_time = 1
         self.integration_steps = 10
+        self.integration_direction = 'both'
         self.color = (0, 1, 0, 1)
         self.emission = None
         self.roughness = 1
@@ -173,7 +178,6 @@ class Streamline3d(object):
         self.curve_data = None
         self.curve_object = None
         self.poly_line = None
-        self.streamline_mesh = None
         self.mesh_material = None
 
 
@@ -196,24 +200,17 @@ class Streamline3d(object):
             print("Error: input array shapes invalid.")
             return -1
 
-#        # Delete existing meshes.
-#        # TODO:
-#        if not self.streamline_mesh is None:
-#            bpy.ops.object.select_all(action='DESELECT')
-#            self.streamline_mesh.select = True
-#            bpy.ops.object.delete()
-#            self.streamline_mesh = None
-#        self.streamline_mesh = []
-#
-#        # Delete existing curve.
-#        if not self.curve_data is None:
-#            for curve_data in self.curve_data:
-#                bpy.data.curves.remove(curve_data)
-#
-#        # Delete existing materials.
-#        if not self.mesh_material is None:
-#            for mesh_material in self.mesh_material:
-#                bpy.data.materials.remove(mesh_material)
+        # Delete existing curve.
+        if not self.curve_data is None:
+            for curve_data in self.curve_data:
+                bpy.data.curves.remove(curve_data)
+            self.curve_data = None
+
+        # Delete existing materials.
+        if not self.mesh_material is None:
+            for mesh_material in self.mesh_material:
+                bpy.data.materials.remove(mesh_material)
+            self.mesh_material = None
 
         # Prepare the seeds.
         if isinstance(self.seeds, int):
@@ -287,14 +284,9 @@ class Streamline3d(object):
 
             # Set the material/color.
             self.__set_material(tracer_idx, color_rgba)
-#            self.mesh_material.append(bpy.data.materials.new('material'))
-#            self.mesh_material[-1].diffuse_color = color_rgba[tracer_idx]
-#            self.mesh_material[-1].roughness = self.roughness
-#            self.curve_object[-1].active_material = self.mesh_material[-1]
 
             # Link the curve object with the scene.
             bpy.context.scene.collection.objects.link(self.curve_object[-1])
-
 
         # TODO:
 #        # Group the meshes together.
@@ -333,6 +325,9 @@ class Streamline3d(object):
         from scipy.integrate import solve_ivp
 
         time = np.linspace(0, self.integration_time, self.integration_steps)
+        field_sign = +1
+        if self.integration_direction == 'backward':
+            field_sign = -1
 
         # Determine some parameters.
         Ox = self.x.min()
@@ -347,12 +342,12 @@ class Streamline3d(object):
 
         # Redefine the derivative y for the scipy ode integrator using the given parameters.
         if (self.interpolation == 'mean') or (self.interpolation == 'trilinear'):
-            odeint_func = lambda t, xx: self.__vec_int(xx)
+            odeint_func = lambda t, xx: self.__vec_int(xx)*field_sign
         if self.interpolation == 'tricubic':
             field_x = splines[0]
             field_y = splines[1]
             field_z = splines[2]
-            odeint_func = lambda t, xx: self.__trilinear_func(xx, field_x, field_y, field_z)
+            odeint_func = lambda t, xx: self.__trilinear_func(xx, field_x, field_y, field_z)*field_sign
 
         # Set up the ode solver.
         methods_ode = ['vode', 'zvode', 'lsoda', 'dopri5', 'dop853']
@@ -411,6 +406,14 @@ class Streamline3d(object):
             cut_mask[idx_outside+1:] = True
             # Remove outside points.
             tracers = tracers[~cut_mask, :].copy()
+
+        # In case of forward and backward field integration trace backward.
+        if self.integration_direction == 'both':
+            self.integration_direction = 'backward'
+            tracers_backward = self.__tracer(xx=xx, splines=splines)
+            self.integration_direction = 'both'
+            # Glue the forward and backward field tracers together.
+            tracers = np.vstack([tracers_backward[::-1, :], tracers[1:, :]])
 
         return tracers
 
