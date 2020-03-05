@@ -211,9 +211,9 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
     call signature:
 
     quiver(x, y, z, u, v, w, pivot='middle', length=1,
-           radius_shaft=0.25, radius_tip=0.5,
-           color=(0, 1, 0), emission=None, roughness=1,
-           vmin=None, vmax=None, color_map=None)
+           radius_shaft=0.25, radius_tip=0.5, scale=1,
+           color=(0, 1, 0, 1), emission=None, roughness=1,
+           vmin=None, vmax=None, color_map=None):]
 
     Keyword arguments:
     *x, y, z*:
@@ -244,9 +244,9 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
         Can be constant or array of the same shape as x, y and z.
 
     *color*:
-      rgba values of the form (r, g, b) with 0 <= r, g, b <= 1, or string,
+      rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
       e.g. 'red' or character, e.g. 'r', or list of strings/character,
-      or [n, 3] array with rgba values or array of the same shape as input array
+      or [n, 4] array with rgba values or array of the same shape as input array
       or 'magnitude' (use vector length).
 
     *emission*
