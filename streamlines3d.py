@@ -24,7 +24,7 @@ xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
 u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 w = np.ones_like(u)*0.1
-stream = blt.streamlines(x, y, z, u, v, w, seeds=25, integration_time=100, integration_steps=10)
+stream = blt.streamlines(x, y, z, u, v, w, seeds=8, integration_time=100, integration_steps=10)
 '''
 
 # TODO:
@@ -178,6 +178,7 @@ class Streamline3d(object):
         self.curve_data = None
         self.curve_object = None
         self.poly_line = None
+        self.mesh = None
         self.mesh_material = None
 
 
@@ -201,13 +202,16 @@ class Streamline3d(object):
             return -1
 
         # Delete existing curve.
-        if not self.curve_data is None:
-            for curve_data in self.curve_data:
-                bpy.data.curves.remove(curve_data)
+        if not self.mesh is None:
+            bpy.ops.object.select_all(action='DESELECT')
+            self.mesh.select_set(True)
+            bpy.ops.object.delete()
             self.curve_data = None
+            self.curve_object = None
 
         # Delete existing materials.
         if not self.mesh_material is None:
+            bpy.ops.object.select_all(action='DESELECT')
             for mesh_material in self.mesh_material:
                 bpy.data.materials.remove(mesh_material)
             self.mesh_material = None
@@ -289,12 +293,15 @@ class Streamline3d(object):
             bpy.context.scene.collection.objects.link(self.curve_object[-1])
 
         # TODO:
-#        # Group the meshes together.
-#        for mesh in self.arrow_mesh[::-1]:
-#            mesh.select = True
-#        bpy.ops.object.join()
-#        self.arrow_mesh = bpy.context.object
-#        self.arrow_mesh.select = False
+#        # Group the curves together.
+        for curve_object in self.curve_object[::-1]:
+            curve_object.select_set(state=True)
+            bpy.context.view_layer.objects.active = curve_object
+        bpy.ops.object.join()
+        self.mesh = bpy.context.selected_objects[0]
+        self.mesh.select_set(False)
+#        self.marker_mesh = bpy.context.object
+#        self.marker_mesh.select_set(state=False)
 
         return 0
 
