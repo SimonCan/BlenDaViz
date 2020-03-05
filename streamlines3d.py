@@ -314,7 +314,6 @@ class Streamline3d(object):
 #                # Enable use nodes.
 #                self.mesh_material.use_nodes = True
                 
-
             # Link the curve object with the scene.
             bpy.context.scene.collection.objects.link(self.curve_object[-1])
 
