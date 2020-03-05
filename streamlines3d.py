@@ -289,30 +289,30 @@ class Streamline3d(object):
             # Set the material/color.
             self.__set_material(tracer_idx, color_rgba)
 
-            # TODO:
-            if texture:
-                # Create mesh and object.
-                self.mesh_data = bpy.data.meshes.new("DataMesh")
-                self.mesh_object = bpy.data.objects.new("ObjMesh", self.mesh_data)
-        #        self.mesh_object.select_set(state=True)
-        
-                # Create mesh from the given data.
-                self.mesh_data.from_pydata(vertices, [], faces)
-                self.mesh_data.update(calc_edges=True)
-        
-                # Assign a material to the surface.
-                self.mesh_material = bpy.data.materials.new('MaterialMesh')
-                self.mesh_data.materials.append(self.mesh_material)
-
-                mesh_image = bpy.data.images.new('ImageMesh', self.c.shape[0], self.c.shape[1])
-                pixels = np.array(mesh_image.pixels)
-                c_max = np.max(self.c)
-                c_min = np.min(self.c)
-
-                # Enable uv mappings for the curve object.
-                bpy.context.object.data.use_uv_as_generated = True
-                # Enable use nodes.
-                self.mesh_material.use_nodes = True
+#            # TODO:
+#            if texture:
+#                # Create mesh and object.
+#                self.mesh_data = bpy.data.meshes.new("DataMesh")
+#                self.mesh_object = bpy.data.objects.new("ObjMesh", self.mesh_data)
+#        #        self.mesh_object.select_set(state=True)
+#        
+#                # Create mesh from the given data.
+#                self.mesh_data.from_pydata(vertices, [], faces)
+#                self.mesh_data.update(calc_edges=True)
+#        
+#                # Assign a material to the surface.
+#                self.mesh_material = bpy.data.materials.new('MaterialMesh')
+#                self.mesh_data.materials.append(self.mesh_material)
+#
+#                mesh_image = bpy.data.images.new('ImageMesh', self.c.shape[0], self.c.shape[1])
+#                pixels = np.array(mesh_image.pixels)
+#                c_max = np.max(self.c)
+#                c_min = np.min(self.c)
+#
+#                # Enable uv mappings for the curve object.
+#                bpy.context.object.data.use_uv_as_generated = True
+#                # Enable use nodes.
+#                self.mesh_material.use_nodes = True
                 
 
             # Link the curve object with the scene.
