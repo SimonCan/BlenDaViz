@@ -292,16 +292,13 @@ class Streamline3d(object):
             # Link the curve object with the scene.
             bpy.context.scene.collection.objects.link(self.curve_object[-1])
 
-        # TODO:
-#        # Group the curves together.
+        # Group the curves together.
         for curve_object in self.curve_object[::-1]:
             curve_object.select_set(state=True)
             bpy.context.view_layer.objects.active = curve_object
         bpy.ops.object.join()
         self.mesh = bpy.context.selected_objects[0]
         self.mesh.select_set(False)
-#        self.marker_mesh = bpy.context.object
-#        self.marker_mesh.select_set(state=False)
 
         return 0
 
