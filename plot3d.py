@@ -195,7 +195,7 @@ importlib.reload(blt.plot3d)
 importlib.reload(blt.colors)
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='magnitude')
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red')
-qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red', alpha=np.random.random(5))
+qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red')
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red', emission=np.random.random(5))
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=['r', 'b', 'green', 'y', 'black'])
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=np.random.random(len(x)))
@@ -250,7 +250,7 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
       or 'magnitude' (use vector length).
 
     *emission*
-      Light emission by the arrows. This overrides 'alpha' and 'roughness'.
+      Light emission by the arrows. This overrides 'roughness'.
       Real number or array or 'magnitude' (use vector length).
 
     *roughness*:
@@ -384,7 +384,7 @@ class Quiver3d(object):
             if self.color == 'magnitude':
                 self.color = np.sqrt(self.u**2 + self.v**2 + self.w**2)
         color_rgba = colors.make_rgba_array(self.color, self.x.shape[0],
-                                          self.color_map, self.vmin, self.vmax)
+                                            self.color_map, self.vmin, self.vmax)
 
         # Prepare the materials list.
         self.mesh_material = []
@@ -480,9 +480,7 @@ class Quiver3d(object):
         # Transform single values to arrays.
         if list_material:
             if color_rgba.shape[0] != self.x.shape[0]:
-                print('color_rgba.shape = {0}'.format(color_rgba.shape))
                 color_rgba = np.repeat(color_rgba, self.x.shape[0], axis=0)
-                print('color_rgba.shape = {0}'.format(color_rgba.shape))
             if not isinstance(self.roughness, np.ndarray):
                 self.roughness = np.ones(self.x.shape[0])*self.roughness
             if not self.emission is None:
@@ -506,24 +504,6 @@ class Quiver3d(object):
             self.mesh_material[idx].diffuse_color = color_rgba[idx]
         else:
             self.mesh_material[0].diffuse_color = color_rgba[0]
-
-#        # Set the material alpha value.
-#        if list_material:
-#            if isinstance(self.alpha, np.ndarray):
-#                self.mesh_material[idx].alpha = self.alpha[idx]
-#                if self.alpha[idx] < 1.0:
-#                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
-#                    self.mesh_material[idx].use_transparency = True
-#            else:
-#                self.mesh_material[idx].alpha = self.alpha
-#                if self.alpha < 1.0:
-#                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
-#                    self.mesh_material[idx].use_transparency = True
-#        elif idx == 0:
-#            self.mesh_material[0].alpha = self.alpha
-#            if self.alpha < 1.0:
-#                self.mesh_material[0].transparency_method = 'Z_TRANSPARENCY'
-#                self.mesh_material[0].use_transparency = True
 
         # Set the material roughness.
         if list_material:
