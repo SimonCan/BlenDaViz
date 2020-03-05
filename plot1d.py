@@ -182,6 +182,7 @@ class PathLine(object):
                     bpy.data.materials.remove(mesh_material)
             else:
                 bpy.data.materials.remove(self.mesh_material)
+            self.mesh_material = None
 
         # Switch to object mode.
 #        current_mode = bpy.context.mode
