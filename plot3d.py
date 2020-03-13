@@ -560,30 +560,27 @@ sys.path.append('~/codes/blendaviz')
 import blendaviz as blt
 importlib.reload(blt)
 importlib.reload(blt.plot3d)
-x = np.linspace(-2, 2, 5)
-y = np.linspace(-2, 2, 5)
-z = np.linspace(-2, 2, 5)
+x = np.linspace(-2, 2, 21)
+y = np.linspace(-2, 2, 21)
+z = np.linspace(-2, 2, 21)
 xx, yy, zz = np.meshgrid(x, y, z)
 phi = np.sin(3*xx) + np.cos(2*yy) + np.sin(zz)
 iso = blt.contour(phi)
 '''
 
 # TODO:
-# - 1) Find surface of constant phi.
-# - 2) Define mesh for constant phi.
-# - 3) Add material.
-# - 4) Add custom contour levels.
+# - 5) Option to color isosurfaces according to a different scalar.
 
-def contour(phi, x, y, z, contours=3,
-           color=(0, 1, 0), alpha=1, emission=None, roughness=1,
+def contour(phi, x, y, z, contours=1,
+           color=(0, 1, 0, 1), emission=None, roughness=1,
            vmin=None, vmax=None, color_map=None):
     """
     Plot contours to a given scalar field.
 
     call signature:
 
-    quiver(phi, x, y, z, contours=3,
-           color=(0, 1, 0), alpha=1, emission=None, roughness=1,
+    quiver(phi, x, y, z, contours=1,
+           color=(0, 1, 0, 1), emission=None, roughness=1,
            vmin=None, vmax=None, color_map=None):
 
     Keyword arguments:
@@ -598,15 +595,12 @@ def contour(phi, x, y, z, contours=3,
       Number of contours to be plotted, or array of contour levels.
 
     *color*:
-      rgba values of the form (r, g, b) with 0 <= r, g, b <= 1, or string,
+      rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
       e.g. 'red' or character, e.g. 'r', or list of strings/character,
-      or [n, 3] array with rgba values or array of the same shape as input array.
-
-    *alpha*:
-      Alpha (opacity) value for the contours.
+      or [n, 4] array with rgba values or array of the same shape as input array.
 
     *emission*
-      Light emission by the contours. This overrides 'alpha' and 'roughness'.
+      Light emission by the contours. This overrides 'roughness'.
 
     *roughness*:
       Texture roughness.
@@ -645,14 +639,15 @@ class Contour3d(object):
         self.x = 0
         self.y = 0
         self.z = 0
-        self.color = (0, 1, 0)
-        self.alpha = 1
+        self.contours = 1
+        self.color = (0, 1, 0, 1)
         self.emission = None
         self.roughness = 1
         self.vmin = None
         self.vmax = None
         self.color_map = None
-        self.contour_mesh = None
+        self.mesh_data = None
+        self.mesh_object = None
         self.mesh_material = None
 
 
@@ -663,6 +658,7 @@ class Contour3d(object):
 
         import bpy
         import numpy as np
+        from skimage import measure
         from . import colors
 
         # Check the validity of the input arrays.
@@ -674,96 +670,82 @@ class Contour3d(object):
             print("Error: input array shapes invalid.")
             return -1
 
-        # Flatten the input array.
-        self.phi = self.phi.ravel()
-        self.x = self.x.ravel()
-        self.y = self.y.ravel()
-        self.z = self.z.ravel()
+        # Prepare the isosurface levels.
+        if isinstance(self.contours, int):
+            level_list = np.linspace(self.phi.min(), self.phi.max(), self.contours+2)[1:-1]
+        elif isinstance(self.contours, list):
+            level_list = np.array(self.contours)
+        elif isinstance(self.contours, np.ndarray):
+            level_list = self.contours.ravel()
+        else:
+            print("Error: countours invalid. \
+                  Must be either integer or 1d array/list.")
+            return -1
+
+        # Prepare the material colors.
+        color_rgba = colors.make_rgba_array(self.color, level_list.shape[0],
+                                            self.color_map, self.vmin, self.vmax)
+
+        # Determine the grid spacing.
+        dx = np.partition(np.array(list(set(list(self.x.ravel())))), 1)[1] - self.x.min()
+        dy = np.partition(np.array(list(set(list(self.y.ravel())))), 1)[1] - self.y.min()
+        dz = np.partition(np.array(list(set(list(self.z.ravel())))), 1)[1] - self.z.min()
 
         # Delete existing meshes.
-        if not self.contour_mesh is None:
+        if not self.mesh_object is None:
             bpy.ops.object.select_all(action='DESELECT')
-            self.contour_mesh.select = True
-            bpy.ops.object.delete()
-            self.contour_mesh = None
-        self.contour_mesh = []
+            for mesh_object in self.mesh_object:
+                mesh_object.select_set(state=True)
+                bpy.ops.object.delete()
+            self.mesh_object = None
 
         # Delete existing materials.
         if not self.mesh_material is None:
-            if isinstance(self.mesh_material, list):
-                for mesh_material in self.mesh_material:
-                    bpy.data.materials.remove(mesh_material)
-            else:
-                bpy.data.materials.remove(self.mesh_material)
+            for mesh_material in self.mesh_material:
+                bpy.data.materials.remove(mesh_material)
 
         # Prepare the material colors.
         if isinstance(self.color, str):
             if self.color == 'magnitude':
                 self.color = np.sqrt(self.u**2 + self.v**2 + self.w**2)
         color_rgba = colors.make_rgba_array(self.color, self.x.shape[0],
-                                          self.color_map, self.vmin, self.vmax)
+                                            self.color_map, self.vmin, self.vmax)
 
-        # Prepare the materials list.
+        # Prepare the lists of mashes and materials.
+        self.mesh_data = []
+        self.mesh_object = []
         self.mesh_material = []
 
-        # Plot the arrows.
-        for idx in range(len(self.x)):
-            # Determine the length of the arrow.
-            magnitude = np.sqrt(self.u[idx]**2 + self.v[idx]**2 + self.w[idx]**2)
-            normed = np.array([self.u[idx], self.v[idx], self.w[idx]])/magnitude
-            rotation = Vector((0, 0, 1)).rotation_difference([self.u[idx], self.v[idx], self.w[idx]]).to_euler()
+        for idx, level in enumerate(level_list):
+            # Find the vertices and faces of the isosurfaces.
+            vertices, faces = measure.marching_cubes_classic(self.phi, level, spacing=(dx, dy, dz))
+            vertices[:, 0] += self.x.min()
+            vertices[:, 1] += self.y.min()
+            vertices[:, 2] += self.z.min()
 
-            # Define the arrow's length.
-            if isinstance(self.length, np.ndarray):
-                length = self.length[idx]
-            elif self.length == 'magnitude':
-                length = magnitude
-            else:
-                length = self.length
+            # Reshape the levels and faces arrays for blender.
+            vertices = list(vertices)
+            faces = list(faces)
+    
+            # Create mesh and object.
+            self.mesh_data.append(bpy.data.meshes.new("DataMesh"))
+            self.mesh_object.append(bpy.data.objects.new("ObjMesh", self.mesh_data[-1]))
+    
+            # Create mesh from the given data.
+            self.mesh_data[-1].from_pydata(vertices, [], faces)
+            self.mesh_data[-1].update(calc_edges=True)
+    
+            # Set the material/color.
+            self.__set_material(idx, color_rgba, len(level_list))
+            self.mesh_data[-1].materials.append(self.mesh_material[-1])
 
-            # Define the arrow's radii.
-            if isinstance(self.radius_shaft, np.ndarray):
-                radius_shaft = self.radius_shaft[idx]
-            else:
-                radius_shaft = self.radius_shaft
-            if isinstance(self.radius_tip, np.ndarray):
-                radius_tip = self.radius_tip[idx]
-            else:
-                radius_tip = self.radius_tip
-
-            if self.pivot == 'tail':
-                location = [self.x[idx] + length*normed[0]/2,
-                            self.y[idx] + length*normed[1]/2,
-                            self.z[idx] + length*normed[2]/2]
-            if self.pivot == 'tip':
-                location = [self.x[idx] - length*normed[0]/2,
-                            self.y[idx] - length*normed[1]/2,
-                            self.z[idx] - length*normed[2]/2]
-            if self.pivot == 'mid' or self.pivot == 'middle':
-                location = [self.x[idx], self.y[idx], self.z[idx]]
-            location = np.array(location)
-
-            # Construct the arrow using a cylinder and cone.
-            bpy.ops.mesh.primitive_cylinder_add(radius=radius_shaft, depth=length/2,
-                                                location=location-normed*length/4, rotation=rotation)
-            self.arrow_mesh.append(bpy.context.object)
-            bpy.ops.mesh.primitive_cone_add(radius1=radius_tip, radius2=0, depth=length/2,
-                                            location=location+normed*length/4, rotation=rotation)
-            self.arrow_mesh.append(bpy.context.object)
-
-            self.__set_material(idx, color_rgba)
-
-        # Group the meshes together.
-        for mesh in self.arrow_mesh[::-1]:
-            mesh.select = True
-        bpy.ops.object.join()
-        self.arrow_mesh = bpy.context.object
-        self.arrow_mesh.select = False
+            # Link the mesh object with the scene.
+            bpy.context.scene.collection.objects.link(self.mesh_object[-1])
 
         return 0
 
 
-    def __set_material(self, idx, color_rgba):
+    def __set_material(self, idx, color_rgba, n_levels):
         """
         Set the mesh material.
 
@@ -778,14 +760,16 @@ class Contour3d(object):
 
         *color_rgba*:
           The rgba values of the colors to be used.
+
+        *n_levels*
+          Number of levels/isosurface.
         """
 
         import bpy
         import numpy as np
 
-        # Deterimne if we need a list of materials, i.e. for every arrow mesh one.
+        # Deterimne if we need a list of materials, i.e. for every isosurface one.
         if any([isinstance(self.color, np.ndarray),
-                isinstance(self.alpha, np.ndarray),
                 isinstance(self.emission, np.ndarray),
                 isinstance(self.roughness, np.ndarray)]):
             list_material = True
@@ -794,53 +778,27 @@ class Contour3d(object):
 
         # Transform single values to arrays.
         if list_material:
-            if color_rgba.shape[0] != self.x.shape[0]:
-                print('color_rgba.shape = {0}'.format(color_rgba.shape))
-                color_rgba = np.repeat(color_rgba, self.x.shape[0], axis=0)
-                print('color_rgba.shape = {0}'.format(color_rgba.shape))
-            if not isinstance(self.alpha, np.ndarray):
-                self.alpha = np.ones(self.x.shape[0])*self.alpha
+            if color_rgba.shape[0] != n_levels:
+                color_rgba = np.repeat(color_rgba, n_levels, axis=0)
             if not isinstance(self.roughness, np.ndarray):
-                self.roughness = np.ones(self.x.shape[0])*self.roughness
+                self.roughness = np.ones(n_levels)*self.roughness
             if not self.emission is None:
                 if not isinstance(self.emission, np.ndarray):
-                    self.emission = np.ones(self.x.emission[0])*self.emission
+                    self.emission = np.ones(n_levels)*self.emission
 
         # Set the material.
         if list_material:
             self.mesh_material.append(bpy.data.materials.new('material'))
-            self.arrow_mesh[2*idx].active_material = self.mesh_material[idx]
-            self.arrow_mesh[2*idx+1].active_material = self.mesh_material[idx]
         else:
             if idx == 0:
                 self.mesh_material.append(bpy.data.materials.new('material'))
                 self.mesh_material[0].diffuse_color = color_rgba[idx]
-            self.arrow_mesh[2*idx].active_material = self.mesh_material[0]
-            self.arrow_mesh[2*idx+1].active_material = self.mesh_material[0]
 
         # Set the diffusive color.
         if list_material:
             self.mesh_material[idx].diffuse_color = color_rgba[idx]
         else:
             self.mesh_material[0].diffuse_color = color_rgba[0]
-
-        # Set the material alpha value.
-        if list_material:
-            if isinstance(self.alpha, np.ndarray):
-                self.mesh_material[idx].alpha = self.alpha[idx]
-                if self.alpha[idx] < 1.0:
-                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
-                    self.mesh_material[idx].use_transparency = True
-            else:
-                self.mesh_material[idx].alpha = self.alpha
-                if self.alpha < 1.0:
-                    self.mesh_material[idx].transparency_method = 'Z_TRANSPARENCY'
-                    self.mesh_material[idx].use_transparency = True
-        elif idx == 0:
-            self.mesh_material[0].alpha = self.alpha
-            if self.alpha < 1.0:
-                self.mesh_material[0].transparency_method = 'Z_TRANSPARENCY'
-                self.mesh_material[0].use_transparency = True
 
         # Set the material roughness.
         if list_material:
