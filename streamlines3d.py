@@ -619,7 +619,7 @@ class Streamline3d(object):
         import bpy
         import numpy as np
 
-        # Deterimne if we need a list of materials, i.e. for every arrow mesh one.
+        # Deterimne if we need a list of materials, i.e. for every streamline one.
         if any([isinstance(self.color, np.ndarray),
                 isinstance(self.emission, np.ndarray),
                 isinstance(self.roughness, np.ndarray)]):
