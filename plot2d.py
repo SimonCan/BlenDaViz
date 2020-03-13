@@ -216,7 +216,6 @@ class Surface(object):
             # Transform color string into rgba.
             from . import colors
 
-            print(colors.string_to_rgba(self.c))
             self.mesh_material.diffuse_color = colors.string_to_rgba(self.c)
 
             # Link the mesh object with the scene.
