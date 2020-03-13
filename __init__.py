@@ -11,3 +11,5 @@ from .streamlines3d import *
 from .colors import *
 from .vectors import *
 
+# Install missing python packages using:
+# python3.7m -m pip install [LIB_NAME]
