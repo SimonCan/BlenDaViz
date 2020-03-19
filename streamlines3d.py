@@ -24,10 +24,11 @@ xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
 u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 w = np.ones_like(u)*0.1
-stream = blt.streamlines(x, y, z, u, v, w, seeds=8, integration_time=100, integration_steps=10)
+stream = blt.streamlines(x, y, z, u, v, w, seeds=20, integration_time=100, integration_steps=10)
 '''
 
 # TODO:
+# - 0) Group courves together.
 # - 1) Color and material options.
 # - 2) Interpolation on non-equidistant grids.
 # - 4) Implement periodic domains.
@@ -123,6 +124,18 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
     *color_map*:
       Color map for the values stored in the array 'c'.
       These are the same as in matplotlib.
+
+    Examples:
+      import numpy as np
+      import blendaviz as blt
+      x = np.linspace(-4, 4, 100)
+      y = np.linspace(-4, 4, 100)
+      z = np.linspace(-4, 4, 100)
+      xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
+      u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
+      v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
+      w = np.ones_like(u)*0.1
+      stream = blt.streamlines(x, y, z, u, v, w, seeds=20, integration_time=100, integration_steps=10)
     """
 
     import inspect
@@ -299,7 +312,7 @@ class Streamline3d(object):
 #                # Create mesh from the given data.
 #                self.mesh_data.from_pydata(vertices, [], faces)
 #                self.mesh_data.update(calc_edges=True)
-#        
+#
 #                # Assign a material to the surface.
 #                self.mesh_material = bpy.data.materials.new('MaterialMesh')
 #                self.mesh_data.materials.append(self.mesh_material)
@@ -313,17 +326,17 @@ class Streamline3d(object):
 #                bpy.context.object.data.use_uv_as_generated = True
 #                # Enable use nodes.
 #                self.mesh_material.use_nodes = True
-                
+
             # Link the curve object with the scene.
             bpy.context.scene.collection.objects.link(self.curve_object[-1])
 
-        # Group the curves together.
-        for curve_object in self.curve_object[::-1]:
-            curve_object.select_set(state=True)
-            bpy.context.view_layer.objects.active = curve_object
-        bpy.ops.object.join()
-        self.mesh = bpy.context.selected_objects[0]
-        self.mesh.select_set(False)
+#        # Group the curves together.
+#        for curve_object in self.curve_object[::-1]:
+#            curve_object.select_set(state=True)
+#            bpy.context.view_layer.objects.active = curve_object
+#        bpy.ops.object.join()
+#        self.mesh = bpy.context.selected_objects[0]
+#        self.mesh.select_set(False)
 
         return 0
 
@@ -640,7 +653,7 @@ class Streamline3d(object):
         # Set the material.
         if list_material:
             self.mesh_material.append(bpy.data.materials.new('material'))
-            self.curve_object[idx].active_material.active_material = self.mesh_material[idx]
+            self.curve_object[idx].active_material = self.mesh_material[idx]
         else:
             if idx == 0:
                 self.mesh_material.append(bpy.data.materials.new('material'))
@@ -649,6 +662,7 @@ class Streamline3d(object):
 
         # Set the diffusive color.
         if list_material:
+            print(color_rgba[idx])
             self.mesh_material[idx].diffuse_color = color_rgba[idx]
         else:
             self.mesh_material[0].diffuse_color = color_rgba[0]
