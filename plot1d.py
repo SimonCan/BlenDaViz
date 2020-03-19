@@ -27,7 +27,7 @@ pl.plot()
 
 def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
          emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
-         marker=None, layers=None):
+         marker=None):
     """
     Line plot in 3 dimensions as a line, tube or shapes.
 
@@ -35,7 +35,7 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
 
     plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
          emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
-         marker=None, layers=None)
+         marker=None)
 
     Keyword arguments:
 
@@ -74,9 +74,6 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
       Custom shape or blender object.
       1d array of length n of one of the above.
 
-    *layers*:
-      List or numpy array of layers where the plot will be visible.
-
     Examples:
       import numpy as np
       import blendaviz as blt
@@ -85,7 +82,6 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
       y = 3*np.sin(z)
       pl = blt.plot(x, y, z, marker='cube', radius=0.5, rotation_x=z, rotation_y=np.zeros_like(x), rotation_z=np.zeros_like(x))
       pl.colors = np.random.random([x.shape[0], 3])
-      pl = blt.plot(x, y, z, marker='cube', color=colors)
       pl.z = np.linspace(0, 6, 30)
       pl.plot()
     """
@@ -130,7 +126,6 @@ class PathLine(object):
         self.marker_mesh = None
         self.mesh_material = None
         self.poly_line = None
-        self.layers = None
 
 
     def plot(self):
@@ -154,11 +149,6 @@ class PathLine(object):
             if not self.rotation_x.size == self.rotation_y.size == self.rotation_z.size:
                 print("Error: the size of the rotation angle array do not match.")
                 return -1
-
-        # Check validity of the layers.
-        if not self.layers:
-            self.layers = [0]
-        self.layers = list(self.layers)
 
         # Delete existing curve.
         if not self.curve_data is None:
@@ -369,16 +359,5 @@ class PathLine(object):
             self.marker_mesh = bpy.context.object
             self.marker_mesh.select_set(state=False)
 
-#        # Make the plot visible in the requested layers.
-#        mask_layers = [idx in self.layers for idx in range(20)]
-#        self.marker_mesh.select = True
-#        bpy.ops.object.move_to_layer(layers=mask_layers)
-#        self.marker_mesh.select = False
-
-        # Make bounding box parent to the curve.
-#        self.curve_object.parent = self.bounding_box
-
-        # Switch back to original mode.
-#        bpy.ops.object.mode_xset(mode=current_mode)
 
         return 0
