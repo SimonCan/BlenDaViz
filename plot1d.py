@@ -76,6 +76,18 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
 
     *layers*:
       List or numpy array of layers where the plot will be visible.
+
+    Examples:
+      import numpy as np
+      import blendaviz as blt
+      z = np.linspace(0, 6*np.pi, 30)
+      x = 3*np.cos(z)
+      y = 3*np.sin(z)
+      pl = blt.plot(x, y, z, marker='cube', radius=0.5, rotation_x=z, rotation_y=np.zeros_like(x), rotation_z=np.zeros_like(x))
+      pl.colors = np.random.random([x.shape[0], 3])
+      pl = blt.plot(x, y, z, marker='cube', color=colors)
+      pl.z = np.linspace(0, 6, 30)
+      pl.plot()
     """
 
     import inspect
@@ -158,10 +170,10 @@ class PathLine(object):
             bpy.ops.object.select_all(action='DESELECT')
             if isinstance(self.marker_mesh, list):
                 for marker_mesh in self.marker_mesh:
-                    marker_mesh.select = True
+                    marker_mesh.select_set(True)
                     bpy.ops.object.delete()
             else:
-                self.marker_mesh.select = True
+                self.marker_mesh.select_set(True)
                 bpy.ops.object.delete()
             self.marker_mesh = None
 
@@ -173,27 +185,6 @@ class PathLine(object):
             else:
                 bpy.data.materials.remove(self.mesh_material)
             self.mesh_material = None
-
-        # Switch to object mode.
-#        current_mode = bpy.context.mode
-#        bpy.ops.object.mode_set(mode='OBJECT')
-
-#        if self.bounding_box == None:
-#            # Create the boundaing box.
-#            bpy.ops.mesh.primitive_cube_add(radius=0.5)
-#            self.bounding_box = bpy.context.object
-#
-#            self.bounding_box.hide = True
-#            self.bounding_box.hide_render = True
-#            self.bounding_box.name = 'PathLine'
-#            self.bounding_box.data.name = 'PathLineData'
-#        else:
-#            # Remove the children paths from the parent bounding box.
-#            pass
-
-#        # Adjust the bounding box.
-#        self.bounding_box.location = ((x.max()+x.min())/2, (y.max()+y.min())/2, (z.max()+z.min())/2)
-#        self.bounding_box.scale = [x.max()-x.min(), y.max()-y.min(), y.max()-y.min()]
 
         # Create the bezier curve.
         if self.marker is None:
