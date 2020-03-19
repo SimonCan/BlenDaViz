@@ -27,7 +27,7 @@ pl.plot()
 
 def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
          emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
-         marker=None, marker_orientation=(0, 0), layers=None):
+         marker=None, layers=None):
     """
     Line plot in 3 dimensions as a line, tube or shapes.
 
@@ -35,21 +35,21 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
 
     plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
          emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
-         marker=None, marker_orientation=(0, 0), layers=None)
+         marker=None, layers=None)
 
     Keyword arguments:
 
     *x, y, z*:
       x, y and z coordinates of the points to be plotted.
-      These are 1d arrays of the same length.
+      These are 1d arrays of the same length n.
 
     *radius*:
-      Radius of the plotted tube, i.e. line width.
-      Positive real number or array.
+      Radius of the plotted tube, i.e. line width, or size of the markers.
+      Positive real number or array of length n.
 
     *rotation_[xyz]*:
       Rotation angle around the xyz axis.
-      Real number or array.
+      Real number or array of length n.
 
     *resolution*:
       Azimuthal resolution of the tubes in vertices.
@@ -57,31 +57,22 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
 
     *color*:
       rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
-      e.g. 'red' or character, e.g. 'r', or n-array of strings/character,
+      e.g. 'red', or character, e.g. 'r', or n-array of strings/character,
       or [n, 4] array with rgba values.
 
     *emission*
       Light emission by the line or markers.
-      and 'roughness'.
       Real number for a line plot and array for markers.
 
     *roughness*:
       Texture roughness.
-
-    *rotation_[xyz]*:
-      Rotation of the markers.
-      Accepts array.
 
     *marker*:
       Marker to be used for the plot.
       String with standard Blender 3d shapes: 'cube', 'uv_sphere', 'ico_sphere',
       'cylinder', 'cone', 'torus', 'monkey'.
       Custom shape or blender object.
-      1d array of one of the above.
-
-    *marker_orientation*:
-      Tuple of Euler angles for the orientation of the markers or [n, 2] array
-      with the angles.
+      1d array of length n of one of the above.
 
     *layers*:
       List or numpy array of layers where the plot will be visible.
@@ -121,7 +112,6 @@ class PathLine(object):
         self.roughness = 1.0
         self.emission = None
         self.marker = None
-        self.marker_orientation = (1, 0)
         self.bounding_box = None
         self.curve_data = None
         self.curve_object = None
