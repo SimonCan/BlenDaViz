@@ -13,7 +13,7 @@ import numpy as np
 import importlib
 import sys
 sys.path.append('~/codes/blendaviz')
-import blender as blt
+import blendaviz as blt
 importlib.reload(blt.plot3d)
 importlib.reload(blt.colors)
 importlib.reload(blt)
@@ -195,7 +195,6 @@ importlib.reload(blt.plot3d)
 importlib.reload(blt.colors)
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='magnitude')
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red')
-qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red')
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red', emission=np.random.random(5))
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=['r', 'b', 'green', 'y', 'black'])
 qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=np.random.random(len(x)))
@@ -230,13 +229,13 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
 
     *length*:
       Length of the arrows.
-      Can be a constant, an array of the same shape as
-      x, y and z. If specified as string 'magnitude' use the vector's magnitude.
+      Can be a constant or an array of the same shape as x, y and z.
+      If specified as the string 'magnitude' use the vector's magnitude.
 
     *radius_shaft, radius_tip*:
       Radii of the shaft and tip of the arrows.
-      Can be a constant, an array of the same shape as
-      x, y and z. If specified as string 'magnitude' use the vector's magnitude
+      Can be a constant, an array of the same shape as x, y and z.
+      If specified as string 'magnitude' use the vector's magnitude
       and multiply by 0.25 for radius_shaft and 0.5 for radius_tip.
 
     *scale*:
@@ -257,12 +256,23 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
       Texture roughness.
 
     *vmin, vmax*
-      Minimum and maximum values for the colormap. If not specify, determine
-      from the input arrays.
+      Minimum and maximum values for the colormap.
+      If not specify, determine from the input arrays.
 
     *color_map*:
       Color map for the values stored in the array 'c'.
       These are the same as in matplotlib.
+
+    Examples:
+      import numpy as np
+      import blendaviz as blt
+      x = np.linspace(-2, 2, 5)
+      y = np.linspace(-2, 2, 5)
+      z = np.linspace(-2, 2, 5)
+      u = np.array([1, 0, 0, 1, 0])
+      v = np.array([0, 1, 0, 1, 1])
+      w = np.array([0, 0, 1, 0, 1])
+      qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='magnitude')
     """
 
     import inspect
@@ -292,6 +302,7 @@ class Quiver3d(object):
         self.u = 0
         self.v = 0
         self.w = 0
+        self.pivot = 'middle'
         self.length = 1
         self.radius_shaft = 0.25
         self.radius_tip = 0.5
@@ -350,11 +361,6 @@ class Quiver3d(object):
             else:
                 self.radius_tip = self.radius_tip.ravel()
 
-        # Scale the arrows.
-        self.length *= self.scale
-        self.radius_shaft *= self.scale
-        self.radius_tip *= self.scale
-
         # Flatten the input array.
         self.x = self.x.ravel()
         self.y = self.y.ravel()
@@ -366,7 +372,7 @@ class Quiver3d(object):
         # Delete existing meshes.
         if not self.arrow_mesh is None:
             bpy.ops.object.select_all(action='DESELECT')
-            self.arrow_mesh.select = True
+            self.arrow_mesh.select_set(True)
             bpy.ops.object.delete()
             self.arrow_mesh = None
         self.arrow_mesh = []
@@ -403,16 +409,19 @@ class Quiver3d(object):
                 length = magnitude
             else:
                 length = self.length
+            length *= self.scale
 
             # Define the arrow's radii.
             if isinstance(self.radius_shaft, np.ndarray):
                 radius_shaft = self.radius_shaft[idx]
             else:
                 radius_shaft = self.radius_shaft
+            radius_shaft *= self.scale
             if isinstance(self.radius_tip, np.ndarray):
                 radius_tip = self.radius_tip[idx]
             else:
                 radius_tip = self.radius_tip
+            radius_tip *= self.scale
 
             if self.pivot == 'tail':
                 location = [self.x[idx] + length*normed[0]/2,
@@ -527,7 +536,7 @@ class Quiver3d(object):
                 node_tree.links.new(node_emission.outputs['Emission'],
                                     nodes[0].inputs['Surface'])
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = tuple(color_rgba[idx]) + (1, )
+                node_emission.inputs['Color'].default_value = tuple(color_rgba[idx])
                 if isinstance(self.emission, np.ndarray):
                     node_emission.inputs['Strength'].default_value = self.emission[idx]
                 else:
@@ -543,7 +552,7 @@ class Quiver3d(object):
                 node_tree.links.new(node_emission.outputs['Emission'],
                                     nodes[0].inputs['Surface'])
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = color_rgba[idx] + (1, )
+                node_emission.inputs['Color'].default_value = color_rgba[idx]
                 if isinstance(self.emission, np.ndarray):
                     node_emission.inputs['Strength'].default_value = self.emission
                 else:
@@ -565,15 +574,16 @@ y = np.linspace(-2, 2, 21)
 z = np.linspace(-2, 2, 21)
 xx, yy, zz = np.meshgrid(x, y, z)
 phi = np.sin(3*xx) + np.cos(2*yy) + np.sin(zz)
-iso = blt.contour(phi)
+iso = blt.contour(phi, xx, yy, zz, contour=[0.5])
+iso = blt.contour(phi, xx, yy, zz, contours=[0.3, 0.6], color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
 '''
 
 # TODO:
 # - 5) Option to color isosurfaces according to a different scalar.
 
 def contour(phi, x, y, z, contours=1,
-           color=(0, 1, 0, 1), emission=None, roughness=1,
-           vmin=None, vmax=None, color_map=None):
+            color=(0, 1, 0, 1), emission=None, roughness=1,
+            vmin=None, vmax=None, color_map=None):
     """
     Plot contours to a given scalar field.
 
@@ -612,6 +622,16 @@ def contour(phi, x, y, z, contours=1,
     *color_map*:
       Color map for the values stored in the array 'c'.
       These are the same as in matplotlib.
+
+    Examples:
+      import numpy as np
+      import blendaviz as blt
+      x = np.linspace(-2, 2, 21)
+      y = np.linspace(-2, 2, 21)
+      z = np.linspace(-2, 2, 21)
+      xx, yy, zz = np.meshgrid(x, y, z)
+      phi = xx**2 + yy**2 + zz**2
+      iso = blt.contour(phi, xx, yy, zz, contours=[0.3, 0.6], color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
     """
 
     import inspect
@@ -707,7 +727,7 @@ class Contour3d(object):
         # Prepare the material colors.
         if isinstance(self.color, str):
             if self.color == 'magnitude':
-                self.color = np.sqrt(self.u**2 + self.v**2 + self.w**2)
+                self.color = np.sqrt(self.phi[0]**2 + self.phi[1]**2 + self.phi[2]**2)
         color_rgba = colors.make_rgba_array(self.color, self.x.shape[0],
                                             self.color_map, self.vmin, self.vmax)
 
@@ -726,15 +746,15 @@ class Contour3d(object):
             # Reshape the levels and faces arrays for blender.
             vertices = list(vertices)
             faces = list(faces)
-    
+
             # Create mesh and object.
             self.mesh_data.append(bpy.data.meshes.new("DataMesh"))
             self.mesh_object.append(bpy.data.objects.new("ObjMesh", self.mesh_data[-1]))
-    
+
             # Create mesh from the given data.
             self.mesh_data[-1].from_pydata(vertices, [], faces)
             self.mesh_data[-1].update(calc_edges=True)
-    
+
             # Set the material/color.
             self.__set_material(idx, color_rgba, len(level_list))
             self.mesh_data[-1].materials.append(self.mesh_material[-1])
@@ -822,7 +842,7 @@ class Contour3d(object):
                 node_tree.links.new(node_emission.outputs['Emission'],
                                     nodes[0].inputs['Surface'])
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = tuple(color_rgba[idx]) + (1, )
+                node_emission.inputs['Color'].default_value = tuple(color_rgba[idx])
                 if isinstance(self.emission, np.ndarray):
                     node_emission.inputs['Strength'].default_value = self.emission[idx]
                 else:
@@ -838,11 +858,8 @@ class Contour3d(object):
                 node_tree.links.new(node_emission.outputs['Emission'],
                                     nodes[0].inputs['Surface'])
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = color_rgba[idx] + (1, )
+                node_emission.inputs['Color'].default_value = color_rgba[idx]
                 if isinstance(self.emission, np.ndarray):
                     node_emission.inputs['Strength'].default_value = self.emission
                 else:
                     node_emission.inputs['Strength'].default_value = self.emission
-
-
-
