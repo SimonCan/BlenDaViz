@@ -53,6 +53,21 @@ def mesh(x, y, z=None, c=None, alpha=None, color_map=None):
     *color_map*:
       Color map for the values stored in the array 'c'.
       These are the same as in matplotlib.
+
+    Examples:
+      import numpy as np
+      import blendaviz as blt
+      x0 = np.linspace(-3, 3, 20)
+      y0 = np.linspace(-3, 3, 20)
+      x, y = np.meshgrid(x0, y0, indexing='ij')
+      z = np.ones_like(x)*np.linspace(0, 2, 20)
+      alpha = 0.5
+      z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
+      m = blt.mesh(x, y, z, c='r', alpha=alpha)
+      m.c = z
+      m.plot()
+      m.z = None
+      m.plot()
     """
 
     import inspect
@@ -109,7 +124,7 @@ class Surface(object):
         if not isinstance(self.z, np.ndarray):
             self.z = np.zeros_like(self.x)
         if not (self.x.shape == self.y.shape == self.z.shape):
-            print("Error: array shapes invalid.")
+            print("Error: x, y, z array shapes invalid.")
             return -1
         if isinstance(self.c, np.ndarray):
             if not self.c.shape == self.x.shape:
@@ -118,9 +133,10 @@ class Surface(object):
         if not self.alpha:
             self.alpha = 1
         if isinstance(self.alpha, np.ndarray):
-            if not self.alpha.shape == self.x.shape:
-                print("Error: alpha array shape invalid.")
-                return -1
+            if self.alpha.shape != (1, ):
+                if not self.alpha.shape == self.x.shape:
+                    print("Error: alpha array shape invalid.")
+                    return -1
         else:
             self.alpha = np.array([self.alpha])
 
@@ -153,7 +169,6 @@ class Surface(object):
         # Create mesh and object.
         self.mesh_data = bpy.data.meshes.new("DataMesh")
         self.mesh_object = bpy.data.objects.new("ObjMesh", self.mesh_data)
-#        self.mesh_object.select_set(state=True)
 
         # Create mesh from the given data.
         self.mesh_data.from_pydata(vertices, [], faces)
