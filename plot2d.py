@@ -25,8 +25,8 @@ z = np.ones_like(x)*np.linspace(0, 2, 20)
 alpha = 0.5
 z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
 
-m = blt.mesh(x, y, z, c='r', alpha=alpha)
-m.plot()
+mesh = blt.mesh(x, y, z, c='r', alpha=alpha)
+mesh.plot()
 '''
 
 def mesh(x, y, z=None, c=None, alpha=None, color_map=None):
