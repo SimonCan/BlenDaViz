@@ -20,14 +20,10 @@ blender
 ```
 Open a console in Blender.
 
-Import the library:
-'''
-import blendaviz
-'''
-Use it for simple plots:
+Import the library and make a simple plot from numpy data:
 ```
 import blendaviz as blt
-import numyp as np
+import numpy as np
 z = np.linspace(0, 6*np.pi, 30)
 x = 3*np.cos(z)
 y = 3*np.sin(z)
