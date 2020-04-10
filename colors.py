@@ -60,7 +60,7 @@ def string_to_rgba(color_string):
 
 def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
     """
-    Creates an rgb array for the civen color, which can be rgb, scalar array
+    Creates an rgb array for the given color, which can be rgb, scalar array
     or string (array).
 
     call signature:
