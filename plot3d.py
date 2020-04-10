@@ -574,14 +574,14 @@ y = np.linspace(-2, 2, 21)
 z = np.linspace(-2, 2, 21)
 xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
 phi = np.sin(3*xx) + np.cos(2*yy) + np.sin(zz)
-iso = blt.contour(phi, xx, yy, zz, contour=[0.5])
+iso = blt.contour(phi, xx, yy, zz, contours=[0.5], psi=zz)
 iso = blt.contour(phi, xx, yy, zz, contours=[0.3, 0.6], color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
 '''
 
 # TODO:
 # - 5) Option to color isosurfaces according to a different scalar.
 
-def contour(phi, x, y, z, contours=1,
+def contour(phi, x, y, z, contours=1, psi=None,
             color=(0, 1, 0, 1), emission=None, roughness=1,
             vmin=None, vmax=None, color_map=None):
     """
@@ -589,7 +589,7 @@ def contour(phi, x, y, z, contours=1,
 
     call signature:
 
-    quiver(phi, x, y, z, contours=1,
+    quiver(phi, x, y, z, contours=1, psi=None,
            color=(0, 1, 0, 1), emission=None, roughness=1,
            vmin=None, vmax=None, color_map=None):
 
@@ -601,8 +601,14 @@ def contour(phi, x, y, z, contours=1,
       x, y and z position of the data. These can be 1d arrays of the same length
       or of shape [nx, ny, nz].
 
-    *contours*
+    *contours*:
       Number of contours to be plotted, or array of contour levels.
+
+    *psi*:
+      Secondary scalar array of the same shape as phi, after which the
+      contours are being textured.
+      Use in conjunction with vmin and vmax.
+      Recommended to use only one isosurface with psi.
 
     *color*:
       rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
@@ -659,6 +665,7 @@ class Contour3d(object):
         self.x = 0
         self.y = 0
         self.z = 0
+        self.psi = None
         self.contours = 1
         self.color = (0, 1, 0, 1)
         self.emission = None
@@ -689,6 +696,13 @@ class Contour3d(object):
         if not (self.x.shape == self.y.shape == self.z.shape == self.phi.shape):
             print("Error: input array shapes invalid.")
             return -1
+        if not self.psi is None:
+            if not isinstance(self.psi, np.ndarray):
+                print("Error: psi is not a numpy array.")
+                return -1
+            if not self.psi.shape == self.phi.shape:
+                print("Error: psi and phi must of of the same shape.")
+
 
         # Prepare the isosurface levels.
         if isinstance(self.contours, int):
@@ -724,12 +738,12 @@ class Contour3d(object):
             for mesh_material in self.mesh_material:
                 bpy.data.materials.remove(mesh_material)
 
-        # Prepare the material colors.
-        if isinstance(self.color, str):
-            if self.color == 'magnitude':
-                self.color = np.sqrt(self.phi[0]**2 + self.phi[1]**2 + self.phi[2]**2)
-        color_rgba = colors.make_rgba_array(self.color, self.x.shape[0],
-                                            self.color_map, self.vmin, self.vmax)
+#        # Prepare the material colors.
+#        if isinstance(self.color, str):
+#            if self.color == 'magnitude':
+#                self.color = np.sqrt(self.phi[0]**2 + self.phi[1]**2 + self.phi[2]**2)
+#        color_rgba = colors.make_rgba_array(self.color, self.x.shape[0],
+#                                            self.color_map, self.vmin, self.vmax)
 
         # Prepare the lists of mashes and materials.
         self.mesh_data = []
@@ -743,20 +757,19 @@ class Contour3d(object):
             vertices[:, 1] += self.y.min()
             vertices[:, 2] += self.z.min()
 
-            # Reshape the levels and faces arrays for blender.
-            vertices = list(vertices)
-            faces = list(faces)
-
             # Create mesh and object.
             self.mesh_data.append(bpy.data.meshes.new("DataMesh"))
             self.mesh_object.append(bpy.data.objects.new("ObjMesh", self.mesh_data[-1]))
 
             # Create mesh from the given data.
-            self.mesh_data[-1].from_pydata(vertices, [], faces)
+            self.mesh_data[-1].from_pydata(list(vertices), [], list(faces))
             self.mesh_data[-1].update(calc_edges=True)
 
             # Set the material/color.
-            self.__set_material(idx, color_rgba, len(level_list))
+            if self.psi is None:
+                self.__set_material(idx, color_rgba, len(level_list))
+            else:
+                self.__color_vertices(idx, vertices)
             self.mesh_data[-1].materials.append(self.mesh_material[-1])
 
             # Link the mesh object with the scene.
@@ -771,7 +784,7 @@ class Contour3d(object):
 
         call signature:
 
-        __set_material(idx, color_rgba):
+        __set_material(idx, color_rgba, n_levels):
 
         Keyword arguments:
 
@@ -863,3 +876,70 @@ class Contour3d(object):
                     node_emission.inputs['Strength'].default_value = self.emission
                 else:
                     node_emission.inputs['Strength'].default_value = self.emission
+
+
+    def __color_vertices(self, idx, vertices):
+        """
+        Set the mesh texture.
+
+        call signature:
+
+        __color_vertices(idx, vertices):
+
+        Keyword arguments:
+
+        *idx*:
+          Index of the material.
+
+        *vertices*:
+          Vertices of the isosurfaces.
+        """
+
+        import bpy
+        import numpy as np
+        from . import colors
+
+        # Find interpolated values for Psi on the vertex location.
+        psi_vertices = np.zeros(vertices.shape[0])
+        for vertex_idx in range(vertices.shape[0]):
+            vertex = vertices[vertex_idx]
+            # Find the xyz indices for the interpolation.
+            ix1 = sum(self.x[:, 0, 0] <= vertex[0]) - 1
+            iy1 = sum(self.y[0, :, 0] <= vertex[1]) - 1
+            iz1 = sum(self.z[0, 0, :] <= vertex[2]) - 1
+            ix2 = ix1 + 1
+            iy2 = iy1 + 1
+            iz2 = iz1 + 1
+            if ix2 >= self.phi.shape[0]:
+                ix2 = self.phi.shape[0]
+            if iy2 >= self.phi.shape[1]:
+                iy2 = self.phi.shape[1]
+            if iz2 >= self.phi.shape[2]:
+                iz2 = self.phi.shape[2]
+            # Perform a trilinear interpolation.
+            psi_vertices[vertex_idx] = np.mean(self.psi[ix1:ix2+1, iy1:iy2+1, iz1:iz2+1])
+
+        # Generate the colors for the vertices.
+        color_rgba = colors.make_rgba_array(psi_vertices, vertices.shape[0],
+                                            self.color_map, self.vmin, self.vmax)
+        
+        # Create a vertex color layer for the mesh.
+        vcol_layer = self.mesh_object[idx].data.vertex_colors.new()
+
+        # Add a new material.
+        self.mesh_material.append(bpy.data.materials.new('material'))
+        self.mesh_material[-1].use_nodes = True
+        node_tree = self.mesh_material[-1].node_tree
+        nodes = node_tree.nodes
+        nodes.remove(nodes[1])
+        node_diffuse = nodes.new(type='ShaderNodeBsdfDiffuse')
+        node_tree.links.new(node_diffuse.outputs['BSDF'], nodes[0].inputs['Surface'])
+        node_vertex_shader = nodes.new(type='ShaderNodeVertexColor')
+        node_tree.links.new(node_vertex_shader.outputs['Color'], node_diffuse.inputs['Color'])
+        node_vertex_shader.layer_name = 'Col'
+        
+        # Change the color of the vertices.
+        for poly in self.mesh_object[idx].data.polygons:
+            for loop_index in poly.loop_indices:
+                loop_vert_index = self.mesh_object[idx].data.loops[loop_index].vertex_index
+                vcol_layer.data[loop_index].color = color_rgba[loop_vert_index]
