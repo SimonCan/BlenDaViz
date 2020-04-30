@@ -578,9 +578,6 @@ iso = blt.contour(phi, xx, yy, zz, contours=[0.5], psi=zz)
 iso = blt.contour(phi, xx, yy, zz, contours=[0.3, 0.6], color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
 '''
 
-# TODO:
-# - 5) Option to color isosurfaces according to a different scalar.
-
 def contour(phi, x, y, z, contours=1, psi=None,
             color=(0, 1, 0, 1), emission=None, roughness=1,
             vmin=None, vmax=None, color_map=None):

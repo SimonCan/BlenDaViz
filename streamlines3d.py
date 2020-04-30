@@ -28,11 +28,11 @@ stream = blt.streamlines(x, y, z, u, v, w, seeds=20, integration_time=100, integ
 '''
 
 # TODO:
-# - 0) Group courves together.
-# - 1) Color and material options.
-# - 2) Interpolation on non-equidistant grids.
+# - 0) Different kinds of seeds, like spherical with radius and origin.
+# - 1) Group courves together.
+# - 2) Color and material options.
+# - 3) Interpolation on non-equidistant grids.
 # - 4) Implement periodic domains.
-# - 5) Different kinds of seeds, like spherical with radius and origin.
 
 def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
                 interpolation='tricubic', method='DOP853', atol=1e-8, rtol=1e-8,
