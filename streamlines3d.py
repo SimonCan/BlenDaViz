@@ -35,7 +35,7 @@ stream = blt.streamlines(x, y, z, u, v, w, seeds=20, integration_time=100, integ
 # - 5) Different kinds of seeds, like spherical with radius and origin.
 
 def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
-                interpolation='tricubic', method='dop853', atol=1e-8, rtol=1e-8,
+                interpolation='tricubic', method='DOP853', atol=1e-8, rtol=1e-8,
                 metric=None, integration_time=1, integration_steps=10,
                 integration_direction='both',
                 color=(0, 1, 0, 1), emission=None, roughness=1,
@@ -75,7 +75,8 @@ def streamlines(x, y, z, u, v, w, seeds=100, periodic=None,
        'tricubic': Use a tricubic spline intnerpolation.
 
     *method*:
-        Integration method for the scipy.integrate.ode method.
+        Integration method for the scipy.integrate.solve_ivp method:
+        'RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA'.
 
     *atol*:
       Absolute tolerance of the field line tracer.
@@ -173,7 +174,7 @@ class Streamline3d(object):
         self.seeds = 100
         self.periodic = [False, False, False]
         self.interpolation = 'tricubic'
-        self.method = 'dop853'
+        self.method = 'DOP853'
         self.atol = 1e-8
         self.rtol = 1e-8
         self.metric = None
@@ -392,20 +393,9 @@ class Streamline3d(object):
             odeint_func = lambda t, xx: self.__trilinear_func(xx, field_x, field_y, field_z)*field_sign
 
         # Set up the ode solver.
-        methods_ode = ['vode', 'zvode', 'lsoda', 'dopri5', 'dop853']
-        methods_ivp = ['RK45', 'RK23', 'Radau', 'BDF', 'LSODA']
-        if self.method in methods_ode:
-            solver = ode(odeint_func, jac=self.metric)
-            solver.set_initial_value(xx, time[0])
-            solver.set_integrator(self.method, rtol=self.rtol, atol=self.atol)
-            tracers = np.zeros([len(time), 3])
-            tracers[0, :] = xx
-            for i, t in enumerate(time[1:]):
-                tracers[i+1, :] = solver.integrate(t)
-        if self.method in methods_ivp:
-            tracers = solve_ivp(odeint_func, (time[0], time[-1]), xx,
-                                t_eval=time, rtol=self.rtol, atol=self.atol,
-                                jac=self.metric, method=self.method).y.T
+        tracers = solve_ivp(odeint_func, (time[0], time[-1]), xx,
+                            t_eval=time, rtol=self.rtol, atol=self.atol,
+                            jac=self.metric, method=self.method).y.T
 
         # Remove points that lie outside the domain and interpolation on the boundary.
         cut_mask = ((tracers[:, 0] > Ox+Lx) + \
