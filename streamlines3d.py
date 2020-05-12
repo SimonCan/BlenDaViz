@@ -24,7 +24,7 @@ xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
 u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 w = np.ones_like(u)*0.1
-stream = blt.streamlines_array(x, y, z, u, v, w, seeds=20, integration_time=20, integration_steps=100)
+stream = blt.streamlines_array(x, y, z, u, v, w, seeds=20, integration_time=20, integration_steps=100, seed_radius=0.3)
 
 
 Test function:
@@ -34,17 +34,13 @@ import blendaviz as blt
 importlib.reload(blt)
 importlib.reload(blt.streamlines3d)
 
-def IrrationalHopf(t, xx):
+def irrational_hopf(t, xx):
     x = np.array(xx)
     return 1/(1+np.sum(x**2))**3 * \
                     np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),\
                              -2*(np.sqrt(2)*x[0] + x[1]*x[2]),\
                              (-1 + x[0]**2 +x[1]**2 -x[2]**2)])
-
-stream = blt.streamlines_function(IrrationalHopf, seeds=5, integration_time=1000, integration_steps=500)
-
-
-
+stream = blt.streamlines_function(irrational_hopf, seeds=5, integration_time=1000, integration_steps=500)
 '''
 
 # TODO:
@@ -54,18 +50,18 @@ stream = blt.streamlines_function(IrrationalHopf, seeds=5, integration_time=1000
 # - 3) Interpolation on non-equidistant grids.
 # - 4) Implement periodic domains.
 
-def streamlines_function(fieldfunction, seeds=100, seed_center=[0,0,0],
-                seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
-                metric=None, integration_time=1, integration_steps=10,
-                integration_direction='both',
-                color=(0, 1, 0, 1), emission=None, roughness=1,
-                radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
+def streamlines_function(field_function, seeds=100, seed_center=[0, 0, 0],
+                         seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
+                         metric=None, integration_time=1, integration_steps=10,
+                         integration_direction='both',
+                         color=(0, 1, 0, 1), emission=None, roughness=1,
+                         radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
     """
     Plot streamlines of a given vector field.
 
     call signature:
 
-    streamlines_function(fieldfunction, seeds=100, seed_center=[0,0,0],
+    streamlines_function(field_function, seeds=100, seed_center=[0,0,0],
                 seed_radius = 1, method='DOP853', atol=1e-8, rtol=1e-8,
                 metric=None, integration_time=1, integration_steps=10,
                 integration_direction='both',
@@ -74,7 +70,7 @@ def streamlines_function(fieldfunction, seeds=100, seed_center=[0,0,0],
 
     Keyword arguments:
 
-    *fieldfunction*
+    *field_function*
       function that is to be integrated. has to have as input an array of length 3,
       and has to return an array of length 3.
 
@@ -164,13 +160,13 @@ def streamlines_function(fieldfunction, seeds=100, seed_center=[0,0,0],
     return streamlines_return
 
 
-def streamlines_array(x, y, z, u, v, w, seeds=100, seed_center = [0,0,0],
-                seed_radius = 1, periodic=None,
-                interpolation='tricubic', method='DOP853', atol=1e-8, rtol=1e-8,
-                metric=None, integration_time=1, integration_steps=10,
-                integration_direction='both',
-                color=(0, 1, 0, 1), emission=None, roughness=1,
-                radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
+def streamlines_array(x, y, z, u, v, w, seeds=100, seed_center=[0, 0, 0],
+                      seed_radius=1, periodic=None,
+                      interpolation='tricubic', method='DOP853', atol=1e-8, rtol=1e-8,
+                      metric=None, integration_time=1, integration_steps=10,
+                      integration_direction='both',
+                      color=(0, 1, 0, 1), emission=None, roughness=1,
+                      radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
     """
     Plot streamlines of a given vector field.
 
@@ -250,7 +246,7 @@ def streamlines_array(x, y, z, u, v, w, seeds=100, seed_center = [0,0,0],
       Azimuthal resolution of the tubes in vertices.
       Positive integer > 2.
 
-    *vmin, vmax*:    *x, y, z*:
+    *x, y, z*:
       x, y and z position of the data. These can be 1d arrays of the same length.
 
     *u, v, w*
@@ -281,17 +277,8 @@ def streamlines_array(x, y, z, u, v, w, seeds=100, seed_center = [0,0,0],
     if not periodic:
         periodic = [False, False, False]
 
-    if interpolation == 'tricubic':  # have to test here because init of inherited class is overwritten
-        import importlib
-        if importlib.util.find_spec('eqtools') is None:
-            print('Warning: Could not import eqtools.trispline.Spline for \
-                   tricubic interpolation.\n')
-            print('Warning: Fall back to trilinear.')
-            interpolation = 'trilinear'
-
     # Assign parameters to the streamline objects.
-    streamlines_return = Streamline3d_array(x, y, z, u, v, w, periodic, interpolation) #mixing methods: init needs to take this to set inherited attribute fieldfunction correctly.
-
+    streamlines_return = Streamline3dArray()
     argument_dict = inspect.getargvalues(inspect.currentframe()).locals
     for argument in argument_dict:
         setattr(streamlines_return, argument, argument_dict[argument])
@@ -309,10 +296,9 @@ class Streamline3d(object):
         Fill members with default values.
         """
 
-        import numpy as np
-        self.fieldfunction = lambda t, xx : [0,0,1]
+        self.field_function = lambda t, xx: [0, 0, 1]
         self.seeds = 100
-        self.seed_center = [0,0,0]
+        self.seed_center = [0, 0, 0]
         self.seed_radius = 1
         self.method = 'DOP853'
         self.atol = 1e-8
@@ -346,7 +332,6 @@ class Streamline3d(object):
         import numpy as np
         from . import colors
 
-
         # Delete existing curve.
         if not self.mesh is None:
             bpy.ops.object.select_all(action='DESELECT')
@@ -376,6 +361,7 @@ class Streamline3d(object):
         # Set up the field line integration.
 
         # Compute the positions along the streamlines.
+        self.prepare_field_function()
         for tracer_idx in range(self.seeds.shape[0]):
             self.tracers.append(self.__tracer(xx=self.seeds[tracer_idx]))
 
@@ -450,6 +436,15 @@ class Streamline3d(object):
         return 0
 
 
+    def prepare_field_function(self):
+        """
+        Prepare the function to be called by the streamline tracing routine.
+        """
+
+        print('prepare_field_function parent')
+        return 0
+
+
     def __tracer(self, xx=(0, 0, 0)):
         """
         Trace a field starting from xx in any rectilinear coordinate system
@@ -457,36 +452,28 @@ class Streamline3d(object):
 
         call signature:
 
-          tracer(xx=(0, 0, 0), metric=None, splines=None):
+          tracer(xx=(0, 0, 0)):
 
         Keyword arguments:
 
         *xx*:
           Starting point of the field line integration with starting time.
-
         """
 
         import numpy as np
-        from scipy.integrate import ode
         from scipy.integrate import solve_ivp
 
         time = np.linspace(0, self.integration_time, self.integration_steps)
-        field_sign = +1
         if self.integration_direction == 'backward':
-            field_sign = -1
-
-        odeint_func = lambda t, xx: np.array(self.fieldfunction(t, xx))*field_sign #catch if function does not return numpy array. Wasteful?t, x
-        print(odeint_func(1, [1,1,1]))
+            time = -time
 
         if not self.metric:
             self.metric = lambda xx: np.eye(3)
 
         # Set up the ode solver.
-        tracers = solve_ivp(odeint_func, (time[0], time[-1]), xx,
+        tracers = solve_ivp(self.field_function, (time[0], time[-1]), xx,
                             t_eval=time, rtol=self.rtol, atol=self.atol,
                             jac=self.metric, method=self.method).y.T
-
-
 
         # In case of forward and backward field integration trace backward.
         if self.integration_direction == 'both':
@@ -497,8 +484,6 @@ class Streamline3d(object):
             tracers = np.vstack([tracers_backward[::-1, :], tracers[1:, :]])
 
         return tracers
-
-
 
 
     def __set_material(self, idx, color_rgba):
@@ -600,6 +585,7 @@ class Streamline3d(object):
                 else:
                     node_emission.inputs['Strength'].default_value = self.emission
 
+
     def __generate_seedpoint(self):
         """
         NEEDS IMPROVEMENT
@@ -609,34 +595,42 @@ class Streamline3d(object):
         Algo from http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution
         """
         import numpy as np
-        phi = np.random.uniform(0,np.pi*2)
-        costheta = np.random.uniform(-1,1)
-        theta = np.arccos( costheta )
-        radius = np.random.uniform(0,self.seed_radius)/(self.seed_radius**2) #needs to be adapted
-        x = radius * (np.sin( theta) * np.cos( phi ))
-        y = radius * (np.sin( theta) * np.sin( phi ))
-        z = radius * np.cos( theta )
-        return np.array(self.seed_center) +  np.array((x,y,z))
+        phi = np.random.uniform(0, 2*np.pi)
+        costheta = np.random.uniform(-1, 1)
+        theta = np.arccos(costheta)
+        radius = np.random.uniform(0, self.seed_radius)/(self.seed_radius**2) #needs to be adapted
+        x = radius * (np.sin(theta) * np.cos(phi))
+        y = radius * (np.sin(theta) * np.sin(phi))
+        z = radius * np.cos(theta)
+        return np.array(self.seed_center) +  np.array((x, y, z))
 
 
-class Streamline3d_array(Streamline3d):
+class Streamline3dArray(Streamline3d):
     """
-    Inherited class that makes the integration function
-    out of supplied arrays
+    Derived streamline class for field function given as data array.
     """
-    def __init__(self, x, y, z, u, v, w, periodic=None, interpolation='tricubic'):
-        import numpy as np
+
+    def __init__(self):
         super().__init__()
         #these will be re-set later when the calling function unloads all it's kwargs
-        self.x = x
-        self.y = y
-        self.z = z
-        self.u = u
-        self.v = v
-        self.w = w
-        self.periodic = periodic
-        self.interpolation = interpolation
+        self.x = None
+        self.y = None
+        self.z = None
+        self.u = None
+        self.v = None
+        self.w = None
+        self.periodic = [False, False, False]
+        self.interpolation = 'tricubic'
+
+
+    def prepare_field_function(self):
+        """
+        Prepare the function to be called by the streamline tracing routine.
+        """
+
         import numpy as np
+
+        print('prepare_field_function array')
 
         # Check the validity of the input arrays.
         if not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray) \
@@ -647,26 +641,41 @@ class Streamline3d_array(Streamline3d):
                (self.u.shape == self.v.shape == self.w.shape):
             print("Error: input array shapes invalid.")
             return -1
+
         if self.interpolation == 'tricubic':
-            self.interpolation = 'trilinear'
+            try:
+                import warnings
+
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=Warning)
+                    from eqtools.trispline import Spline
+            except:
+                print('Warning: Could not import eqtools.trispline.Spline for \
+                       tricubic interpolation.\n')
+                print('Warning: Fall back to trilinear.')
+                self.interpolation = 'trilinear'
         # Set up the splines for the tricubic interpolation.
         if self.interpolation == 'tricubic':
             splines = []
-            splines.append(Spline(z, y, x, np.swapaxes(u, 0, 2)))
-            splines.append(Spline(z, y, x, np.swapaxes(v, 0, 2)))
-            splines.append(Spline(z, y, x, np.swapaxes(w, 0, 2)))
+            splines.append(Spline(self.z, self.y, self.x, np.swapaxes(self.u, 0, 2)))
+            splines.append(Spline(self.z, self.y, self.x, np.swapaxes(self.v, 0, 2)))
+            splines.append(Spline(self.z, self.y, self.x, np.swapaxes(self.w, 0, 2)))
         else:
             splines = None
 
         # Redefine the derivative y for the scipy ode integrator using the given parameters.
         if (self.interpolation == 'mean') or (self.interpolation == 'trilinear'):
-            fieldfunction = lambda t, xx: self.__vec_int(xx)
+            print('Generate the field function with mean or trilinear.')
+            self.field_function = lambda t, xx: self.__vec_int(xx)
         if self.interpolation == 'tricubic':
+            print('Generate the field function with tricubic.')
             field_x = splines[0]
             field_y = splines[1]
             field_z = splines[2]
-            fieldfunction = lambda t, xx: self.__trilinear_func(xx, field_x, field_y, field_z)
-        self.fieldfunction = fieldfunction
+            self.field_function = lambda t, xx: self.__trilinear_func(xx, field_x, field_y, field_z)
+
+        return 0
+
 
     def __trilinear_func(self, xx, field_x, field_y, field_z,):
         """
@@ -700,9 +709,10 @@ class Streamline3d_array(Streamline3d):
            (xx[1] < Oy) + (xx[1] > Oy + Ly) + \
            (xx[2] < Oz) + (xx[2] > Oz + Lz):
             return np.zeros(3)
-        return np.array([field_x.ev(xx[2], xx[1], xx[0]),
-                         field_y.ev(xx[2], xx[1], xx[0]),
-                         field_z.ev(xx[2], xx[1], xx[0])])[:, 0]
+        else:
+            return np.array([field_x.ev(xx[2], xx[1], xx[0]),
+                             field_y.ev(xx[2], xx[1], xx[0]),
+                             field_z.ev(xx[2], xx[1], xx[0])])[:, 0]
 
 
     def __vec_int(self, xx):
@@ -873,6 +883,5 @@ class Streamline3d_array(Streamline3d):
 #            cut_mask[idx_outside+1:] = True
 #            # Remove outside points.
 #            tracers = tracers[~cut_mask, :].copy()
-
 
 
