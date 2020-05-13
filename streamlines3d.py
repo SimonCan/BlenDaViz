@@ -483,6 +483,26 @@ class Streamline3d(object):
             # Glue the forward and backward field tracers together.
             tracers = np.vstack([tracers_backward[::-1, :], tracers[1:, :]])
 
+        # Delete points outside the domain.
+        tracers = self.delete_outside_points(tracers)
+
+        return tracers
+
+
+    def delete_outside_points(self, tracers):
+        """
+        Delete any points of the tracer that lie outside the domain.
+
+        call signature:
+
+            delete_outside_points(tracers)
+
+        Keyword arguments:
+
+        *tracers*:
+          Field line tracer array.
+        """
+
         return tracers
 
 
@@ -832,56 +852,72 @@ class Streamline3dArray(Streamline3d):
             or (kk[0] < -1) or (kk[1] > nz):
             return np.zeros([0, 0, 0])
 
-# code that checks if outside of array
-#        # Determine some parameters.
-#        Ox = self.x.min()
-#        Oy = self.y.min()
-#        Oz = self.z.min()
-#        Lx = self.x.max()-self.x.min()
-#        Ly = self.y.max()-self.y.min()
-#        Lz = self.z.max()-self.z.min()
-#
-#
-#        # Remove points that lie outside the domain and interpolation on the boundary.
-#        cut_mask = ((tracers[:, 0] > Ox+Lx) + \
-#                    (tracers[:, 0] < Ox))*(not self.periodic[0]) + \
-#                   ((tracers[:, 1] > Oy+Ly) + \
-#                    (tracers[:, 1] < Oy))*(not self.periodic[1]) + \
-#                   ((tracers[:, 2] > Oz+Lz) + \
-#                    (tracers[:, 2] < Oz))*(not self.periodic[2])
-#        if np.sum(cut_mask) > 0:
-#            # Find the first point that lies outside.
-#            idx_outside = np.min(np.where(cut_mask))
-#            # Interpolate.
-#            p0 = tracers[idx_outside-1, :]
-#            p1 = tracers[idx_outside, :]
-#            lam = np.zeros([6])
-#            if p0[0] == p1[0]:
-#                lam[0] = np.inf
-#                lam[1] = np.inf
-#            else:
-#                lam[0] = (Ox + Lx - p0[0])/(p1[0] - p0[0])
-#                lam[1] = (Ox - p0[0])/(p1[0] - p0[0])
-#            if p0[1] == p1[1]:
-#                lam[2] = np.inf
-#                lam[3] = np.inf
-#            else:
-#                lam[2] = (Oy + Ly - p0[1])/(p1[1] - p0[1])
-#                lam[3] = (Oy - p0[1])/(p1[1] - p0[1])
-#            if p0[2] == p1[2]:
-#                lam[4] = np.inf
-#                lam[5] = np.inf
-#            else:
-#                lam[4] = (Oz + Lz - p0[2])/(p1[2] - p0[2])
-#                lam[5] = (Oz - p0[2])/(p1[2] - p0[2])
-#            lam_min = np.min(lam[lam >= 0])
-#            if abs(lam_min) == np.inf:
-#                lam_min = 0
-#            tracers[idx_outside, :] = p0 + lam_min*(p1-p0)
-#            # We don't want to cut the interpolated point (was first point outside).
-#            cut_mask[idx_outside] = False
-#            cut_mask[idx_outside+1:] = True
-#            # Remove outside points.
-#            tracers = tracers[~cut_mask, :].copy()
 
+    def delete_outside_points(self, tracers):
+        """
+        Delete any points of the tracer that lie outside the domain.
+
+        call signature:
+
+            delete_outside_points(tracers)
+
+        Keyword arguments:
+
+        *tracers*:
+          Field line tracer array.
+        """
+
+        import numpy as np
+
+        # Determine some parameters.
+        Ox = self.x.min()
+        Oy = self.y.min()
+        Oz = self.z.min()
+        Lx = self.x.max()-self.x.min()
+        Ly = self.y.max()-self.y.min()
+        Lz = self.z.max()-self.z.min()
+
+        # Remove points that lie outside the domain and interpolation on the boundary.
+        cut_mask = ((tracers[:, 0] > Ox+Lx) + \
+                    (tracers[:, 0] < Ox))*(not self.periodic[0]) + \
+                   ((tracers[:, 1] > Oy+Ly) + \
+                    (tracers[:, 1] < Oy))*(not self.periodic[1]) + \
+                   ((tracers[:, 2] > Oz+Lz) + \
+                    (tracers[:, 2] < Oz))*(not self.periodic[2])
+        if np.sum(cut_mask) > 0:
+            # Find the first point that lies outside.
+            idx_outside = np.min(np.where(cut_mask))
+            # Interpolate.
+            p0 = tracers[idx_outside-1, :]
+            p1 = tracers[idx_outside, :]
+            lam = np.zeros([6])
+            if p0[0] == p1[0]:
+                lam[0] = np.inf
+                lam[1] = np.inf
+            else:
+                lam[0] = (Ox + Lx - p0[0])/(p1[0] - p0[0])
+                lam[1] = (Ox - p0[0])/(p1[0] - p0[0])
+            if p0[1] == p1[1]:
+                lam[2] = np.inf
+                lam[3] = np.inf
+            else:
+                lam[2] = (Oy + Ly - p0[1])/(p1[1] - p0[1])
+                lam[3] = (Oy - p0[1])/(p1[1] - p0[1])
+            if p0[2] == p1[2]:
+                lam[4] = np.inf
+                lam[5] = np.inf
+            else:
+                lam[4] = (Oz + Lz - p0[2])/(p1[2] - p0[2])
+                lam[5] = (Oz - p0[2])/(p1[2] - p0[2])
+            lam_min = np.min(lam[lam >= 0])
+            if abs(lam_min) == np.inf:
+                lam_min = 0
+            tracers[idx_outside, :] = p0 + lam_min*(p1-p0)
+            # We don't want to cut the interpolated point (was first point outside).
+            cut_mask[idx_outside] = False
+            cut_mask[idx_outside+1:] = True
+            # Remove outside points.
+            tracers = tracers[~cut_mask, :].copy()
+
+        return tracers
 
