@@ -24,7 +24,7 @@ xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
 u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 w = np.ones_like(u)*0.1
-stream = blt.streamlines_array(x, y, z, u, v, w, seeds=20, integration_time=20, integration_steps=100, seed_radius=0.3)
+stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=20, integration_time=20, integration_steps=100, seed_radius=3)
 
 
 Test function:
@@ -40,7 +40,7 @@ def irrational_hopf(t, xx):
                     np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),\
                              -2*(np.sqrt(2)*x[0] + x[1]*x[2]),\
                              (-1 + x[0]**2 +x[1]**2 -x[2]**2)])
-stream = blt.streamlines_function(irrational_hopf, seeds=5, integration_time=1000, integration_steps=500)
+stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500)
 '''
 
 # TODO:
@@ -50,7 +50,7 @@ stream = blt.streamlines_function(irrational_hopf, seeds=5, integration_time=100
 # - 3) Interpolation on non-equidistant grids.
 # - 4) Implement periodic domains.
 
-def streamlines_function(field_function, seeds=100, seed_center=[0, 0, 0],
+def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=None,
                          seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
                          metric=None, integration_time=1, integration_steps=10,
                          integration_direction='both',
@@ -61,32 +61,36 @@ def streamlines_function(field_function, seeds=100, seed_center=[0, 0, 0],
 
     call signature:
 
-    streamlines_function(field_function, seeds=100, seed_center=[0,0,0],
-                seed_radius = 1, method='DOP853', atol=1e-8, rtol=1e-8,
-                metric=None, integration_time=1, integration_steps=10,
-                integration_direction='both',
-                color=(0, 1, 0, 1), emission=None, roughness=1,
-                radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
+    streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=None,
+                         seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
+                         metric=None, integration_time=1, integration_steps=10,
+                         integration_direction='both',
+                         color=(0, 1, 0, 1), emission=None, roughness=1,
+                         radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None)
 
     Keyword arguments:
 
     *field_function*
-      function that is to be integrated. has to have as input an array of length 3,
+      Function that is to be integrated. Has to have as input an array of length 3,
       and has to return an array of length 3.
 
+    *n_seeds*:
+      Number of randomly distributed seeds within a sphere
+      of radius seed_radius centered at seed_center.
+
     *seeds*
-      Seeds for the streamline tracing.
-      If single integer number, generate randomly distributed seeds within a sphere
-      of radius seed_radius centered on seed_center.
-      If array of size [n_seeds, 3] use for the seeds positions.
+      Seeds for the streamline tracing of shape [n_seeds, 3].
+      Overrides n_seeds.
 
-    *seed_radius*, *seed_center*
-      radius and central position of sphere where seeds are randomly chosen
+    *seed_radius*:
+      Radius of the sphere with the seeds.
 
+    *seed_center*:
+       Center of the sphere with the seeds.
 
     *method*:
-        Integration method for the scipy.integrate.solve_ivp method:
-        'RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA'.
+      Integration method for the scipy.integrate.solve_ivp method:
+      'RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA'.
 
     *atol*:
       Absolute tolerance of the field line tracer.
@@ -95,9 +99,9 @@ def streamlines_function(field_function, seeds=100, seed_center=[0, 0, 0],
       Relative tolerance of the field line tracer.
 
     *metric*:
-        Metric function that takes a point [x, y, z] and an array
-        of shape [3, 3] that has the comkponents g_ij.
-        Use 'None' for Cartesian metric.
+      Metric function that takes a point [x, y, z] and an array
+      of shape [3, 3] that has the comkponents g_ij.
+      Use 'None' for Cartesian metric.
 
     *integration_time*:
       Length of the integration time. You need to adapt this according to your
@@ -139,14 +143,12 @@ def streamlines_function(field_function, seeds=100, seed_center=[0, 0, 0],
     Examples:
       import numpy as np
       import blendaviz as blt
-      x = np.linspace(-4, 4, 100)
-      y = np.linspace(-4, 4, 100)
-      z = np.linspace(-4, 4, 100)
-      xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
-      u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
-      v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
-      w = np.ones_like(u)*0.1
-      stream = blt.streamlines(x, y, z, u, v, w, seeds=20, integration_time=100, integration_steps=10)
+      def irrational_hopf(t, xx):
+          return 1/(1+np.sum(x**2))**3 * \
+              np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),\
+              -2*(np.sqrt(2)*x[0] + x[1]*x[2]),\
+              (-1 + x[0]**2 +x[1]**2 -x[2]**2)])
+      stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500)
     """
 
     import inspect
@@ -160,7 +162,7 @@ def streamlines_function(field_function, seeds=100, seed_center=[0, 0, 0],
     return streamlines_return
 
 
-def streamlines_array(x, y, z, u, v, w, seeds=100, seed_center=[0, 0, 0],
+def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=None,
                       seed_radius=1, periodic=None,
                       interpolation='tricubic', method='DOP853', atol=1e-8, rtol=1e-8,
                       metric=None, integration_time=1, integration_steps=10,
@@ -171,26 +173,30 @@ def streamlines_array(x, y, z, u, v, w, seeds=100, seed_center=[0, 0, 0],
     Plot streamlines of a given vector field.
 
     call signature:
-        streamlines_array(x, y, z, u, v, w, seeds=100, seed_center = [0,0,0],
-                seed_radius = 1, periodic=None,
-                interpolation='tricubic', method='DOP853', atol=1e-8, rtol=1e-8,
-                metric=None, integration_time=1, integration_steps=10,
-                integration_direction='both',
-                color=(0, 1, 0, 1), emission=None, roughness=1,
-                radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
 
+    streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=None,
+                      seed_radius=1, periodic=None,
+                      interpolation='tricubic', method='DOP853', atol=1e-8, rtol=1e-8,
+                      metric=None, integration_time=1, integration_steps=10,
+                      integration_direction='both',
+                      color=(0, 1, 0, 1), emission=None, roughness=1,
+                      radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None)
 
     Keyword arguments:
+
     *x, y, z*:
       x, y and z position of the data. These can be 1d arrays of the same length.
 
     *u, v, w*
       x, y and z components of the vector field of the shape [nx, ny, nz]
 
+    *n_seeds*:
+      Number of randomly distributed seeds within a sphere
+      of radius seed_radius centered at seed_center.
+
     *seeds*
-      Seeds for the streamline tracing.
-      If single number, generate randomly distributed seeds withing x, y, z.
-      If array of size [n_seeds, 3] use for the seeds positions.
+      Seeds for the streamline tracing of shape [n_seeds, 3].
+      Overrides n_seeds.
 
     *periodic*:
       Periodicity array/list for the three directions.
@@ -269,7 +275,7 @@ def streamlines_array(x, y, z, u, v, w, seeds=100, seed_center=[0, 0, 0],
       u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
       v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
       w = np.ones_like(u)*0.1
-      stream = blt.streamlines(x, y, z, u, v, w, seeds=20, integration_time=100, integration_steps=10)
+      stream = blt.streamlines(x, y, z, u, v, w, n_seeds=20, integration_time=100, integration_steps=10)
     """
 
     import inspect
@@ -297,8 +303,9 @@ class Streamline3d(object):
         """
 
         self.field_function = lambda t, xx: [0, 0, 1]
-        self.seeds = 100
-        self.seed_center = [0, 0, 0]
+        self.n_seeds = 100
+        self.seeds = None
+        self.seed_center = None
         self.seed_radius = 1
         self.method = 'DOP853'
         self.atol = 1e-8
@@ -329,7 +336,6 @@ class Streamline3d(object):
         """
 
         import bpy
-        import numpy as np
         from . import colors
 
         # Delete existing curve.
@@ -348,21 +354,19 @@ class Streamline3d(object):
             self.mesh_material = None
 
         # Prepare the seeds.
-        if isinstance(self.seeds, int):
-            self.seeds = np.array([self.__generate_seedpoint() for x in range(self.seeds)]) # abuse casting
-        if not isinstance(self.seeds, np.ndarray):
-            print("Error: seeds are not valid.")
-            return -1
+        self.__generate_seed_points()
+#        if isinstance(self.seeds, int):
+#            self.seeds = np.array([self.__generate_seedpoint() for x in range(self.seeds)]) # abuse casting
 
         # Prepare the material colors.
-        color_rgba = colors.make_rgba_array(self.color, self.seeds.shape[0],
+        color_rgba = colors.make_rgba_array(self.color, self.n_seeds,
                                             self.color_map, self.vmin, self.vmax)
 
         # Set up the field line integration.
 
         # Compute the positions along the streamlines.
         self.prepare_field_function()
-        for tracer_idx in range(self.seeds.shape[0]):
+        for tracer_idx in range(self.n_seeds):
             self.tracers.append(self.__tracer(xx=self.seeds[tracer_idx]))
 
         # Plot the streamlines/tracers.
@@ -370,7 +374,7 @@ class Streamline3d(object):
         self.curve_object = []
         self.poly_line = []
         self.mesh_material = []
-        for tracer_idx in range(self.seeds.shape[0]):
+        for tracer_idx in range(self.n_seeds):
             self.curve_data.append(bpy.data.curves.new('DataCurve', type='CURVE'))
             self.curve_data[-1].dimensions = '3D'
             self.curve_object.append(bpy.data.objects.new('ObjCurve', self.curve_data[-1]))
@@ -441,7 +445,6 @@ class Streamline3d(object):
         Prepare the function to be called by the streamline tracing routine.
         """
 
-        print('prepare_field_function parent')
         return 0
 
 
@@ -536,13 +539,13 @@ class Streamline3d(object):
 
         # Transform single values to arrays.
         if list_material:
-            if color_rgba.shape[0] != self.seeds.shape[0]:
-                color_rgba = np.repeat(color_rgba, self.seeds.shape[0], axis=0)
+            if color_rgba.shape[0] != self.n_seeds:
+                color_rgba = np.repeat(color_rgba, self.n_seeds, axis=0)
             if not isinstance(self.roughness, np.ndarray):
-                self.roughness = np.ones(self.seeds.shape[0])*self.roughness
+                self.roughness = np.ones(self.n_seeds)*self.roughness
             if not self.emission is None:
                 if not isinstance(self.emission, np.ndarray):
-                    self.emission = np.ones(self.seeds.shape[0])*self.emission
+                    self.emission = np.ones(self.n_seeds)*self.emission
 
         # Set the material.
         if list_material:
@@ -556,7 +559,6 @@ class Streamline3d(object):
 
         # Set the diffusive color.
         if list_material:
-            print(color_rgba[idx])
             self.mesh_material[idx].diffuse_color = color_rgba[idx]
         else:
             self.mesh_material[0].diffuse_color = color_rgba[0]
@@ -606,23 +608,37 @@ class Streamline3d(object):
                     node_emission.inputs['Strength'].default_value = self.emission
 
 
-    def __generate_seedpoint(self):
+    def __generate_seed_points(self):
         """
-        NEEDS IMPROVEMENT
+        Generate the seed points for the
         Generates a random 3D unit vector (direction) with a uniform spherical distribution,
         and a uniformly distributed radius.
         This means points are weighted towards the center!
         Algo from http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution
         """
         import numpy as np
-        phi = np.random.uniform(0, 2*np.pi)
-        costheta = np.random.uniform(-1, 1)
-        theta = np.arccos(costheta)
-        radius = np.random.uniform(0, self.seed_radius)/(self.seed_radius**2) #needs to be adapted
-        x = radius * (np.sin(theta) * np.cos(phi))
-        y = radius * (np.sin(theta) * np.sin(phi))
-        z = radius * np.cos(theta)
-        return np.array(self.seed_center) +  np.array((x, y, z))
+        
+        if isinstance(self.seeds, np.ndarray):
+            self.n_seeds = self.seeds.shape[0]
+        else:
+            if not self.seed_center:
+                if hasattr(self, 'x'):
+                    self.seed_center = np.array([self.x.max() + self.x.min(),
+                                                 self.y.max() + self.y.min(),
+                                                 self.z.max() + self.z.min()])/2
+                else:
+                    self.seed_center = np.zeros(3)
+            phi = np.random.uniform(0, 2*np.pi, self.n_seeds)
+            costheta = np.random.uniform(-1, 1, self.n_seeds)
+            theta = np.arccos(costheta)
+            radius = self.seed_radius*np.cbrt(np.random.uniform(0, 1, self.n_seeds))
+#            radius = np.random.uniform(0, self.seed_radius)/(self.seed_radius**2) #needs to be adapted
+            x = radius*np.sin(theta)*np.cos(phi) + self.seed_center[0]
+            y = radius*np.sin(theta)*np.sin(phi) + self.seed_center[1]
+            z = radius*np.cos(theta) + self.seed_center[2]
+        self.seeds = np.array([x, y, z]).T
+        
+        return 0
 
 
 class Streamline3dArray(Streamline3d):
@@ -649,8 +665,6 @@ class Streamline3dArray(Streamline3d):
         """
 
         import numpy as np
-
-        print('prepare_field_function array')
 
         # Check the validity of the input arrays.
         if not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray) \
@@ -685,10 +699,8 @@ class Streamline3dArray(Streamline3d):
 
         # Redefine the derivative y for the scipy ode integrator using the given parameters.
         if (self.interpolation == 'mean') or (self.interpolation == 'trilinear'):
-            print('Generate the field function with mean or trilinear.')
             self.field_function = lambda t, xx: self.__vec_int(xx)
         if self.interpolation == 'tricubic':
-            print('Generate the field function with tricubic.')
             field_x = splines[0]
             field_y = splines[1]
             field_z = splines[2]
