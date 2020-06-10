@@ -21,10 +21,13 @@ x0 = np.linspace(-3, 3, 20)
 y0 = np.linspace(-3, 3, 20)
 z0 = np.linspace(-3, 3, 20)
 x, y, z = np.meshgrid(x0, y0, z0, indexing='ij')
-phi = np.exp(-(x**2+y**2+z**2))*np.cos(z)
-alpha = np.sin(np.linspace(phi.min(), phi.max(), 100))
+phi = np.exp(-(x**2 + y**2 + z**2))*np.cos(z)
+emission = np.sin(np.linspace(phi.min(), phi.max(), 100))
 vol = blt.vol(phi, x, y, z)
 vol.plot()
+
+# Generate the 3d image.
+voxel_image = bpy.data.images.new('VoxelImage', 20, 20)
 '''
 
 def vol(phi, x, y, z, emission=None, color_map=None):
@@ -129,9 +132,9 @@ class Volume(object):
         phi_min = np.min(self.phi)
         if self.color_map is None:
             self.color_map = cm.viridis
-        pixels[0::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 0]
-        pixels[1::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 1]
-        pixels[2::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 2]
+#        pixels[0::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 0]
+#        pixels[1::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 1]
+#        pixels[2::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 2]
 
         # Define the emission for each voxel.
         emission = np.zeros_like(self.phi)
