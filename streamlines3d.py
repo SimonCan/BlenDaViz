@@ -24,8 +24,10 @@ xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
 u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 w = np.ones_like(u)*0.1
-stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=20, integration_time=20, integration_steps=100, seed_radius=3)
-
+color = np.random.random([20, 4])
+color[:, 3] = 1
+stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=20, color=color, integration_time=20, integration_steps=100, seed_radius=3)
+stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=20, integration_time=20, integration_steps=100, seed_radius=3, vmin=0, vmax=1, color_scalar='magnitude')
 
 Test function:
 import numpy as np
@@ -40,21 +42,20 @@ def irrational_hopf(t, xx):
                     np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),\
                              -2*(np.sqrt(2)*x[0] + x[1]*x[2]),\
                              (-1 + x[0]**2 +x[1]**2 -x[2]**2)])
-stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500)
+
+def color_scalar(xx):
+    return xx[0]
+
+stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500, color_scalar='magnitude', vmin=0, vmax=1)
+stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500, color_scalar=color_scalar, vmin=0, vmax=1)
 '''
 
-# TODO:
-# - 0) limit integration outside of specified boundaries
-# - 1) Group courves together.
-# - 2) Color and material options.
-# - 3) Interpolation on non-equidistant grids.
-# - 4) Implement periodic domains.
 
 def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=None,
                          seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
                          metric=None, integration_time=1, integration_steps=10,
                          integration_direction='both',
-                         color=(0, 1, 0, 1), emission=None, roughness=1,
+                         color=(0, 1, 0, 1), color_scalar=None, emission=None, roughness=1,
                          radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
     """
     Plot streamlines of a given vector field.
@@ -65,7 +66,7 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
                          seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
                          metric=None, integration_time=1, integration_steps=10,
                          integration_direction='both',
-                         color=(0, 1, 0, 1), emission=None, roughness=1,
+                         color=(0, 1, 0, 1), color_scalar=None, emission=None, roughness=1,
                          radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None)
 
     Keyword arguments:
@@ -119,6 +120,10 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
       e.g. 'red' or character, e.g. 'r', or list of strings/character,
       or [n, 4] array with rgba values or array of the same shape as input array.
 
+    *color_scalar*:
+      Scalar function to be used to color the streamlines.
+      Set to 'magnitude' to use the vector field's magnitude.
+
     *emission*
       Light emission by the streamlines. This overrides 'roughness'.
 
@@ -167,8 +172,8 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
                       interpolation='tricubic', method='DOP853', atol=1e-8, rtol=1e-8,
                       metric=None, integration_time=1, integration_steps=10,
                       integration_direction='both',
-                      color=(0, 1, 0, 1), emission=None, roughness=1,
-                      radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
+                      color=(0, 1, 0, 1), color_scalar=None, emission=None, roughness=1,
+                      radius=0.1, resolution=8, vmin=0, vmax=1, color_map=None):
     """
     Plot streamlines of a given vector field.
 
@@ -179,7 +184,7 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
                       interpolation='tricubic', method='DOP853', atol=1e-8, rtol=1e-8,
                       metric=None, integration_time=1, integration_steps=10,
                       integration_direction='both',
-                      color=(0, 1, 0, 1), emission=None, roughness=1,
+                      color=(0, 1, 0, 1), color_scalar=None, emission=None, roughness=1,
                       radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None)
 
     Keyword arguments:
@@ -238,6 +243,10 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
       rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
       e.g. 'red' or character, e.g. 'r', or list of strings/character,
       or [n, 4] array with rgba values or array of the same shape as input array.
+
+    *color_scalar*:
+      Scalar array of shape [nx, ny, nz] to be used to color the streamlines.
+      Set to 'magnitude' to use the vector field's magnitude.
 
     *emission*
       Light emission by the streamlines. This overrides 'roughness'.
@@ -315,6 +324,7 @@ class Streamline3d(object):
         self.integration_steps = 10
         self.integration_direction = 'both'
         self.color = (0, 1, 0, 1)
+        self.color_scalar = None
         self.emission = None
         self.roughness = 1
         self.radius = 0.1
@@ -327,6 +337,7 @@ class Streamline3d(object):
         self.poly_line = None
         self.mesh = None
         self.mesh_material = None
+        self.mesh_texture = None
         self.tracers = []
 
 
@@ -355,14 +366,11 @@ class Streamline3d(object):
 
         # Prepare the seeds.
         self.__generate_seed_points()
-#        if isinstance(self.seeds, int):
-#            self.seeds = np.array([self.__generate_seedpoint() for x in range(self.seeds)]) # abuse casting
 
         # Prepare the material colors.
-        color_rgba = colors.make_rgba_array(self.color, self.n_seeds,
-                                            self.color_map, self.vmin, self.vmax)
-
-        # Set up the field line integration.
+        if self.color_scalar is None:
+            color_rgba = colors.make_rgba_array(self.color, self.n_seeds,
+                                                self.color_map, self.vmin, self.vmax)
 
         # Compute the positions along the streamlines.
         self.prepare_field_function()
@@ -374,6 +382,7 @@ class Streamline3d(object):
         self.curve_object = []
         self.poly_line = []
         self.mesh_material = []
+        self.mesh_texture = []
         for tracer_idx in range(self.n_seeds):
             self.curve_data.append(bpy.data.curves.new('DataCurve', type='CURVE'))
             self.curve_data[-1].dimensions = '3D'
@@ -399,36 +408,14 @@ class Streamline3d(object):
             self.curve_data[-1].splines.data.fill_mode = 'FULL'
 
             # Set the material/color.
-            self.__set_material(tracer_idx, color_rgba)
-
-#            # TODO:
-#            if texture:
-#                # Create mesh and object.
-#                self.mesh_data = bpy.data.meshes.new("DataMesh")
-#                self.mesh_object = bpy.data.objects.new("ObjMesh", self.mesh_data)
-#        #        self.mesh_object.select_set(state=True)
-#
-#                # Create mesh from the given data.
-#                self.mesh_data.from_pydata(vertices, [], faces)
-#                self.mesh_data.update(calc_edges=True)
-#
-#                # Assign a material to the surface.
-#                self.mesh_material = bpy.data.materials.new('MaterialMesh')
-#                self.mesh_data.materials.append(self.mesh_material)
-#
-#                mesh_image = bpy.data.images.new('ImageMesh', self.c.shape[0], self.c.shape[1])
-#                pixels = np.array(mesh_image.pixels)
-#                c_max = np.max(self.c)
-#                c_min = np.min(self.c)
-#
-#                # Enable uv mappings for the curve object.
-#                bpy.context.object.data.use_uv_as_generated = True
-#                # Enable use nodes.
-#                self.mesh_material.use_nodes = True
+            if self.color_scalar is None:
+                self.__set_material_color(tracer_idx, color_rgba)
+            else:
+                self.__set_material_texture(tracer_idx)
 
             # Link the curve object with the scene.
             bpy.context.scene.collection.objects.link(self.curve_object[-1])
-
+        
 #        # Group the curves together.
 #        for curve_object in self.curve_object[::-1]:
 #            curve_object.select_set(state=True)
@@ -455,7 +442,7 @@ class Streamline3d(object):
 
         call signature:
 
-          tracer(xx=(0, 0, 0)):
+        tracer(xx=(0, 0, 0)):
 
         Keyword arguments:
 
@@ -476,7 +463,7 @@ class Streamline3d(object):
         # Set up the ode solver.
         tracers = solve_ivp(self.field_function, (time[0], time[-1]), xx,
                             t_eval=time, rtol=self.rtol, atol=self.atol,
-                            jac=self.metric, method=self.method).y.T
+                            method=self.method).y.T
 
         # In case of forward and backward field integration trace backward.
         if self.integration_direction == 'both':
@@ -498,7 +485,7 @@ class Streamline3d(object):
 
         call signature:
 
-            delete_outside_points(tracers)
+        delete_outside_points(tracers)
 
         Keyword arguments:
 
@@ -509,9 +496,9 @@ class Streamline3d(object):
         return tracers
 
 
-    def __set_material(self, idx, color_rgba):
+    def __set_material_color(self, idx, color_rgba):
         """
-        Set the mesh material.
+        Set the mesh material color.
 
         call signature:
 
@@ -606,6 +593,80 @@ class Streamline3d(object):
                     node_emission.inputs['Strength'].default_value = self.emission
                 else:
                     node_emission.inputs['Strength'].default_value = self.emission
+
+
+    def __set_material_texture(self, tracer_idx):
+        """
+        Set the mesh material texture.
+
+        call signature:
+
+        __set_material_texture(tracer_idx):
+
+        Keyword arguments:
+
+        *tracer_idx*:
+          Index of the tracer.
+        """
+
+        import bpy
+        import numpy as np
+        import matplotlib.cm as cm
+
+        # Compute the scalar values along the streamline.
+        scalar_values = self.set_texture_scalar_values(tracer_idx)
+
+        # Prepare the texture.        
+        mesh_image = bpy.data.images.new('ImageMesh', self.tracers[tracer_idx].shape[0], 1)
+        pixels = np.array(mesh_image.pixels)
+
+        # Assign the RGBa values to the pixels.
+        if self.color_map is None:
+            self.color_map = cm.viridis
+        pixels[0::4] = self.color_map((scalar_values - self.vmin)/(self.vmax - self.vmin))[:, 0]
+        pixels[1::4] = self.color_map((scalar_values - self.vmin)/(self.vmax - self.vmin))[:, 1]
+        pixels[2::4] = self.color_map((scalar_values - self.vmin)/(self.vmax - self.vmin))[:, 2]
+        pixels[3::4] = 1
+        mesh_image.pixels[:] = np.swapaxes(pixels.reshape([scalar_values.shape[0],
+                                                           1, 4]), 0, 1).flatten()[:]
+
+        # Create the material.
+        self.mesh_material.append(bpy.data.materials.new('material'))
+        self.curve_object[tracer_idx].active_material = self.mesh_material[tracer_idx]
+
+        # Assign the texture to the material.
+        self.mesh_material[tracer_idx].use_nodes = True
+        self.mesh_texture.append(self.mesh_material[tracer_idx].node_tree.nodes.new('ShaderNodeTexImage'))
+        self.mesh_texture[tracer_idx].extension = 'EXTEND'
+        self.mesh_texture[tracer_idx].image = mesh_image
+        links = self.mesh_material[tracer_idx].node_tree.links
+        links.new(self.mesh_texture[tracer_idx].outputs[0],
+                  self.mesh_material[tracer_idx].node_tree.nodes.get("Principled BSDF").inputs[0])
+
+
+    def set_texture_scalar_values(self, tracer_idx):
+        """
+        Find the scalar values for generating the texture along the streamlines.
+        
+        call signature:
+
+        set_texture_scalar_values(tracer_idx):
+
+        *tracer_idx*:
+          Index of the tracer.        
+        """
+
+        import numpy as np
+
+        scalar_values = np.zeros(self.tracers[tracer_idx].shape[0])
+        if self.color_scalar == 'magnitude':
+            for idx in range(self.tracers[tracer_idx].shape[0]):
+                scalar_values[idx] = np.sqrt(np.sum(self.field_function(0, self.tracers[tracer_idx][idx, :])**2))
+        else:
+            for idx in range(self.tracers[tracer_idx].shape[0]):
+                scalar_values[idx] = np.sqrt(np.sum(self.color_scalar(self.tracers[tracer_idx][idx, :])**2))
+
+        return scalar_values
 
 
     def __generate_seed_points(self):
@@ -709,6 +770,35 @@ class Streamline3dArray(Streamline3d):
         return 0
 
 
+    def set_texture_scalar_values(self, tracer_idx):
+        """
+        Find the scalar values for generating the texture along the streamlines.
+        
+        call signature:
+
+        set_texture_scalar_values(tracer_idx):
+
+        *tracer_idx*:
+          Index of the tracer.        
+        """
+
+        import numpy as np
+
+        scalar_values = np.zeros(self.tracers[tracer_idx].shape[0])
+        if isinstance(self.color_sclar, str):
+            if self.color_scalar == 'magnitude':
+                for idx in range(self.tracers[tracer_idx].shape[0]):
+                    scalar_values[idx] = np.sqrt(np.sum(self.field_function(0, self.tracers[tracer_idx][idx, :])**2))
+        else:
+            from scipy.interpolate import RegularGridInterpolator
+            # Prepare the interpolation function.
+            scalar_interpolation = RegularGridInterpolator((self.x, self.y, self.z), self.color_scalar)
+            for idx in range(self.tracers[tracer_idx].shape[0]):
+                scalar_values[idx] = scalar_interpolation(self.tracers[tracer_idx][idx, :])
+
+        return scalar_values
+
+
     def __trilinear_func(self, xx, field_x, field_y, field_z,):
         """
         Trilinear spline interpolation like eqtools.trispline.Spline
@@ -740,7 +830,14 @@ class Streamline3dArray(Streamline3d):
         if (xx[0] < Ox) + (xx[0] > Ox + Lx) + \
            (xx[1] < Oy) + (xx[1] > Oy + Ly) + \
            (xx[2] < Oz) + (xx[2] > Oz + Lz):
-            return np.zeros(3)
+            field = np.zeros(3)
+            if self.periodic[0]:
+                field[0] = (xx[0] - Ox)%Lx + Ox
+            if self.periodic[1]:
+                field[1] = (xx[1] - Oy)%Ly + Oy
+            if self.periodic[2]:
+                field[2] = (xx[2] - Oz)%Lz + Oz
+            return field
         else:
             return np.array([field_x.ev(xx[2], xx[1], xx[0]),
                              field_y.ev(xx[2], xx[1], xx[0]),
@@ -753,7 +850,7 @@ class Streamline3dArray(Streamline3d):
 
         call signature:
 
-            vec_int(xx)
+        vec_int(xx)
 
         Keyword arguments:
 
@@ -871,7 +968,7 @@ class Streamline3dArray(Streamline3d):
 
         call signature:
 
-            delete_outside_points(tracers)
+        delete_outside_points(tracers)
 
         Keyword arguments:
 
