@@ -697,8 +697,8 @@ class Streamline3d(object):
             x = radius*np.sin(theta)*np.cos(phi) + self.seed_center[0]
             y = radius*np.sin(theta)*np.sin(phi) + self.seed_center[1]
             z = radius*np.cos(theta) + self.seed_center[2]
-        self.seeds = np.array([x, y, z]).T
-        
+            self.seeds = np.array([x, y, z]).T
+
         return 0
 
 
@@ -785,7 +785,7 @@ class Streamline3dArray(Streamline3d):
         import numpy as np
 
         scalar_values = np.zeros(self.tracers[tracer_idx].shape[0])
-        if isinstance(self.color_sclar, str):
+        if isinstance(self.color_scalar, str):
             if self.color_scalar == 'magnitude':
                 for idx in range(self.tracers[tracer_idx].shape[0]):
                     scalar_values[idx] = np.sqrt(np.sum(self.field_function(0, self.tracers[tracer_idx][idx, :])**2))
