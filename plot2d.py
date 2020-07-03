@@ -29,7 +29,7 @@ mesh = blt.mesh(x, y, z, c='r', alpha=alpha)
 mesh.plot()
 '''
 
-def mesh(x, y, z=None, c=None, alpha=None, color_map=None):
+def mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None):
     """
     Plot a 2d surface with optional color.
 
@@ -49,6 +49,10 @@ def mesh(x, y, z=None, c=None, alpha=None, color_map=None):
     *alpha*:
       Alpha values defining the opacity.
       Single float or 2d array of shape [nu, nv].
+
+    *vmin, vmax*
+      Minimum and maximum values for the colormap. If not specify, determine
+      from the input arrays.
 
     *color_map*:
       Color map for the values stored in the array 'c'.
@@ -96,6 +100,8 @@ class Surface(object):
         self.z = None
         self.c = None
         self.alpha = None
+        self.vmin = None
+        self.vmax = None
         self.color_map = None
         self.mesh_data = None
         self.mesh_object = None
@@ -182,15 +188,21 @@ class Surface(object):
         if isinstance(self.c, np.ndarray):
             mesh_image = bpy.data.images.new('ImageMesh', self.c.shape[0], self.c.shape[1])
             pixels = np.array(mesh_image.pixels)
-            c_max = np.max(self.c)
-            c_min = np.min(self.c)
+            
+            # Determine the minimum and maximum value for the color map.
+            vmin = self.vmin
+            vmax = self.vmax
+            if self.vmin is None:
+                vmin = np.min(self.c)
+            if self.vmax is None:
+                vmax = np.max(self.c)
 
             # Assign the RGBa values to the pixels.
             if self.color_map is None:
                 self.color_map = cm.viridis
-            pixels[0::4] = self.color_map((self.c.flatten() - c_min)/(c_max - c_min))[:, 0]
-            pixels[1::4] = self.color_map((self.c.flatten() - c_min)/(c_max - c_min))[:, 1]
-            pixels[2::4] = self.color_map((self.c.flatten() - c_min)/(c_max - c_min))[:, 2]
+            pixels[0::4] = self.color_map((self.c.flatten() - vmin)/(vmax - vmin))[:, 0]
+            pixels[1::4] = self.color_map((self.c.flatten() - vmin)/(vmax - vmin))[:, 1]
+            pixels[2::4] = self.color_map((self.c.flatten() - vmin)/(vmax - vmin))[:, 2]
             pixels[3::4] = self.alpha.flatten()
             mesh_image.pixels[:] = np.swapaxes(pixels.reshape([self.x.shape[0],
                                                                self.x.shape[1], 4]), 0, 1).flatten()[:]
