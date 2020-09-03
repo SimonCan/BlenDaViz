@@ -72,8 +72,16 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
     Keyword arguments:
 
     *field_function*
-      Function that is to be integrated. Has to have as input an array of length 3,
-      and has to return an array of length 3.
+      Function that is to be integrated. Function has to accept following call signature:
+        yy = function(t, xx)
+            *t*: 'time' variable for non-constant functions
+            *xx*: three-element numpy array of location in cartesian coordinates
+            *yy*: three-element numpy array representing vector field in cartesian coordinates
+    OR:
+        yy = function(xx)
+            *xx*: three-element numpy array of location in cartesian coordinates
+            *yy*: three-element numpy array representing vector field in cartesian coordinates
+    and function will be assumed constant in time
 
     *n_seeds*:
       Number of randomly distributed seeds within a sphere
@@ -415,7 +423,7 @@ class Streamline3d(object):
 
             # Link the curve object with the scene.
             bpy.context.scene.collection.objects.link(self.curve_object[-1])
-        
+
 #        # Group the curves together.
 #        for curve_object in self.curve_object[::-1]:
 #            curve_object.select_set(state=True)
@@ -431,7 +439,23 @@ class Streamline3d(object):
         """
         Prepare the function to be called by the streamline tracing routine.
         """
-
+        import inspect
+        import numpy as np
+        numargs = len(inspect.signature(self.field_function).parameters)
+        # test if the function takes only one argument
+        if numargs == 1:
+            # replace with function with proper call signature
+            print('adding time dependence to the function')
+            position_function = self.field_function
+            self.field_function = lambda t, xx: position_function(xx)
+        elif numargs > 2:
+            print("Error: function call signature takes too many arguments")
+            raise TypeError
+        # evaluate the function:
+        testvalue = self.field_function(np.pi, np.random.random(3))
+        if (not isinstance(testvalue, np.ndarray)) or (testvalue.size != 3):
+            print("Error: function return incorrect")
+            raise TypeError
         return 0
 
 
@@ -616,7 +640,7 @@ class Streamline3d(object):
         # Compute the scalar values along the streamline.
         scalar_values = self.set_texture_scalar_values(tracer_idx)
 
-        # Prepare the texture.        
+        # Prepare the texture.
         mesh_image = bpy.data.images.new('ImageMesh', self.tracers[tracer_idx].shape[0], 1)
         pixels = np.array(mesh_image.pixels)
 
@@ -647,13 +671,13 @@ class Streamline3d(object):
     def set_texture_scalar_values(self, tracer_idx):
         """
         Find the scalar values for generating the texture along the streamlines.
-        
+
         call signature:
 
         set_texture_scalar_values(tracer_idx):
 
         *tracer_idx*:
-          Index of the tracer.        
+          Index of the tracer.
         """
 
         import numpy as np
@@ -678,8 +702,11 @@ class Streamline3d(object):
         Algo from http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution
         """
         import numpy as np
-        
+
         if isinstance(self.seeds, np.ndarray):
+            if self.seeds.ndim == 1:
+                self.n_seeds = 1
+                self.seeds = np.expand_dims(self.seeds, axis=0)
             self.n_seeds = self.seeds.shape[0]
         else:
             if not self.seed_center:
@@ -773,13 +800,13 @@ class Streamline3dArray(Streamline3d):
     def set_texture_scalar_values(self, tracer_idx):
         """
         Find the scalar values for generating the texture along the streamlines.
-        
+
         call signature:
 
         set_texture_scalar_values(tracer_idx):
 
         *tracer_idx*:
-          Index of the tracer.        
+          Index of the tracer.
         """
 
         import numpy as np
