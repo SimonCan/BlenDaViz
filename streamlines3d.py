@@ -54,9 +54,10 @@ stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1
 def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=None,
                          seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
                          metric=None, integration_time=1, integration_steps=10,
-                         integration_direction='both',
-                         color=(0, 1, 0, 1), color_scalar=None, emission=None, roughness=1,
-                         radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None):
+                         integration_direction='both', color=(0, 1, 0, 1),
+                         color_scalar=None, emission=None, roughness=1,
+                         radius=0.1, resolution=8, vmin=None, vmax=None,
+                         color_map=None, n_proc=1):
     """
     Plot streamlines of a given vector field.
 
@@ -347,6 +348,7 @@ class Streamline3d(object):
         self.mesh_material = None
         self.mesh_texture = None
         self.tracers = []
+        self.n_proc = 1
 
 
     def plot(self):
@@ -356,6 +358,7 @@ class Streamline3d(object):
 
         import bpy
         from . import colors
+        import multiprocessing as mp
 
         # Delete existing curve.
         if not self.mesh is None:
@@ -382,8 +385,29 @@ class Streamline3d(object):
 
         # Compute the positions along the streamlines.
         self.prepare_field_function()
-        for tracer_idx in range(self.n_seeds):
-            self.tracers.append(self.__tracer(xx=self.seeds[tracer_idx]))
+        queue = mp.Queue()
+        processes = []
+        results = []
+
+        print('started tracing!')
+        for i_proc in range(self.n_proc):
+            processes.append(mp.Process(target=self.__tracer_multi,
+                                        args=(queue, i_proc, self.n_proc)))
+        for i_proc in range(self.n_proc):
+            processes[i_proc].start()
+        for i_proc in range(self.n_proc):
+            results.append(queue.get())
+        for i_proc in range(self.n_proc):
+            processes[i_proc].join()
+
+        # set the record straight
+        result_order = []
+        for i_proc in range(self.n_proc):
+            result_order.append(results[i_proc][1])
+        for i in range(self.n_proc):
+            ith_result = result_order.index(i)
+            self.tracers.extend(results[ith_result][0]) # tracers
+
 
         # Plot the streamlines/tracers.
         self.curve_data = []
@@ -434,7 +458,6 @@ class Streamline3d(object):
 
         return 0
 
-
     def prepare_field_function(self):
         """
         Prepare the function to be called by the streamline tracing routine.
@@ -456,6 +479,38 @@ class Streamline3d(object):
         if (not isinstance(testvalue, np.ndarray)) or (testvalue.size != 3):
             print("Error: function return incorrect")
             raise TypeError
+        return 0
+
+
+    def __tracer_multi(self, queue, i_proc, n_proc):
+        """
+        Trace a field starting from xx in any rectilinear coordinate system
+        with constant dx, dy and dz and with a given metric.
+
+        call signature:
+
+        tracer(xx=(0, 0, 0)):
+
+        Keyword arguments:
+
+        *xx*:
+          Starting point of the field line integration with starting time.
+        """
+        # portion up the work given i_proc and n_proc
+        fstep = self.n_seeds/n_proc
+        if fstep.is_integer():
+            step = int(fstep)
+        else:
+            step = int(fstep)+1
+
+        start = i_proc*step
+        my_chunk = self.seeds[start:start+step] #out-of-range is empty array!
+        sub_tracers = []
+        for xx in my_chunk:
+            my_tracer = self.__tracer(xx)
+            sub_tracers.append(my_tracer)
+
+        queue.put((sub_tracers, i_proc, n_proc))
         return 0
 
 
@@ -491,20 +546,21 @@ class Streamline3d(object):
 
         # In case of forward and backward field integration trace backward.
         if self.integration_direction == 'both':
-            self.integration_direction = 'backward'
-            tracers_backward = self.__tracer(xx=xx)
-            self.integration_direction = 'both'
+            time = -time
+            backtracers = solve_ivp(self.field_function, (time[0], time[-1]), xx,
+                                    t_eval=time, rtol=self.rtol, atol=self.atol,
+                                    method=self.method).y.T
             # Glue the forward and backward field tracers together.
-            tracers = np.vstack([tracers_backward[::-1, :], tracers[1:, :]])
+            tracers = np.vstack([backtracers[::-1, :], tracers[1:, :]])
 
         # Delete points outside the domain.
         tracers = self.delete_outside_points(tracers)
 
         return tracers
 
-
     def delete_outside_points(self, tracers):
         """
+        [NOT IMPLEMENTED]
         Delete any points of the tracer that lie outside the domain.
 
         call signature:
@@ -750,6 +806,7 @@ class Streamline3dArray(Streamline3d):
     def prepare_field_function(self):
         """
         Prepare the function to be called by the streamline tracing routine.
+        Sets: self.field_function
         """
 
         import numpy as np
