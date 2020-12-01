@@ -154,6 +154,9 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
       Color map for the values stored in the array 'c'.
       These are the same as in matplotlib.
 
+    *n_proc*:
+      Number of processors to run the streamline integration on, default 1.
+
     Examples:
       import numpy as np
       import blendaviz as blt
@@ -182,7 +185,7 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
                       metric=None, integration_time=1, integration_steps=10,
                       integration_direction='both',
                       color=(0, 1, 0, 1), color_scalar=None, emission=None, roughness=1,
-                      radius=0.1, resolution=8, vmin=0, vmax=1, color_map=None):
+                      radius=0.1, resolution=8, vmin=0, vmax=1, color_map=None, n_proc=1):
     """
     Plot streamlines of a given vector field.
 
@@ -282,6 +285,9 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
     *color_map*:
       Color map for the values stored in the array 'c'.
       These are the same as in matplotlib.
+
+    *n_proc*:
+      Number of processors to run the streamline integration on, default 1.
 
     Examples:
       import numpy as np
