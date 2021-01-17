@@ -14,9 +14,16 @@ import numpy as np
 import importlib
 import blendaviz as blt
 importlib.reload(blt.plot1d)
+importlib.reload(blt)
+
 z = np.linspace(0, 6*np.pi, 30)
 x = 3*np.cos(z)
 y = 3*np.sin(z)
+time = np.linspace(0, 100, 100)
+r = np.linspace(0.3, 1, 100)
+r = r[np.newaxis, :]
+pl = blt.plot(x, y, z, marker='cube', radius=r, time=time)
+
 pl = blt.plot(x, y, z, marker='cube', radius=0.5, rotation_x=z, rotation_y=np.zeros_like(x), rotation_z=np.zeros_like(x))
 colors = np.random.random([x.shape[0], 4])
 pl = blt.plot(x, y, z, marker='cube')
@@ -27,7 +34,7 @@ pl.plot()
 
 def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
          emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
-         marker=None):
+         marker=None, time=None):
     """
     Line plot in 3 dimensions as a line, tube or shapes.
 
@@ -74,6 +81,10 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
       Custom shape or blender object.
       1d array of length n of one of the above.
 
+    *time*:
+      Float array with the time information of the data.
+      Has length nt.
+
     Examples:
       import numpy as np
       import blendaviz as blt
@@ -87,12 +98,18 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
     """
 
     import inspect
+    import bpy
 
     # Assign parameters to the PathLine objects.
     path_line_return = PathLine()
     argument_dict = inspect.getargvalues(inspect.currentframe()).locals
     for argument in argument_dict:
         setattr(path_line_return, argument, argument_dict[argument])
+
+    # Set the handler function for frame changes (time).
+    bpy.app.handlers.frame_change_pre.append(path_line_return.time_handler)
+
+    # Plot the data.
     path_line_return.plot()
     return path_line_return
 
@@ -120,6 +137,8 @@ class PathLine(object):
         self.roughness = 1.0
         self.emission = None
         self.marker = None
+        self.time = None
+        self.time_index = 0
         self.bounding_box = None
         self.curve_data = None
         self.curve_object = None
@@ -137,15 +156,36 @@ class PathLine(object):
         import numpy as np
         from . import colors
 
+        # Check if there is any time array.
+        if not self.time is None:
+            if not isinstance(self.time, np.ndarray):
+                print("Error: time is not a valid array.")
+                return -1
+            elif self.time.ndim != 1:
+                print("Error: time array must be 1d.")
+                return -1
+            # Determine the time index.
+            self.time_index = np.argmin(abs(bpy.context.scene.frame_float - self.time))
+        else:
+            self.time_index = 0
+
         # Check validity of radius input.
         if not isinstance(self.radius, np.ndarray) and not self.marker is None:
             self.radius = self.radius*np.ones(self.x.size)
 
+        # Add time index to the radius array
+        if self.radius.ndim == 1 and not isinstance(self.time, np.ndarray):
+            self.radius = self.radius[:, np.newaxis]
+        if self.radius.ndim == 2 and (self.radius.shape[0] == 1):
+            self.radius = (self.radius.T*np.ones(self.x.size)).T
+
+        print('self.time.shape = {0}'.format(self.radius.shape))
+
         # Check validity of rotation input.
         if not isinstance(self.rotation_x, np.ndarray) and not self.marker is None:
-            self.rotation_x = np.zeros(self.x.size)
-            self.rotation_y = np.zeros(self.x.size)
-            self.rotation_z = np.zeros(self.x.size)
+            self.rotation_x = np.zeros(self.x.shape[0])
+            self.rotation_y = np.zeros(self.x.shape[0])
+            self.rotation_z = np.zeros(self.x.shape[0])
             if not self.rotation_x.size == self.rotation_y.size == self.rotation_z.size:
                 print("Error: the size of the rotation angle array do not match.")
                 return -1
@@ -198,7 +238,7 @@ class PathLine(object):
                                                    0)
 
             # Add 3d structure.
-            self.curve_data.splines.data.bevel_depth = self.radius
+            self.curve_data.splines.data.bevel_depth = self.radius[0, self.time_index]
             self.curve_data.splines.data.bevel_resolution = self.resolution
             self.curve_data.splines.data.fill_mode = 'FULL'
 
@@ -235,44 +275,47 @@ class PathLine(object):
         if self.marker == 'cone':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_cone_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                radius1=self.radius[idx], depth=2*self.radius[idx],
+                                                radius1=self.radius[idx, self.time_index],
+                                                depth=2*self.radius[idx, self.time_index],
                                                 rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'cube':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_cube_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                size=self.radius[idx],
+                                                size=self.radius[idx, self.time_index],
                                                 rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'cylinder':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_cylinder_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                    radius=self.radius[idx], depth=2*self.radius[idx],
+                                                    radius=self.radius[idx, self.time_index], depth=2*self.radius[idx, self.time_index],
                                                     rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'ico_sphere':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_ico_sphere_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                      radius=self.radius[idx],
+                                                      radius=self.radius[idx, self.time_index],
                                                       rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'monkey':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_monkey_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                  size=self.radius[idx],
+                                                  size=self.radius[idx, self.time_index],
                                                   rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'torus':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_torus_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                 major_radius=self.radius[idx], minor_radius=0.25*self.radius[idx],
-                                                 abso_major_rad=1.25*self.radius[idx], abso_minor_rad=0.75*self.radius[idx],
+                                                 major_radius=self.radius[idx, self.time_index],
+                                                 minor_radius=0.25*self.radius[idx, self.time_index],
+                                                 abso_major_rad=1.25*self.radius[idx, self.time_index],
+                                                 abso_minor_rad=0.75*self.radius[idx, self.time_index],
                                                  rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'uv_sphere':
             for idx in range(len(self.x)):
                 bpy.ops.mesh.primitive_uv_sphere_add(location=(self.x[idx], self.y[idx], self.z[idx]),
-                                                     radius=self.radius[idx],
+                                                     radius=self.radius[idx, self.time_index],
                                                      rotation=(self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if isinstance(self.marker, bpy.types.Object):
@@ -361,3 +404,13 @@ class PathLine(object):
 
 
         return 0
+
+
+    def time_handler(self, scene, depsgraph):
+        """
+        Function to be called whenever any Blender animation functions are used.
+        Updates the plot according to the function specified.
+        """
+
+        print("time handler")
+        self.plot()
