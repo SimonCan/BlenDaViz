@@ -589,9 +589,9 @@ def contour(phi, x, y, z, contours=1, psi=None,
 
     call signature:
 
-    quiver(phi, x, y, z, contours=1, psi=None,
-           color=(0, 1, 0, 1), emission=None, roughness=1,
-           vmin=None, vmax=None, color_map=None):
+    contour(phi, x, y, z, contours=1, psi=None,
+            color=(0, 1, 0, 1), emission=None, roughness=1,
+            vmin=None, vmax=None, color_map=None):
 
     Keyword arguments:
     *phi*:
