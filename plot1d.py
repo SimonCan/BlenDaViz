@@ -98,16 +98,12 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
     """
 
     import inspect
-    import bpy
 
     # Assign parameters to the PathLine objects.
     path_line_return = PathLine()
     argument_dict = inspect.getargvalues(inspect.currentframe()).locals
     for argument in argument_dict:
         setattr(path_line_return, argument, argument_dict[argument])
-
-    # Set the handler function for frame changes (time).
-    bpy.app.handlers.frame_change_pre.append(path_line_return.time_handler)
 
     # Plot the data.
     path_line_return.plot()
@@ -124,6 +120,8 @@ class PathLine(object):
         """
         Fill members with default values.
         """
+
+        import bpy
 
         self.x = 0
         self.y = 0
@@ -145,6 +143,9 @@ class PathLine(object):
         self.marker_mesh = None
         self.mesh_material = None
         self.poly_line = None
+
+        # Set the handler function for frame changes (time).
+        bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
 
     def plot(self):
@@ -412,5 +413,4 @@ class PathLine(object):
         Updates the plot according to the function specified.
         """
 
-        print("time handler")
         self.plot()
