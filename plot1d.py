@@ -180,7 +180,6 @@ class PathLine(object):
 
         # Determine the input array shape given by the number of data points and times.
         self.input_shape = (self.x.shape[0], self.time.shape[0])
-        print('self.input_shape = {0}'.format(self.input_shape))
 
         # Bring all input arrays into the correct shape of (n, nt).
         if self.x.ndim == 1:
@@ -206,8 +205,6 @@ class PathLine(object):
         self.rotation_x = self.rotation_x*np.ones(self.input_shape)
         self.rotation_y = self.rotation_y*np.ones(self.input_shape)
         self.rotation_z = self.rotation_z*np.ones(self.input_shape)
-        print('self.radius.shape = {0}'.format(self.radius.shape))
-        print('marker = {0}'.format(self.marker))
 
         # Delete existing curve.
         if not self.curve_data is None:
@@ -237,7 +234,6 @@ class PathLine(object):
 
         # Create the bezier curve.
         if self.marker is None:
-            print('marker is None')
             # Transform color string into rgba.
             color_rgba = colors.make_rgba_array(self.color, 1)
 
