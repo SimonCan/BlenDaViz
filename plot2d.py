@@ -20,16 +20,19 @@ importlib.reload(blt)
 
 x0 = np.linspace(-3, 3, 20)
 y0 = np.linspace(-3, 3, 20)
-x, y = np.meshgrid(x0, y0, indexing='ij')
-z = np.ones_like(x)*np.linspace(0, 2, 20)
+time = np.linspace(0, 100, 101)
+x, y, tt = np.meshgrid(x0, y0, time, indexing='ij')
+z = np.ones_like(x)
 alpha = 0.5
 z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
+z = z*np.sin(tt/30)
 
-mesh = blt.mesh(x, y, z, c='r', alpha=alpha)
+mesh = blt.mesh(x, y, z, c='r', time=time, alpha=alpha)
 mesh.plot()
 '''
 
-def mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None):
+def mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None,
+         time=None):
     """
     Plot a 2d surface with optional color.
 
@@ -57,6 +60,10 @@ def mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None)
     *color_map*:
       Color map for the values stored in the array 'c'.
       These are the same as in matplotlib.
+
+    *time*:
+      Float array with the time information of the data.
+      Has length nt.
 
     Examples:
       import numpy as np
@@ -95,6 +102,8 @@ class Surface(object):
         Fill members with default values.
         """
 
+        import bpy
+
         self.x = 0
         self.y = 0
         self.z = None
@@ -102,10 +111,16 @@ class Surface(object):
         self.alpha = None
         self.vmin = None
         self.vmax = None
+        self.time = None
+        self.time_index = 0
+        self.input_shape = (1, 1, 1)
         self.color_map = None
         self.mesh_data = None
         self.mesh_object = None
         self.mesh_material = None
+
+        # Set the handler function for frame changes (time).
+        bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
 
     def plot(self):
@@ -116,6 +131,23 @@ class Surface(object):
         import bpy
         import numpy as np
         import matplotlib.cm as cm
+
+        # Check if there is any time array.
+        if not self.time is None:
+            if not isinstance(self.time, np.ndarray):
+                print("Error: time is not a valid array.")
+                return -1
+            elif self.time.ndim != 1:
+                print("Error: time array must be 1d.")
+                return -1
+            # Determine the time index.
+            self.time_index = np.argmin(abs(bpy.context.scene.frame_float - self.time))
+        else:
+            self.time = np.array([0])
+            self.time_index = 0
+
+        # Determine the input array shape given by the number of data points and times.
+        self.input_shape = (self.x.shape[0], self.x.shape[1], self.time.shape[0])
 
         # Check the validity of the input arrays.
         if not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray):
@@ -146,6 +178,19 @@ class Surface(object):
         else:
             self.alpha = np.array([self.alpha])
 
+        # Bring all input arrays into the correct shape of (n, nt).
+        if self.x.ndim == 2:
+            self.x = self.x[:, :, np.newaxis]
+            self.y = self.y[:, :, np.newaxis]
+            self.z = self.z[:, :, np.newaxis]
+        if isinstance(self.c, np.ndarray):
+            self.c = self.c[:, :, np.newaxis]
+        self.x = self.x*np.ones(self.input_shape)
+        self.y = self.y*np.ones(self.input_shape)
+        self.z = self.z*np.ones(self.input_shape)
+        if isinstance(self.c, np.ndarray):
+            self.c = self.c**np.ones(self.input_shape)
+
         # Delete existing meshes.
         if not self.mesh_object is None:
             bpy.ops.object.select_all(action='DESELECT')
@@ -159,8 +204,10 @@ class Surface(object):
 
         # Create the vertices from the data.
         vertices = []
-        for idx in range(self.x.size):
-            vertices.append((self.x.flatten()[idx], self.y.flatten()[idx], self.z.flatten()[idx]))
+        for idx in range(self.x.shape[0]*self.x.shape[1]):
+            vertices.append((self.x[:, :, self.time_index].flatten()[idx],
+                             self.y[:, :, self.time_index].flatten()[idx],
+                             self.z[:, :, self.time_index].flatten()[idx]))
 
         # Create the faces from the data.
         faces = []
@@ -249,3 +296,12 @@ class Surface(object):
             bpy.context.scene.collection.objects.link(self.mesh_object)
 
         return 0
+
+
+    def time_handler(self, scene, depsgraph):
+        """
+        Function to be called whenever any Blender animation functions are used.
+        Updates the plot according to the function specified.
+        """
+
+        self.plot()
