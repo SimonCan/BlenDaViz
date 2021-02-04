@@ -326,7 +326,7 @@ class Streamline3d(object):
         Fill members with default values.
         """
 
-        self.field_function = lambda t, xx: [0, 0, 1]
+        self.field_function = lambda t, xx: [0., 0., 1.]
         self.n_seeds = 100
         self.seeds = None
         self.seed_center = None
@@ -364,10 +364,10 @@ class Streamline3d(object):
 
         import bpy
         from . import colors
-        import multiprocessing as mp
 
-        # Delete existing curve.
-        if not self.mesh is None:
+        # Delete existing curves.
+        bpy.ops.object.select_all(action='DESELECT') # deselect any already selected objects
+        if self.mesh is not None:
             bpy.ops.object.select_all(action='DESELECT')
             self.mesh.select_set(True)
             bpy.ops.object.delete()
@@ -375,7 +375,7 @@ class Streamline3d(object):
             self.curve_object = None
 
         # Delete existing materials.
-        if not self.mesh_material is None:
+        if self.mesh_material is not None:
             bpy.ops.object.select_all(action='DESELECT')
             for mesh_material in self.mesh_material:
                 bpy.data.materials.remove(mesh_material)
@@ -389,30 +389,39 @@ class Streamline3d(object):
             color_rgba = colors.make_rgba_array(self.color, self.n_seeds,
                                                 self.color_map, self.vmin, self.vmax)
 
-        # Compute the positions along the streamlines.
         self.prepare_field_function()
-        queue = mp.Queue()
-        processes = []
-        results = []
+        # empty the tracers before calculating new
+        self.tracers = []
 
-        print('started tracing!')
-        for i_proc in range(self.n_proc):
-            processes.append(mp.Process(target=self.__tracer_multi,
-                                        args=(queue, i_proc, self.n_proc)))
-        for i_proc in range(self.n_proc):
-            processes[i_proc].start()
-        for i_proc in range(self.n_proc):
-            results.append(queue.get())
-        for i_proc in range(self.n_proc):
-            processes[i_proc].join()
+        if self.n_proc == 1:
+            # Compute the traces serially
+            print('single processor')
+            for tracer_idx in range(self.n_seeds):
+                self.tracers.append(self.__tracer(xx=self.seeds[tracer_idx]))
+        else:
+            # Compute the positions along the streamlines.
+            import multiprocessing as mp
+            queue = mp.Queue()
+            processes = []
+            results = []
 
-        # set the record straight
-        result_order = []
-        for i_proc in range(self.n_proc):
-            result_order.append(results[i_proc][1])
-        for i in range(self.n_proc):
-            ith_result = result_order.index(i)
-            self.tracers.extend(results[ith_result][0]) # tracers
+            for i_proc in range(self.n_proc):
+                processes.append(mp.Process(target=self.__tracer_multi,
+                                            args=(queue, i_proc, self.n_proc)))
+            for i_proc in range(self.n_proc):
+                processes[i_proc].start()
+            for i_proc in range(self.n_proc):
+                results.append(queue.get())
+            for i_proc in range(self.n_proc):
+                processes[i_proc].join()
+
+            # set the record straight
+            result_order = []
+            for i_proc in range(self.n_proc):
+                result_order.append(results[i_proc][1])
+            for i in range(self.n_proc):
+                ith_result = result_order.index(i)
+                self.tracers.extend(results[ith_result][0]) # tracers
 
 
         # Plot the streamlines/tracers.
@@ -454,13 +463,14 @@ class Streamline3d(object):
             # Link the curve object with the scene.
             bpy.context.scene.collection.objects.link(self.curve_object[-1])
 
-#        # Group the curves together.
-#        for curve_object in self.curve_object[::-1]:
-#            curve_object.select_set(state=True)
-#            bpy.context.view_layer.objects.active = curve_object
-#        bpy.ops.object.join()
-#        self.mesh = bpy.context.selected_objects[0]
-#        self.mesh.select_set(False)
+        # Group the curves together.
+        bpy.ops.object.select_all(action='DESELECT') # deselect any already selected objects
+        for curve_object in self.curve_object[::-1]:
+            curve_object.select_set(state=True)
+            bpy.context.view_layer.objects.active = curve_object
+        bpy.ops.object.join()
+        self.mesh = bpy.context.selected_objects[0]
+        self.mesh.select_set(False)
 
         return 0
 
@@ -771,7 +781,7 @@ class Streamline3d(object):
                 self.seeds = np.expand_dims(self.seeds, axis=0)
             self.n_seeds = self.seeds.shape[0]
         else:
-            if not self.seed_center:
+            if self.seed_center is None:  # make a center if not exists
                 if hasattr(self, 'x'):
                     self.seed_center = np.array([self.x.max() + self.x.min(),
                                                  self.y.max() + self.y.min(),

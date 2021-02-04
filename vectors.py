@@ -116,7 +116,8 @@ class arrow(object):
             print('reading arrow from file') #diagnostic, REMOVE
             arrowpath = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'arrow.obj') # find arrow.obj in same folder as this file.
             bpy.ops.import_scene.obj(filepath=arrowpath)
-            bpy.context.scene.collection.objects.unlink(bpy.data.objects['arrow_Mesh']) #unlink so this arrow is invisible
+            bpy.data.objects['arrow_Mesh'].hide_set(True) # hide the original mesh
+            bpy.data.objects['arrow_Mesh'].hide_render = True # also in the render
 
 
 
@@ -146,8 +147,9 @@ class arrow(object):
 
 
 
-
         color_rgba = self.color
+        if self.color is None:
+            self.color = 'random'
         if isinstance(self.color, str):
             if self.color == 'random':
                 from numpy.random import rand
