@@ -142,7 +142,6 @@ class Surface(object):
                 return -1
             # Determine the time index.
             self.time_index = np.argmin(abs(bpy.context.scene.frame_float - self.time))
-            print('self.time_index = {0}'.format(self.time_index))
         else:
             self.time = np.array([0])
             self.time_index = 0
