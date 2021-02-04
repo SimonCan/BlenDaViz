@@ -564,6 +564,7 @@ class Streamline3d(object):
 
         return tracers
 
+
     def delete_outside_points(self, tracers):
         """
         [NOT IMPLEMENTED]
@@ -1010,9 +1011,9 @@ class Streamline3dArray(Streamline3d):
 
         # Interpolate the field.
         if self.interpolation == 'mean':
-            sub_field = [self.u[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]],
-                         self.v[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]],
-                         self.w[[ii[0], ii[1]], [jj[0], jj[1]], [kk[0], kk[1]]]]
+            sub_field = [self.u[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
+                         self.v[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
+                         self.w[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1]]
             return np.mean(np.array(sub_field), axis=(1, 2, 3))
 
         if self.interpolation == 'trilinear':
@@ -1041,9 +1042,9 @@ class Streamline3dArray(Streamline3d):
                     w3 = (k-kk[::-1])
 
             weight = abs(w1.reshape((2, 1, 1))*w2.reshape((1, 2, 1))*w3.reshape((1, 1, 2)))
-            sub_field = [self.u[[ii[0], ii[1]]][:, [jj[0], jj[1]]][:, :, [kk[0], kk[1]]],
-                         self.v[[ii[0], ii[1]]][:, [jj[0], jj[1]]][:, :, [kk[0], kk[1]]],
-                         self.w[[ii[0], ii[1]]][:, [jj[0], jj[1]]][:, :, [kk[0], kk[1]]]]
+            sub_field = [self.u[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
+                         self.v[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
+                         self.w[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1]]
             return np.sum(np.array(sub_field)*weight, axis=(1, 2, 3))/np.sum(weight)
 
         # If the point lies outside the domain, return 0.
