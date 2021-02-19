@@ -38,24 +38,30 @@ def mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None,
 
     call signature:
 
-    mesh(x, y, z, c=None, color_map=None)
+    mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None,
+         time=None)
 
     Keyword arguments:
 
     *x, y, z*:
-      x, y and z coordinates of the points on the surface of shape [nu, nv].
-      If z == None plot a planar surface.
+      x, y and z coordinates of the points on the surface of shape (nu, nv)
+      or of shape (nu, nv, nt) for time dependent arrays.
+      If z == None then z = 0.
 
     *c*:
       Values to be used for the colors.
+      Can be a character or string for constant color, e.g. 'red'
+      or array of shape (nu, nv) for time independent colors
+      or array of shape (nu, nv, nt) for time dependent colors.
 
     *alpha*:
       Alpha values defining the opacity.
       Single float or 2d array of shape [nu, nv].
 
     *vmin, vmax*
-      Minimum and maximum values for the colormap. If not specify, determine
-      from the input arrays.
+      Minimum and maximum values for the colormap.
+      If not specified, determine from the input arrays.
+      Can be float or array of length nt.
 
     *color_map*:
       Color map for the values stored in the array 'c'.
@@ -146,15 +152,12 @@ class Surface(object):
             self.time = np.array([0])
             self.time_index = 0
 
-        # Determine the input array shape given by the number of data points and times.
-        self.input_shape = (self.x.shape[0], self.x.shape[1], self.time.shape[0])
-
         # Check the validity of the input arrays.
         if not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray):
             print("Error: x OR y array invalid.")
             return -1
         if not isinstance(self.z, np.ndarray) and not isinstance(self.c, np.ndarray):
-            print("Error: z OR c must be arrays.")
+            print("Error: either z or c or both must be arrays.")
             return -1
         if not isinstance(self.c, np.ndarray):
             if self.c is None:
@@ -178,13 +181,17 @@ class Surface(object):
         else:
             self.alpha = np.array([self.alpha])
 
+        # Determine the input array shape given by the number of data points and times.
+        self.input_shape = (self.x.shape[0], self.x.shape[1], self.time.shape[0])
+
         # Bring all input arrays into the correct shape of (n, nt).
         if self.x.ndim == 2:
             self.x = self.x[:, :, np.newaxis]
             self.y = self.y[:, :, np.newaxis]
             self.z = self.z[:, :, np.newaxis]
         if isinstance(self.c, np.ndarray):
-            self.c = self.c[:, :, np.newaxis]
+            if self.c.ndim == 2:
+                self.c = self.c[:, :, np.newaxis]
         self.x = self.x*np.ones(self.input_shape)
         self.y = self.y*np.ones(self.input_shape)
         self.z = self.z*np.ones(self.input_shape)
@@ -239,17 +246,22 @@ class Surface(object):
             # Determine the minimum and maximum value for the color map.
             vmin = self.vmin
             vmax = self.vmax
+            if isinstance(self.vmin, np.ndarray):
+                vmin = self.vmin[self.time_index]
+            if isinstance(self.vmax, np.ndarray):
+                vmin = self.vmax[self.time_index]
             if self.vmin is None:
-                vmin = np.min(self.c)
+                vmin = np.min(self.c[:, :, self.time_index])
             if self.vmax is None:
-                vmax = np.max(self.c)
+                vmax = np.max(self.c[:, :, self.time_index])
+            print(vmin, vmax)
 
             # Assign the RGBa values to the pixels.
             if self.color_map is None:
                 self.color_map = cm.viridis
-            pixels[0::4] = self.color_map((self.c.flatten() - vmin)/(vmax - vmin))[:, 0]
-            pixels[1::4] = self.color_map((self.c.flatten() - vmin)/(vmax - vmin))[:, 1]
-            pixels[2::4] = self.color_map((self.c.flatten() - vmin)/(vmax - vmin))[:, 2]
+            pixels[0::4] = self.color_map((self.c[:, :, self.time_index].flatten() - vmin)/(vmax - vmin))[:, 0]
+            pixels[1::4] = self.color_map((self.c[:, :, self.time_index].flatten() - vmin)/(vmax - vmin))[:, 1]
+            pixels[2::4] = self.color_map((self.c[:, :, self.time_index].flatten() - vmin)/(vmax - vmin))[:, 2]
             pixels[3::4] = self.alpha.flatten()
             mesh_image.pixels[:] = np.swapaxes(pixels.reshape([self.x.shape[0],
                                                                self.x.shape[1], 4]), 0, 1).flatten()[:]

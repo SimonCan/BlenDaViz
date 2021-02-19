@@ -48,21 +48,28 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
 
     plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
          emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
-         marker=None)
+         marker=None, time=None)
 
     Keyword arguments:
 
     *x, y, z*:
       x, y and z coordinates of the points to be plotted.
-      These are 1d arrays of the same length n.
+      These are 1d arrays of the same length n
+      or 2d time dependent arrays of shape (n, nt).
 
     *radius*:
       Radius of the plotted tube, i.e. line width, or size of the markers.
-      Positive real number or array of length n.
+      Positive real number for point and time independenet radius
+      or 1d array of length n for point dependenet radius
+      or 2d array of length (n, nt) for point and time dependenet radius
+      or 2d array of length (1, nt) for time dependenet radius.
 
     *rotation_[xyz]*:
       Rotation angle around the xyz axis.
-      Real number or array of length n.
+      Real number for point and time independent radius
+      or array of length n for point dependent radius
+      or 2d array of length (n, nt) for point and time dependent radius
+      or 2d array of length (1, nt) for time dependent radius.
 
     *resolution*:
       Azimuthal resolution of the tubes in vertices.
@@ -74,7 +81,7 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
       or [n, 4] array with rgba values.
 
     *emission*
-      Light emission by the line or markers.
+      Light emission of the line or markers.
       Real number for a line plot and array for markers.
 
     *roughness*:

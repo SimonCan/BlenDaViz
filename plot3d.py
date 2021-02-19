@@ -184,29 +184,29 @@ class Volume(object):
 Test:
 import numpy as np
 import importlib
-x = np.linspace(-2, 2, 5)
-y = np.linspace(-2, 2, 5)
-z = np.linspace(-2, 2, 5)
-u = np.array([1, 0, 0, 1, 0])
-v = np.array([0, 1, 0, 1, 1])
-w = np.array([0, 0, 1, 0, 1])
 import sys
 sys.path.append('~/codes/blendaviz')
 import blendaviz as blt
 importlib.reload(blt)
 importlib.reload(blt.plot3d)
 importlib.reload(blt.colors)
-qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='magnitude')
-qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red')
-qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red', emission=np.random.random(5))
-qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=['r', 'b', 'green', 'y', 'black'])
-qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color=np.random.random(len(x)))
+
+x = np.linspace(-2, 2, 5)
+y = np.linspace(-2, 2, 5)
+z = np.linspace(-2, 2, 5)
+t = np.linspace(0, 100, 101)
+xx, yy, zz, tt = np.meshgrid(x, y, z, t, indexing='ij')
+uu = np.cos(xx) + np.sin(yy)
+vv = np.sin(yy) + np.cos(yy)
+ww = np.ones_like(xx) + 10*np.sin(tt/15)
+
+qu = blt.quiver(xx, yy, zz, uu, vv, ww, pivot='mid', color='red', time=t)
 '''
 
 def quiver(x, y, z, u, v, w, pivot='middle', length=1,
            radius_shaft=0.25, radius_tip=0.5, scale=1,
            color=(0, 1, 0, 1), emission=None, roughness=1,
-           vmin=None, vmax=None, color_map=None):
+           vmin=None, vmax=None, color_map=None, time=None):
     """
     Plot arrows for a given vector field.
 
@@ -215,16 +215,18 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
     quiver(x, y, z, u, v, w, pivot='middle', length=1,
            radius_shaft=0.25, radius_tip=0.5, scale=1,
            color=(0, 1, 0, 1), emission=None, roughness=1,
-           vmin=None, vmax=None, color_map=None):]
+           vmin=None, vmax=None, color_map=None, time=None):
 
     Keyword arguments:
     *x, y, z*:
-      x, y and z position of the data. These can be 1d arrays of the same length
-      or of shape [nx, ny, nz].
+      x, y and z position of the data.
+      These can be 1d arrays of the same length n or of shape (nx, ny, nz)
+      for time independent data
+      or of shape (n, nt) or (nx, ny, nz, nt) for time dependent data.
 
     *u, v, w*
-      x, y and z components of the vector field. Must be of the same shape as the
-      x, y and z arrays.
+      x, y and z components of the vector field.
+      Must be of the same shape as the x, y and z arrays.
 
     *pivot*:
       Part of the arrow around which it is rotated.
@@ -266,6 +268,10 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
       Color map for the values stored in the array 'c'.
       These are the same as in matplotlib.
 
+    *time*:
+      Float array with the time information of the data.
+      Has length nt.
+
     Examples:
       import numpy as np
       import blendaviz as blt
@@ -299,6 +305,8 @@ class Quiver3d(object):
         Fill members with default values.
         """
 
+        import bpy
+
         self.x = 0
         self.y = 0
         self.z = 0
@@ -310,6 +318,9 @@ class Quiver3d(object):
         self.radius_shaft = 0.25
         self.radius_tip = 0.5
         self.scale = 1
+        self.time = None
+        self.time_index = 0
+        self.input_shape = (1, 1)
         self.color = (0, 1, 0, 1)
         self.emission = None
         self.roughness = 1
@@ -318,6 +329,9 @@ class Quiver3d(object):
         self.color_map = None
         self.arrow_mesh = None
         self.mesh_material = None
+
+        # Set the handler function for frame changes (time).
+        bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
 
     def plot(self):
@@ -329,6 +343,20 @@ class Quiver3d(object):
         import numpy as np
         from mathutils import Vector
         from . import colors
+
+        # Check if there is any time array.
+        if not self.time is None:
+            if not isinstance(self.time, np.ndarray):
+                print("Error: time is not a valid array.")
+                return -1
+            elif self.time.ndim != 1:
+                print("Error: time array must be 1d.")
+                return -1
+            # Determine the time index.
+            self.time_index = np.argmin(abs(bpy.context.scene.frame_float - self.time))
+        else:
+            self.time = np.array([0])
+            self.time_index = 0
 
         # Check the validity of the input arrays.
         if not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray) \
@@ -364,13 +392,19 @@ class Quiver3d(object):
             else:
                 self.radius_tip = self.radius_tip.ravel()
 
+        # Determine the input array shape given by the number of data points and times.
+        if (self.x.ndim == 1) or (self.x.ndim == 3):
+            self.input_shape = (self.x.size + 1)
+        if (self.x.ndim == 2) or (self.x.ndim == 4):
+            self.input_shape = (self.x[..., 0].size, self.time.size)
+
         # Flatten the input array.
-        self.x = self.x.ravel()
-        self.y = self.y.ravel()
-        self.z = self.z.ravel()
-        self.u = self.u.ravel()
-        self.v = self.v.ravel()
-        self.w = self.w.ravel()
+        self.x = self.x.reshape(self.input_shape)
+        self.y = self.y.reshape(self.input_shape)
+        self.z = self.z.reshape(self.input_shape)
+        self.u = self.u.reshape(self.input_shape)
+        self.v = self.v.reshape(self.input_shape)
+        self.w = self.w.reshape(self.input_shape)
 
         # Delete existing meshes.
         if not self.arrow_mesh is None:
@@ -399,11 +433,16 @@ class Quiver3d(object):
         self.mesh_material = []
 
         # Plot the arrows.
-        for idx in range(len(self.x)):
+        for idx in range(self.x.shape[0]):
             # Determine the length of the arrow.
-            magnitude = np.sqrt(self.u[idx]**2 + self.v[idx]**2 + self.w[idx]**2)
-            normed = np.array([self.u[idx], self.v[idx], self.w[idx]])/magnitude
-            rotation = Vector((0, 0, 1)).rotation_difference([self.u[idx], self.v[idx], self.w[idx]]).to_euler()
+            magnitude = np.sqrt(self.u[idx, self.time_index]**2 +
+                                self.v[idx, self.time_index]**2 +
+                                self.w[idx, self.time_index]**2)
+            normed = np.array([self.u[idx, self.time_index],
+                               self.v[idx, self.time_index],
+                               self.w[idx, self.time_index]])/magnitude
+            rotation = Vector((0, 0, 1)).rotation_difference([self.u[idx, self.time_index],
+                              self.v[idx, self.time_index], self.w[idx, self.time_index]]).to_euler()
 
             # Define the arrow's length.
             if isinstance(self.length, np.ndarray):
@@ -414,7 +453,7 @@ class Quiver3d(object):
                 length = self.length
             length *= self.scale
 
-            # Define the arrow's radii.
+            # Define the arrows' radii.
             if isinstance(self.radius_shaft, np.ndarray):
                 radius_shaft = self.radius_shaft[idx]
             else:
@@ -427,20 +466,23 @@ class Quiver3d(object):
             radius_tip *= self.scale
 
             if self.pivot == 'tail':
-                location = [self.x[idx] + length*normed[0]/2,
-                            self.y[idx] + length*normed[1]/2,
-                            self.z[idx] + length*normed[2]/2]
+                location = [self.x[idx, self.time_index] + length*normed[0]/2,
+                            self.y[idx, self.time_index] + length*normed[1]/2,
+                            self.z[idx, self.time_index] + length*normed[2]/2]
             if self.pivot == 'tip':
-                location = [self.x[idx] - length*normed[0]/2,
-                            self.y[idx] - length*normed[1]/2,
-                            self.z[idx] - length*normed[2]/2]
+                location = [self.x[idx, self.time_index] - length*normed[0]/2,
+                            self.y[idx, self.time_index] - length*normed[1]/2,
+                            self.z[idx, self.time_index] - length*normed[2]/2]
             if self.pivot == 'mid' or self.pivot == 'middle':
-                location = [self.x[idx], self.y[idx], self.z[idx]]
+                location = [self.x[idx, self.time_index],
+                            self.y[idx, self.time_index],
+                            self.z[idx, self.time_index]]
             location = np.array(location)
 
             # Construct the arrow using a cylinder and cone.
             bpy.ops.mesh.primitive_cylinder_add(radius=radius_shaft, depth=length/2,
-                                                location=location-normed*length/4, rotation=rotation)
+                                                location=location-normed*length/4,
+                                                rotation=rotation)
             self.arrow_mesh.append(bpy.context.object)
             bpy.ops.mesh.primitive_cone_add(radius1=radius_tip, radius2=0, depth=length/2,
                                             location=location+normed*length/4, rotation=rotation)
@@ -561,6 +603,14 @@ class Quiver3d(object):
                 else:
                     node_emission.inputs['Strength'].default_value = self.emission
 
+
+    def time_handler(self, scene, depsgraph):
+        """
+        Function to be called whenever any Blender animation functions are used.
+        Updates the plot according to the function specified.
+        """
+
+        self.plot()
 
 
 '''
