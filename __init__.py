@@ -10,7 +10,7 @@ from .plot3d import *
 from .streamlines3d import *
 from .colors import *
 from .vectors import *
-from .seeds import *
+#from .seeds import *
 
 # Install missing python packages using:
 # python3.7m -m pip install [LIB_NAME]

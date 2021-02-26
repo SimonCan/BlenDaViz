@@ -96,9 +96,9 @@ class arrow(object):
         #deselect all objects
         bpy.ops.object.select_all(action='DESELECT')
 
-        if not isinstance(self.root_point, tuple) and not isinstance(self.root_point, np.ndarray):
-            print("Error: root_point not a tuple of numbers or ndarray.")
-            return -1
+#        if not isinstance(self.root_point, tuple) and not isinstance(self.root_point, np.ndarray):
+#            print("Error: root_point not a tuple of numbers or ndarray.")
+#            return -1
 
 
         if not self.mesh_object is None:
