@@ -41,14 +41,14 @@ def vol(phi, x, y, z, emission=None, color_map=None):
     Keyword arguments:
 
     *phi*:
-      Scalar field in 3d of shape [nx, ny, nz].
+      Scalar field in 3d of shape (nx, ny, nz).
 
     *x, y, z*:
       1d arrays for the coordinates.
 
     *emission*:
       1d or 2d array of floats containing the emission values for phi.
-      If specified as 2d array fo shape [2, n_emission] the emission[0, :] are the values
+      If specified as 2d array fo shape (2, n_emission) the emission[0, :] are the values
       phi which must be monotonously increasing and emission[1, ;] are their corresponding
       emission values.
 
@@ -626,14 +626,16 @@ x = np.linspace(-2, 2, 21)
 y = np.linspace(-2, 2, 21)
 z = np.linspace(-2, 2, 21)
 xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
+time = np.linspace(0, 100, 101)
 phi = np.sin(3*xx) + np.cos(2*yy) + np.sin(zz)
-iso = blt.contour(phi, xx, yy, zz, contours=[0.5], psi=zz)
-iso = blt.contour(phi, xx, yy, zz, contours=[0.3, 0.6], color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
+phi = phi[..., np.newaxis]*time
+iso = blt.contour(phi, x, y, z, contours=[0.5], time=time)
+#iso = blt.contour(phi, x, y, z, contours=[0.3, 0.6], color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
 '''
 
 def contour(phi, x, y, z, contours=1, psi=None,
             color=(0, 1, 0, 1), emission=None, roughness=1,
-            vmin=None, vmax=None, color_map=None):
+            vmin=None, vmax=None, color_map=None, time=None):
     """
     Plot contours to a given scalar field.
 
@@ -641,15 +643,15 @@ def contour(phi, x, y, z, contours=1, psi=None,
 
     contour(phi, x, y, z, contours=1, psi=None,
             color=(0, 1, 0, 1), emission=None, roughness=1,
-            vmin=None, vmax=None, color_map=None):
+            vmin=None, vmax=None, color_map=None, time=None):
 
     Keyword arguments:
     *phi*:
-      Scalar of shape [nx, ny, nz].
+      Scalar of shape (nx, ny, nz) or (nx, ny, nz, nt) for time dependent arrays..
 
     *x, y, z*:
-      x, y and z position of the data. These can be 1d arrays of the same length
-      or of shape [nx, ny, nz].
+      x, y and z position of the data. These can be 1d arrays
+      or 2d arrays of shape (nxyz, nt) for time dependent xyz.
 
     *contours*:
       Number of contours to be plotted, or array of contour levels.
@@ -711,6 +713,8 @@ class Contour3d(object):
         Fill members with default values.
         """
 
+        import bpy
+
         self.phi = 0
         self.x = 0
         self.y = 0
@@ -726,6 +730,12 @@ class Contour3d(object):
         self.mesh_data = None
         self.mesh_object = None
         self.mesh_material = None
+        self.time = None
+        self.time_index = 0
+        self.input_shape = (1, 1, 1)
+
+        # Set the handler function for frame changes (time).
+        bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
 
     def plot(self):
@@ -738,25 +748,66 @@ class Contour3d(object):
         from skimage import measure
         from . import colors
 
+        # Check if there is any time array.
+        if not self.time is None:
+            if not isinstance(self.time, np.ndarray):
+                print("Error: time is not a valid array.")
+                return -1
+            elif self.time.ndim != 1:
+                print("Error: time array must be 1d.")
+                return -1
+            # Determine the time index.
+            self.time_index = np.argmin(abs(bpy.context.scene.frame_float - self.time))
+        else:
+            self.time = np.array([0])
+            self.time_index = 0
+
         # Check the validity of the input arrays.
         if not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray) \
            or not isinstance(self.z, np.ndarray):
             print("Error: x OR y OR z array invalid.")
             return -1
-        if not (self.x.shape == self.y.shape == self.z.shape == self.phi.shape):
+        if not ((self.x.shape[0], self.y.shape[0], self.z.shape[0]) == self.phi.shape[:3]):
             print("Error: input array shapes invalid.")
             return -1
         if not self.psi is None:
             if not isinstance(self.psi, np.ndarray):
                 print("Error: psi is not a numpy array.")
                 return -1
-            if not self.psi.shape == self.phi.shape:
+            if not self.psi.shape[:3] == self.phi.shape[:3]:
                 print("Error: psi and phi must of of the same shape.")
 
+        # Bring all input arrays into the correct shape of (nx, ny, nz, nt) and (nxyz, nt).
+        if self.x.ndim == 1:
+            self.x = self.x[:, np.newaxis]
+        if self.y.ndim == 1:
+            self.y = self.y[:, np.newaxis]
+        if self.z.ndim == 1:
+            self.z = self.z[:, np.newaxis]
+        if self.phi.ndim == 3:
+            self.phi = self.phi[:, :, :, np.newaxis]
+        if not self.psi is None:
+            if self.psi.ndim == 3:
+                self.psi = self.psi[:, :, :, np.newaxis]
+        if not self.time is None:
+            self.x = self.x*np.ones((self.x.shape[0], self.time.shape[0]))
+            self.y = self.y*np.ones((self.y.shape[0], self.time.shape[0]))
+            self.z = self.z*np.ones((self.z.shape[0], self.time.shape[0]))
+            self.phi = self.phi*np.ones((self.phi.shape[0],
+                                         self.phi.shape[1],
+                                         self.phi.shape[2],
+                                         self.time.shape[0]))
+            if not self.psi is None:
+                self.psi = self.phi*np.ones((self.psi.shape[0],
+                                             self.psi.shape[1],
+                                             self.psi.shape[2],
+                                             self.time.shape[0]))
 
         # Prepare the isosurface levels.
         if isinstance(self.contours, int):
-            level_list = np.linspace(self.phi.min(), self.phi.max(), self.contours+2)[1:-1]
+            level_list = np.linspace(self.phi[..., self.time_index].min(),
+                                     self.phi[..., self.time_index].max(),
+                                     self.contours+2)[1:-1]
         elif isinstance(self.contours, list):
             level_list = np.array(self.contours)
         elif isinstance(self.contours, np.ndarray):
@@ -771,9 +822,12 @@ class Contour3d(object):
                                             self.color_map, self.vmin, self.vmax)
 
         # Determine the grid spacing.
-        dx = np.partition(np.array(list(set(list(self.x.ravel())))), 1)[1] - self.x.min()
-        dy = np.partition(np.array(list(set(list(self.y.ravel())))), 1)[1] - self.y.min()
-        dz = np.partition(np.array(list(set(list(self.z.ravel())))), 1)[1] - self.z.min()
+        dx = np.partition(np.array(list(set(list(self.x[:, self.time_index].ravel())))), 1)[1] - \
+             self.x[:, self.time_index].min()
+        dy = np.partition(np.array(list(set(list(self.y[:, self.time_index].ravel())))), 1)[1] - \
+             self.y[:, self.time_index].min()
+        dz = np.partition(np.array(list(set(list(self.z[:, self.time_index].ravel())))), 1)[1] - \
+             self.z[:, self.time_index].min()
 
         # Delete existing meshes.
         if not self.mesh_object is None:
@@ -788,13 +842,6 @@ class Contour3d(object):
             for mesh_material in self.mesh_material:
                 bpy.data.materials.remove(mesh_material)
 
-#        # Prepare the material colors.
-#        if isinstance(self.color, str):
-#            if self.color == 'magnitude':
-#                self.color = np.sqrt(self.phi[0]**2 + self.phi[1]**2 + self.phi[2]**2)
-#        color_rgba = colors.make_rgba_array(self.color, self.x.shape[0],
-#                                            self.color_map, self.vmin, self.vmax)
-
         # Prepare the lists of mashes and materials.
         self.mesh_data = []
         self.mesh_object = []
@@ -802,10 +849,11 @@ class Contour3d(object):
 
         for idx, level in enumerate(level_list):
             # Find the vertices and faces of the isosurfaces.
-            vertices, faces = measure.marching_cubes_classic(self.phi, level, spacing=(dx, dy, dz))
-            vertices[:, 0] += self.x.min()
-            vertices[:, 1] += self.y.min()
-            vertices[:, 2] += self.z.min()
+            vertices, faces = measure.marching_cubes_classic(self.phi[..., self.time_index],
+                                                             level, spacing=(dx, dy, dz))
+            vertices[:, 0] += self.x[:, self.time_index].min()
+            vertices[:, 1] += self.y[:, self.time_index].min()
+            vertices[:, 2] += self.z[:, self.time_index].min()
 
             # Create mesh and object.
             self.mesh_data.append(bpy.data.meshes.new("DataMesh"))
@@ -967,7 +1015,10 @@ class Contour3d(object):
             if iz2 >= self.phi.shape[2]:
                 iz2 = self.phi.shape[2]
             # Perform a trilinear interpolation.
-            psi_vertices[vertex_idx] = np.mean(self.psi[ix1:ix2+1, iy1:iy2+1, iz1:iz2+1])
+            psi_vertices[vertex_idx] = np.mean(self.psi[ix1:ix2+1,
+                                                        iy1:iy2+1,
+                                                        iz1:iz2+1,
+                                                        self.time_index])
 
         # Generate the colors for the vertices.
         color_rgba = colors.make_rgba_array(psi_vertices, vertices.shape[0],
@@ -993,3 +1044,12 @@ class Contour3d(object):
             for loop_index in poly.loop_indices:
                 loop_vert_index = self.mesh_object[idx].data.loops[loop_index].vertex_index
                 vcol_layer.data[loop_index].color = color_rgba[loop_vert_index]
+
+
+    def time_handler(self, scene, depsgraph):
+        """
+        Function to be called whenever any Blender animation functions are used.
+        Updates the plot according to the function specified.
+        """
+
+        self.plot()
