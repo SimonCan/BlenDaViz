@@ -20,7 +20,7 @@ n = 30
 nt = 100
 time = np.linspace(0, 100, nt)
 # z = np.linspace(0, 6*np.pi, n)
-z = np.linspace(0, 6*np.pi, n)[:, np.newaxis] + np.sin(time)/5
+z = np.linspace(0, 6*np.pi, n)[:, np.newaxis] + np.sin(time/5)/5
 x = 3*np.cos(z)
 y = 3*np.sin(z)
 r = np.linspace(0.1, 0.5, 30)
@@ -136,6 +136,7 @@ class PathLine(object):
 
         import bpy
 
+        # Define the members that can be seen by the user.
         self.x = 0
         self.y = 0
         self.z = 0
@@ -150,13 +151,21 @@ class PathLine(object):
         self.marker = None
         self.time = None
         self.time_index = 0
-        self.input_shape = (1, 1)
         self.bounding_box = None
         self.curve_data = None
         self.curve_object = None
         self.marker_mesh = None
         self.mesh_material = None
         self.poly_line = None
+
+        # Define the locally used time-independent data and parameters.
+        self._x = 0
+        self._y = 0
+        self._z = 0
+        self._radius = 0
+        self._rotation_x = 0
+        self._rotation_y = 0
+        self._rotation_z = 0
 
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
@@ -185,34 +194,17 @@ class PathLine(object):
             self.time = np.array([0])
             self.time_index = 0
 
-        # Determine the input array shape given by the number of data points and times.
-        self.input_shape = (self.x.shape[0], self.time.shape[0])
-
-        # Bring all input arrays into the correct shape of (n, nt).
-        if self.x.ndim == 1:
-            self.x = self.x[:, np.newaxis]
-            self.y = self.y[:, np.newaxis]
-            self.z = self.z[:, np.newaxis]
-        if isinstance(self.radius, np.ndarray):
-            if self.radius.ndim == 1:
-                self.radius = self.radius[:, np.newaxis]
-        if isinstance(self.rotation_x, np.ndarray):
-            if self.rotation_x.ndim == 1:
-                self.rotation_x = self.rotation_x[:, np.newaxis]
-        if isinstance(self.rotation_y, np.ndarray):
-            if self.rotation_y.ndim == 1:
-                self.rotation_y = self.rotation_y[:, np.newaxis]
-        if isinstance(self.rotation_z, np.ndarray):
-            if self.rotation_z.ndim == 1:
-                self.rotation_z = self.rotation_z[:, np.newaxis]
-        self.x = self.x*np.ones(self.input_shape)
-        self.y = self.y*np.ones(self.input_shape)
-        self.z = self.z*np.ones(self.input_shape)
-        self.radius = self.radius*np.ones(self.input_shape)
-        self.rotation_x = self.rotation_x*np.ones(self.input_shape)
-        self.rotation_y = self.rotation_y*np.ones(self.input_shape)
-        self.rotation_z = self.rotation_z*np.ones(self.input_shape)
-
+        # Point the local variables to the correct time index.
+        arrays_with_time_list = ['x', 'y', 'z', 'radius', 'rotation_x', 'rotation_y', 'rotation_z']
+        for array_with_time in arrays_with_time_list:
+            array_value = getattr(self, array_with_time)
+            if not isinstance(array_value, np.ndarray):
+                setattr(self, '_' + array_with_time, array_value*np.ones(self.x.shape[0]))
+            elif array_value.ndim == 1:
+                setattr(self, '_' + array_with_time, array_value)
+            else:
+                setattr(self, '_' + array_with_time, array_value[:, self.time_index])
+        
         # Delete existing curve.
         if not self.curve_data is None:
             bpy.data.curves.remove(self.curve_data)
@@ -249,21 +241,19 @@ class PathLine(object):
             self.curve_object = bpy.data.objects.new('ObjCurve', self.curve_data)
 
             # Set the origin to the last point.
-            self.curve_object.location = tuple((self.x[-1, self.time_index],
-                                                self.y[-1, self.time_index],
-                                                self.z[-1, self.time_index]))
+            self.curve_object.location = tuple((self._x[-1], self._y[-1], self._z[-1]))
 
             # Add the rest of the curve.
             self.poly_line = self.curve_data.splines.new('POLY')
-            self.poly_line.points.add(self.x.shape[0])
-            for param in range(self.x.shape[0]):
-                self.poly_line.points[param].co = (self.x[param, self.time_index] - self.x[-1, self.time_index],
-                                                   self.y[param, self.time_index] - self.y[-1, self.time_index],
-                                                   self.z[param, self.time_index] - self.z[-1, self.time_index],
+            self.poly_line.points.add(self._x.shape[0])
+            for param in range(self._x.shape[0]):
+                self.poly_line.points[param].co = (self._x[param] - self._x[-1],
+                                                   self._y[param] - self._y[-1],
+                                                   self._z[param] - self._z[-1],
                                                    0)
 
             # Add 3d structure.
-            self.curve_data.splines.data.bevel_depth = self.radius[0, self.time_index]
+            self.curve_data.splines.data.bevel_depth = self._radius[0]
             self.curve_data.splines.data.bevel_resolution = self.resolution
             self.curve_data.splines.data.fill_mode = 'FULL'
 
@@ -292,95 +282,80 @@ class PathLine(object):
             bpy.context.scene.collection.objects.link(self.curve_object)
 
         # Transform color string into rgb.
-        color_rgba = colors.make_rgba_array(self.color, self.x.shape[0])
+        color_rgba = colors.make_rgba_array(self.color, self._x.shape[0])
 
         # Plot the markers.
         if not self.marker is None:
             self.marker_mesh = []
         if self.marker == 'cone':
-            for idx in range(self.x.shape[0]):
-                bpy.ops.mesh.primitive_cone_add(location=(self.x[idx, self.time_index],
-                                                          self.y[idx, self.time_index],
-                                                          self.z[idx, self.time_index]),
-                                                radius1=self.radius[idx, self.time_index],
-                                                depth=2*self.radius[idx, self.time_index],
-                                                rotation=(self.rotation_x[idx, self.time_index],
-                                                          self.rotation_y[idx, self.time_index],
-                                                          self.rotation_z[idx, self.time_index]))
+            for idx in range(self._x.shape[0]):
+                bpy.ops.mesh.primitive_cone_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                radius1=self._radius[idx],
+                                                depth=2*self._radius[idx],
+                                                rotation=(self._rotation_x[idx],
+                                                          self._rotation_y[idx],
+                                                          self._rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'cube':
-            for idx in range(self.x.shape[0]):
-                bpy.ops.mesh.primitive_cube_add(location=(self.x[idx, self.time_index],
-                                                          self.y[idx, self.time_index],
-                                                          self.z[idx, self.time_index]),
-                                                size=self.radius[idx, self.time_index],
-                                                rotation=(self.rotation_x[idx, self.time_index],
-                                                          self.rotation_y[idx, self.time_index],
-                                                          self.rotation_z[idx, self.time_index]))
+            for idx in range(self._x.shape[0]):
+                bpy.ops.mesh.primitive_cube_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                size=self._radius[idx],
+                                                rotation=(self._rotation_x[idx],
+                                                          self._rotation_y[idx],
+                                                          self._rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'cylinder':
-            for idx in range(self.x.shape[0]):
-                bpy.ops.mesh.primitive_cylinder_add(location=(self.x[idx, self.time_index],
-                                                              self.y[idx, self.time_index],
-                                                              self.z[idx, self.time_index]),
-                                                    radius=self.radius[idx, self.time_index], depth=2*self.radius[idx, self.time_index],
-                                                    rotation=(self.rotation_x[idx, self.time_index],
-                                                              self.rotation_y[idx, self.time_index],
-                                                              self.rotation_z[idx, self.time_index]))
+            for idx in range(self._x.shape[0]):
+                bpy.ops.mesh.primitive_cylinder_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                    radius=self._radius[idx],
+                                                    depth=2*self._radius[idx],
+                                                    rotation=(self._rotation_x[idx],
+                                                              self._rotation_y[idx],
+                                                              self._rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'ico_sphere':
-            for idx in range(self.x.shape[0]):
-                bpy.ops.mesh.primitive_ico_sphere_add(location=(self.x[idx, self.time_index],
-                                                                self.y[idx, self.time_index],
-                                                                self.z[idx, self.time_index]),
-                                                      radius=self.radius[idx, self.time_index],
-                                                      rotation=(self.rotation_x[idx, self.time_index],
-                                                                self.rotation_y[idx, self.time_index],
-                                                                self.rotation_z[idx, self.time_index]))
+            for idx in range(self._x.shape[0]):
+                bpy.ops.mesh.primitive_ico_sphere_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                      radius=self._radius[idx],
+                                                      rotation=(self._rotation_x[idx],
+                                                                self._rotation_y[idx],
+                                                                self._rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'monkey':
-            for idx in range(self.x):
-                bpy.ops.mesh.primitive_monkey_add(location=(self.x[idx, self.time_index],
-                                                            self.y[idx, self.time_index],
-                                                            self.z[idx, self.time_index]),
-                                                  size=self.radius[idx, self.time_index],
-                                                  rotation=(self.rotation_x[idx, self.time_index],
-                                                            self.rotation_y[idx, self.time_index],
-                                                            self.rotation_z[idx, self.time_index]))
+            for idx in range(self._x):
+                bpy.ops.mesh.primitive_monkey_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                  size=self._radius[idx],
+                                                  rotation=(self._rotation_x[idx],
+                                                            self._rotation_y[idx],
+                                                            self._rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'torus':
-            for idx in range(self.x.shape[0]):
-                bpy.ops.mesh.primitive_torus_add(location=(self.x[idx, self.time_index],
-                                                           self.y[idx, self.time_index],
-                                                           self.z[idx, self.time_index]),
-                                                 major_radius=self.radius[idx, self.time_index],
-                                                 minor_radius=0.25*self.radius[idx, self.time_index],
-                                                 abso_major_rad=1.25*self.radius[idx, self.time_index],
-                                                 abso_minor_rad=0.75*self.radius[idx, self.time_index],
-                                                 rotation=(self.rotation_x[idx, self.time_index],
-                                                           self.rotation_y[idx, self.time_index],
-                                                           self.rotation_z[idx, self.time_index]))
+            for idx in range(self._x.shape[0]):
+                bpy.ops.mesh.primitive_torus_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                 major_radius=self._radius[idx],
+                                                 minor_radius=0.25*self._radius[idx],
+                                                 abso_major_rad=1.25*self._radius[idx],
+                                                 abso_minor_rad=0.75*self._radius[idx],
+                                                 rotation=(self._rotation_x[idx],
+                                                           self._rotation_y[idx],
+                                                           self._rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'uv_sphere':
-            for idx in range(self.x.shape[0]):
-                bpy.ops.mesh.primitive_uv_sphere_add(location=(self.x[idx, self.time_index],
-                                                               self.y[idx, self.time_index],
-                                                               self.z[idx, self.time_index]),
-                                                     radius=self.radius[idx, self.time_index],
-                                                     rotation=(self.rotation_x[idx, self.time_index],
-                                                               self.rotation_y[idx, self.time_index],
-                                                               self.rotation_z[idx, self.time_index]))
+            for idx in range(self._x.shape[0]):
+                bpy.ops.mesh.primitive_uv_sphere_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                     radius=self._radius[idx],
+                                                     rotation=(self._rotation_x[idx],
+                                                               self._rotation_y[idx],
+                                                               self._rotation_z[idx]))
                 self.marker_mesh.append(bpy.context.object)
         if isinstance(self.marker, bpy.types.Object):
             if self.marker.type == 'MESH':
                 bpy.context.object.select = False
                 self.marker.select = True
-                for idx in range(self.x.shape[0]):
+                for idx in range(self._x.shape[0]):
                     bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'})
-                    bpy.context.object.location = (self.x[idx, self.time_index],
-                                                   self.y[idx, self.time_index],
-                                                   self.z[idx, self.time_index])
-                    bpy.context.object.rotation_euler = (self.rotation_x[idx], self.rotation_y[idx], self.rotation_z[idx])
+                    bpy.context.object.location = (self._x[idx], self._y[idx], self._z[idx])
+                    bpy.context.object.rotation_euler = (self._rotation_x[idx], self._rotation_y[idx], self._rotation_z[idx])
                     self.marker.select = False
                     self.marker_mesh.append(bpy.context.object)
 
@@ -396,7 +371,7 @@ class PathLine(object):
                     isinstance(self.emission, np.ndarray)]):
                 self.mesh_material = []
 
-                for idx in range(self.x.shape[0]):
+                for idx in range(self._x.shape[0]):
                     self.mesh_material.append(bpy.data.materials.new('material'))
 
                     if color_is_array:
@@ -467,4 +442,7 @@ class PathLine(object):
         Updates the plot according to the function specified.
         """
 
-        self.plot()
+        if not self.time is None:
+            self.plot()
+        else:
+            pass
