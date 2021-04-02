@@ -56,7 +56,7 @@ def mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None,
 
     *alpha*:
       Alpha values defining the opacity.
-      Single float or 2d array of shape [nu, nv].
+      Single float or 2d array of shape (nu, nv).
 
     *vmin, vmax*
       Minimum and maximum values for the colormap.
@@ -110,6 +110,7 @@ class Surface(object):
 
         import bpy
 
+        # Define the members that can be seen by the user.
         self.x = 0
         self.y = 0
         self.z = None
@@ -119,11 +120,18 @@ class Surface(object):
         self.vmax = None
         self.time = None
         self.time_index = 0
-        self.input_shape = (1, 1, 1)
         self.color_map = None
         self.mesh_data = None
         self.mesh_object = None
         self.mesh_material = None
+
+        # Define the locally used time-independent data and parameters.
+        self._x = 0
+        self._y = 0
+        self._z = 0
+        self._c = 0
+        self._vmin = 0
+        self._vmax = 0
 
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
@@ -159,45 +167,63 @@ class Surface(object):
         if not isinstance(self.z, np.ndarray) and not isinstance(self.c, np.ndarray):
             print("Error: either z or c or both must be arrays.")
             return -1
-        if not isinstance(self.c, np.ndarray):
-            if self.c is None:
-                self.c = self.z
-        if not isinstance(self.z, np.ndarray):
-            self.z = np.zeros_like(self.x)
-        if not (self.x.shape == self.y.shape == self.z.shape):
-            print("Error: x, y, z array shapes invalid.")
-            return -1
+        if isinstance(self.z, np.ndarray):
+            if not self.z.shape[:2] == self.x.shape[:2]:
+                print("Error: z array shape invalid.")
+                return -1
         if isinstance(self.c, np.ndarray):
-            if not self.c.shape == self.x.shape:
+            if not self.c.shape[:2] == self.x.shape[:2]:
                 print("Error: c array shape invalid.")
                 return -1
         if not self.alpha:
             self.alpha = 1
         if isinstance(self.alpha, np.ndarray):
             if self.alpha.shape != (1, ):
-                if not self.alpha.shape == self.x.shape:
+                if not self.alpha.shape[:2] == self.x.shape[:2]:
                     print("Error: alpha array shape invalid.")
                     return -1
         else:
             self.alpha = np.array([self.alpha])
 
-        # Determine the input array shape given by the number of data points and times.
-        self.input_shape = (self.x.shape[0], self.x.shape[1], self.time.shape[0])
-
-        # Bring all input arrays into the correct shape of (n, nt).
-        if self.x.ndim == 2:
-            self.x = self.x[:, :, np.newaxis]
-            self.y = self.y[:, :, np.newaxis]
-            self.z = self.z[:, :, np.newaxis]
-        if isinstance(self.c, np.ndarray):
-            if self.c.ndim == 2:
-                self.c = self.c[:, :, np.newaxis]
-        self.x = self.x*np.ones(self.input_shape)
-        self.y = self.y*np.ones(self.input_shape)
-        self.z = self.z*np.ones(self.input_shape)
-        if isinstance(self.c, np.ndarray):
-            self.c = self.c**np.ones(self.input_shape)
-
+        # Point the local variables to the correct arrays.
+        if self.x.ndim == 3:
+            self._x = self.x[:, :, self.time_index]
+        else:
+            self._x = self.x
+        if self.y.ndim == 3:
+            self._y = self.y[:, :, self.time_index]
+        else:
+            self._y = self.y
+        if not isinstance(self.z, np.ndarray):
+            self._z = np.zeros_like(self._x)
+        else:
+            if self.z.ndim == 3:
+                self._z = self.z[:, :, self.time_index]
+            else:
+                self._z = self.z
+        if not (self.x.shape == self.y.shape == self.z.shape):
+            print("Error: x, y, z array shapes invalid.")
+            return -1
+        if isinstance(self.vmin, np.ndarray):
+            self._vmin = self.vmin[self.time_index]
+        else:
+            self._vmin = self.vmin
+        if isinstance(self.vmax, np.ndarray):
+            self._vmax = self.vmax[self.time_index]
+        else:
+            self._vmax = self.vmax
+        # Set the array to be used for the color map.
+        if not isinstance(self.c, np.ndarray):
+            if self.c is None:
+                self._c = self._z
+            else:
+                self._c = self.c
+        else:
+            if self.c.ndim == 3:
+                self._c = self.c[:, :, self.time_index]
+            else:
+                self._c = self.c
+        
         # Delete existing meshes.
         if not self.mesh_object is None:
             bpy.ops.object.select_all(action='DESELECT')
@@ -211,17 +237,17 @@ class Surface(object):
 
         # Create the vertices from the data.
         vertices = []
-        for idx in range(self.x.shape[0]*self.x.shape[1]):
-            vertices.append((self.x[:, :, self.time_index].flatten()[idx],
-                             self.y[:, :, self.time_index].flatten()[idx],
-                             self.z[:, :, self.time_index].flatten()[idx]))
+        for idx in range(self._x.shape[0]*self._x.shape[1]):
+            vertices.append((self._x[:, :].flatten()[idx],
+                             self._y[:, :].flatten()[idx],
+                             self._z[:, :].flatten()[idx]))
 
         # Create the faces from the data.
         faces = []
         count = 0
-        for idx in range((self.x.shape[0]-1)*(self.x.shape[1])):
-            if count < self.x.shape[1]-1:
-                faces.append((idx, idx+1, (idx+self.x.shape[1])+1, (idx+self.x.shape[1])))
+        for idx in range((self._x.shape[0]-1)*(self._x.shape[1])):
+            if count < self._x.shape[1]-1:
+                faces.append((idx, idx+1, (idx+self._x.shape[1])+1, (idx+self._x.shape[1])))
                 count += 1
             else:
                 count = 0
@@ -239,32 +265,27 @@ class Surface(object):
         self.mesh_data.materials.append(self.mesh_material)
 
         # Create the texture.
-        if isinstance(self.c, np.ndarray):
-            mesh_image = bpy.data.images.new('ImageMesh', self.c.shape[0], self.c.shape[1])
+        if isinstance(self._c, np.ndarray):
+            mesh_image = bpy.data.images.new('ImageMesh', self._c.shape[0], self._c.shape[1])
             pixels = np.array(mesh_image.pixels)
             
             # Determine the minimum and maximum value for the color map.
-            vmin = self.vmin
-            vmax = self.vmax
-            if isinstance(self.vmin, np.ndarray):
-                vmin = self.vmin[self.time_index]
-            if isinstance(self.vmax, np.ndarray):
-                vmin = self.vmax[self.time_index]
-            if self.vmin is None:
-                vmin = np.min(self.c[:, :, self.time_index])
-            if self.vmax is None:
-                vmax = np.max(self.c[:, :, self.time_index])
-            print(vmin, vmax)
+            vmin = self._vmin
+            vmax = self._vmax
+            if self._vmin is None:
+                vmin = np.min(self._c)
+            if self._vmax is None:
+                vmax = np.max(self._c)
 
             # Assign the RGBa values to the pixels.
             if self.color_map is None:
                 self.color_map = cm.viridis
-            pixels[0::4] = self.color_map((self.c[:, :, self.time_index].flatten() - vmin)/(vmax - vmin))[:, 0]
-            pixels[1::4] = self.color_map((self.c[:, :, self.time_index].flatten() - vmin)/(vmax - vmin))[:, 1]
-            pixels[2::4] = self.color_map((self.c[:, :, self.time_index].flatten() - vmin)/(vmax - vmin))[:, 2]
+            pixels[0::4] = self.color_map((self._c.flatten() - vmin)/(vmax - vmin))[:, 0]
+            pixels[1::4] = self.color_map((self._c.flatten() - vmin)/(vmax - vmin))[:, 1]
+            pixels[2::4] = self.color_map((self._c.flatten() - vmin)/(vmax - vmin))[:, 2]
             pixels[3::4] = self.alpha.flatten()
-            mesh_image.pixels[:] = np.swapaxes(pixels.reshape([self.x.shape[0],
-                                                               self.x.shape[1], 4]), 0, 1).flatten()[:]
+            mesh_image.pixels[:] = np.swapaxes(pixels.reshape([self._x.shape[0],
+                                                               self._x.shape[1], 4]), 0, 1).flatten()[:]
 
             # Assign the texture to the material.
             self.mesh_material.use_nodes = True
@@ -287,14 +308,14 @@ class Surface(object):
             polygon_idx = 0
             for polygon in self.mesh_object.data.polygons:
                 for idx in polygon.loop_indices:
-                    x_idx = polygon_idx // (self.x.shape[1] - 1)
-                    y_idx = polygon_idx % (self.x.shape[1] - 1)
+                    x_idx = polygon_idx // (self._x.shape[1] - 1)
+                    y_idx = polygon_idx % (self._x.shape[1] - 1)
                     if (idx-4*polygon_idx) == 1 or (idx-4*polygon_idx) == 2:
                         y_idx += 1
                     if (idx-4*polygon_idx) == 2 or (idx-4*polygon_idx) == 3:
                         x_idx += 1
-                    uv_new = np.array([(float(x_idx)+0.5)/self.x.shape[0],
-                                       (float(y_idx)+0.5)/self.x.shape[1]])
+                    uv_new = np.array([(float(x_idx)+0.5)/self._x.shape[0],
+                                       (float(y_idx)+0.5)/self._x.shape[1]])
                     self.mesh_object.data.uv_layers[0].data[idx].uv[0] = uv_new[0]
                     self.mesh_object.data.uv_layers[0].data[idx].uv[1] = uv_new[1]
                 polygon_idx += 1
@@ -302,7 +323,7 @@ class Surface(object):
             # Transform color string into rgba.
             from . import colors
 
-            self.mesh_material.diffuse_color = colors.string_to_rgba(self.c)
+            self.mesh_material.diffuse_color = colors.string_to_rgba(self._c)
 
             # Link the mesh object with the scene.
             bpy.context.scene.collection.objects.link(self.mesh_object)
@@ -316,4 +337,7 @@ class Surface(object):
         Updates the plot according to the function specified.
         """
 
-        self.plot()
+        if not self.time is None:
+            self.plot()
+        else:
+            pass
