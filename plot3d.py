@@ -234,12 +234,10 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
 
     *length*:
       Length of the arrows.
-      Can be a constant or an array of the same shape as x, y and z.
       If specified as the string 'magnitude' use the vector's magnitude.
 
     *radius_shaft, radius_tip*:
       Radii of the shaft and tip of the arrows.
-      Can be a constant, an array of the same shape as x, y and z.
       If specified as string 'magnitude' use the vector's magnitude
       and multiply by 0.25 for radius_shaft and 0.5 for radius_tip.
 
@@ -307,6 +305,7 @@ class Quiver3d(object):
 
         import bpy
 
+        # Define the members that can be seen by the user.
         self.x = 0
         self.y = 0
         self.z = 0
@@ -320,7 +319,6 @@ class Quiver3d(object):
         self.scale = 1
         self.time = None
         self.time_index = 0
-        self.input_shape = (1, 1)
         self.color = (0, 1, 0, 1)
         self.emission = None
         self.roughness = 1
@@ -329,6 +327,14 @@ class Quiver3d(object):
         self.color_map = None
         self.arrow_mesh = None
         self.mesh_material = None
+
+        # Define the locally used time-independent data and parameters.
+        self._x = 0
+        self._y = 0
+        self._z = 0
+        self._u = 0
+        self._v = 0
+        self._w = 0
 
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
@@ -372,39 +378,35 @@ class Quiver3d(object):
             print("Error: input array shapes invalid.")
             return -1
 
-        # Check the shape of the optional arrays.
-        if isinstance(self.length, np.ndarray):
-            if not (self.x.shape == self.length.shape):
-                print("Error: length array invalid.")
-                return -1
-            else:
-                self.length = self.length.ravel()
-        if isinstance(self.radius_shaft, np.ndarray):
-            if not (self.x.shape == self.radius_shaft.shape):
-                print("Error: radius_shaft array invalid.")
-                return -1
-            else:
-                self.radius_shaft = self.radius_shaft.ravel()
-        if isinstance(self.radius_tip, np.ndarray):
-            if not (self.x.shape == self.radius_tip.shape):
-                print("Error: radius_tip array invalid.")
-                return -1
-            else:
-                self.radius_tip = self.radius_tip.ravel()
+# Perhaps it is better not to have these as arrays.
+#        # Check the shape of the optional arrays.
+#        if isinstance(self.length, np.ndarray):
+#            if not (self.x.shape == self.length.shape):
+#                print("Error: length array invalid.")
+#                return -1
+#            else:
+#                self.length = self.length.ravel()
+#        if isinstance(self.radius_shaft, np.ndarray):
+#            if not (self.x.shape == self.radius_shaft.shape):
+#                print("Error: radius_shaft array invalid.")
+#                return -1
+#            else:
+#                self.radius_shaft = self.radius_shaft.ravel()
+#        if isinstance(self.radius_tip, np.ndarray):
+#            if not (self.x.shape == self.radius_tip.shape):
+#                print("Error: radius_tip array invalid.")
+#                return -1
+#            else:
+#                self.radius_tip = self.radius_tip.ravel()
 
-        # Determine the input array shape given by the number of data points and times.
-        if (self.x.ndim == 1) or (self.x.ndim == 3):
-            self.input_shape = (self.x.size + 1)
-        if (self.x.ndim == 2) or (self.x.ndim == 4):
-            self.input_shape = (self.x[..., 0].size, self.time.size)
-
-        # Flatten the input array.
-        self.x = self.x.reshape(self.input_shape)
-        self.y = self.y.reshape(self.input_shape)
-        self.z = self.z.reshape(self.input_shape)
-        self.u = self.u.reshape(self.input_shape)
-        self.v = self.v.reshape(self.input_shape)
-        self.w = self.w.reshape(self.input_shape)
+        # Point the local variables to the correct arrays.
+        arrays_with_time_list = ['x', 'y', 'z', 'u', 'v', 'w']
+        for array_with_time in arrays_with_time_list:
+            array_value = getattr(self, array_with_time)
+            if array_value.ndim == 3:
+                setattr(self, '_' + array_with_time, array_value.ravel())
+            else:
+                setattr(self, '_' + array_with_time, array_value[..., self.time_index].ravel())
 
         # Delete existing meshes.
         if not self.arrow_mesh is None:
@@ -425,58 +427,46 @@ class Quiver3d(object):
         # Prepare the material colors.
         if isinstance(self.color, str):
             if self.color == 'magnitude':
-                self.color = np.sqrt(self.u**2 + self.v**2 + self.w**2)
-        color_rgba = colors.make_rgba_array(self.color, self.x.shape[0],
+                self.color = np.sqrt(self._u**2 + self._v**2 + self._w**2)
+        color_rgba = colors.make_rgba_array(self.color, self._x.shape[0],
                                             self.color_map, self.vmin, self.vmax)
 
         # Prepare the materials list.
         self.mesh_material = []
 
         # Plot the arrows.
-        for idx in range(self.x.shape[0]):
+        for idx in range(self._x.shape[0]):
             # Determine the length of the arrow.
-            magnitude = np.sqrt(self.u[idx, self.time_index]**2 +
-                                self.v[idx, self.time_index]**2 +
-                                self.w[idx, self.time_index]**2)
-            normed = np.array([self.u[idx, self.time_index],
-                               self.v[idx, self.time_index],
-                               self.w[idx, self.time_index]])/magnitude
-            rotation = Vector((0, 0, 1)).rotation_difference([self.u[idx, self.time_index],
-                              self.v[idx, self.time_index], self.w[idx, self.time_index]]).to_euler()
+            magnitude = np.sqrt(self._u[idx]**2 + self._v[idx]**2 + self._w[idx]**2)
+            normed = np.array([self._u[idx], self._v[idx], self._w[idx]])/magnitude
+            rotation = Vector((0, 0, 1)).rotation_difference([self._u[idx],
+                              self._v[idx], self._w[idx]]).to_euler()
 
             # Define the arrow's length.
-            if isinstance(self.length, np.ndarray):
-                length = self.length[idx]
-            elif self.length == 'magnitude':
+            if self.length == 'magnitude':
                 length = magnitude
             else:
                 length = self.length
             length *= self.scale
 
             # Define the arrows' radii.
-            if isinstance(self.radius_shaft, np.ndarray):
-                radius_shaft = self.radius_shaft[idx]
-            else:
-                radius_shaft = self.radius_shaft
+            radius_shaft = self.radius_shaft
             radius_shaft *= self.scale
-            if isinstance(self.radius_tip, np.ndarray):
-                radius_tip = self.radius_tip[idx]
-            else:
-                radius_tip = self.radius_tip
+            
+            # Define the arrows' scale.
+            radius_tip = self.radius_tip
             radius_tip *= self.scale
 
             if self.pivot == 'tail':
-                location = [self.x[idx, self.time_index] + length*normed[0]/2,
-                            self.y[idx, self.time_index] + length*normed[1]/2,
-                            self.z[idx, self.time_index] + length*normed[2]/2]
+                location = [self._x[idx] + length*normed[0]/2,
+                            self._y[idx] + length*normed[1]/2,
+                            self._z[idx] + length*normed[2]/2]
             if self.pivot == 'tip':
-                location = [self.x[idx, self.time_index] - length*normed[0]/2,
-                            self.y[idx, self.time_index] - length*normed[1]/2,
-                            self.z[idx, self.time_index] - length*normed[2]/2]
+                location = [self._x[idx] - length*normed[0]/2,
+                            self._y[idx] - length*normed[1]/2,
+                            self._z[idx] - length*normed[2]/2]
             if self.pivot == 'mid' or self.pivot == 'middle':
-                location = [self.x[idx, self.time_index],
-                            self.y[idx, self.time_index],
-                            self.z[idx, self.time_index]]
+                location = [self._x[idx], self._y[idx], self._z[idx]]
             location = np.array(location)
 
             # Construct the arrow using a cylinder and cone.
@@ -533,13 +523,13 @@ class Quiver3d(object):
 
         # Transform single values to arrays.
         if list_material:
-            if color_rgba.shape[0] != self.x.shape[0]:
-                color_rgba = np.repeat(color_rgba, self.x.shape[0], axis=0)
+            if color_rgba.shape[0] != self._x.shape[0]:
+                color_rgba = np.repeat(color_rgba, self._x.shape[0], axis=0)
             if not isinstance(self.roughness, np.ndarray):
-                self.roughness = np.ones(self.x.shape[0])*self.roughness
+                self.roughness = np.ones(self._x.shape[0])*self.roughness
             if not self.emission is None:
                 if not isinstance(self.emission, np.ndarray):
-                    self.emission = np.ones(self.x.emission[0])*self.emission
+                    self.emission = np.ones(self.emission[0])*self.emission
 
         # Set the material.
         if list_material:
@@ -610,7 +600,10 @@ class Quiver3d(object):
         Updates the plot according to the function specified.
         """
 
-        self.plot()
+        if not self.time is None:
+            self.plot()
+        else:
+            pass
 
 
 '''
@@ -622,6 +615,7 @@ sys.path.append('~/codes/blendaviz')
 import blendaviz as blt
 importlib.reload(blt)
 importlib.reload(blt.plot3d)
+
 x = np.linspace(-2, 2, 21)
 y = np.linspace(-2, 2, 21)
 z = np.linspace(-2, 2, 21)
@@ -681,6 +675,10 @@ def contour(phi, x, y, z, contours=1, psi=None,
       Color map for the values stored in the array 'c'.
       These are the same as in matplotlib.
 
+    *time*:
+      Float array with the time information of the data.
+      Has length nt.
+
     Examples:
       import numpy as np
       import blendaviz as blt
@@ -715,6 +713,7 @@ class Contour3d(object):
 
         import bpy
 
+        # Define the members that can be seen by the user.
         self.phi = 0
         self.x = 0
         self.y = 0
@@ -732,7 +731,13 @@ class Contour3d(object):
         self.mesh_material = None
         self.time = None
         self.time_index = 0
-        self.input_shape = (1, 1, 1)
+
+        # Define the locally used time-independent data and parameters.
+        self._phi = 0
+        self._x = 0
+        self._y = 0
+        self._z = 0
+        self._psi = None
 
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
@@ -777,36 +782,35 @@ class Contour3d(object):
             if not self.psi.shape[:3] == self.phi.shape[:3]:
                 print("Error: psi and phi must of of the same shape.")
 
-        # Bring all input arrays into the correct shape of (nx, ny, nz, nt) and (nxyz, nt).
-        if self.x.ndim == 1:
-            self.x = self.x[:, np.newaxis]
-        if self.y.ndim == 1:
-            self.y = self.y[:, np.newaxis]
-        if self.z.ndim == 1:
-            self.z = self.z[:, np.newaxis]
-        if self.phi.ndim == 3:
-            self.phi = self.phi[:, :, :, np.newaxis]
+        # Point the local variables to the correct arrays.
+        if self.x.ndim == 2:
+            self._x = self.x[:, self.time_index]
+        else:
+            self._x = self.x
+        if self.y.ndim == 2:
+            self._y = self.y[:, self.time_index]
+        else:
+            self._y = self.y
+        if self.z.ndim == 2:
+            self._z = self.z[:, self.time_index]
+        else:
+            self._z = self.z
+        if self.phi.ndim == 4:
+            self._phi = self.phi[:, :, :, self.time_index]
+        else:
+            self._phi = self.phi
         if not self.psi is None:
-            if self.psi.ndim == 3:
-                self.psi = self.psi[:, :, :, np.newaxis]
-        if not self.time is None:
-            self.x = self.x*np.ones((self.x.shape[0], self.time.shape[0]))
-            self.y = self.y*np.ones((self.y.shape[0], self.time.shape[0]))
-            self.z = self.z*np.ones((self.z.shape[0], self.time.shape[0]))
-            self.phi = self.phi*np.ones((self.phi.shape[0],
-                                         self.phi.shape[1],
-                                         self.phi.shape[2],
-                                         self.time.shape[0]))
-            if not self.psi is None:
-                self.psi = self.phi*np.ones((self.psi.shape[0],
-                                             self.psi.shape[1],
-                                             self.psi.shape[2],
-                                             self.time.shape[0]))
+            if self.psi.ndim == 4:
+                self._psi = self.psi[:, :, :, self.time_index]
+            else:
+                self._psi = self.psi
+        else:
+            self._psi = None
 
         # Prepare the isosurface levels.
         if isinstance(self.contours, int):
-            level_list = np.linspace(self.phi[..., self.time_index].min(),
-                                     self.phi[..., self.time_index].max(),
+            level_list = np.linspace(self._phi.min(),
+                                     self._phi.max(),
                                      self.contours+2)[1:-1]
         elif isinstance(self.contours, list):
             level_list = np.array(self.contours)
@@ -822,12 +826,12 @@ class Contour3d(object):
                                             self.color_map, self.vmin, self.vmax)
 
         # Determine the grid spacing.
-        dx = np.partition(np.array(list(set(list(self.x[:, self.time_index].ravel())))), 1)[1] - \
-             self.x[:, self.time_index].min()
-        dy = np.partition(np.array(list(set(list(self.y[:, self.time_index].ravel())))), 1)[1] - \
-             self.y[:, self.time_index].min()
-        dz = np.partition(np.array(list(set(list(self.z[:, self.time_index].ravel())))), 1)[1] - \
-             self.z[:, self.time_index].min()
+        dx = np.partition(np.array(list(set(list(self._x.ravel())))), 1)[1] - \
+             self._x.min()
+        dy = np.partition(np.array(list(set(list(self._y.ravel())))), 1)[1] - \
+             self._y.min()
+        dz = np.partition(np.array(list(set(list(self._z.ravel())))), 1)[1] - \
+             self._z.min()
 
         # Delete existing meshes.
         if not self.mesh_object is None:
@@ -849,11 +853,11 @@ class Contour3d(object):
 
         for idx, level in enumerate(level_list):
             # Find the vertices and faces of the isosurfaces.
-            vertices, faces = measure.marching_cubes_classic(self.phi[..., self.time_index],
+            vertices, faces = measure.marching_cubes_classic(self._phi,
                                                              level, spacing=(dx, dy, dz))
-            vertices[:, 0] += self.x[:, self.time_index].min()
-            vertices[:, 1] += self.y[:, self.time_index].min()
-            vertices[:, 2] += self.z[:, self.time_index].min()
+            vertices[:, 0] += self._x.min()
+            vertices[:, 1] += self._y.min()
+            vertices[:, 2] += self._z.min()
 
             # Create mesh and object.
             self.mesh_data.append(bpy.data.meshes.new("DataMesh"))
@@ -864,7 +868,7 @@ class Contour3d(object):
             self.mesh_data[-1].update(calc_edges=True)
 
             # Set the material/color.
-            if self.psi is None:
+            if self._psi is None:
                 self.__set_material(idx, color_rgba, len(level_list))
             else:
                 self.__color_vertices(idx, vertices)
@@ -1002,23 +1006,22 @@ class Contour3d(object):
         for vertex_idx in range(vertices.shape[0]):
             vertex = vertices[vertex_idx]
             # Find the xyz indices for the interpolation.
-            ix1 = sum(self.x[:, 0, 0] <= vertex[0]) - 1
-            iy1 = sum(self.y[0, :, 0] <= vertex[1]) - 1
-            iz1 = sum(self.z[0, 0, :] <= vertex[2]) - 1
+            ix1 = sum(self._x[:, 0, 0] <= vertex[0]) - 1
+            iy1 = sum(self._y[0, :, 0] <= vertex[1]) - 1
+            iz1 = sum(self._z[0, 0, :] <= vertex[2]) - 1
             ix2 = ix1 + 1
             iy2 = iy1 + 1
             iz2 = iz1 + 1
-            if ix2 >= self.phi.shape[0]:
-                ix2 = self.phi.shape[0]
-            if iy2 >= self.phi.shape[1]:
-                iy2 = self.phi.shape[1]
-            if iz2 >= self.phi.shape[2]:
-                iz2 = self.phi.shape[2]
+            if ix2 >= self._phi.shape[0]:
+                ix2 = self._phi.shape[0]
+            if iy2 >= self._phi.shape[1]:
+                iy2 = self._phi.shape[1]
+            if iz2 >= self._phi.shape[2]:
+                iz2 = self._phi.shape[2]
             # Perform a trilinear interpolation.
-            psi_vertices[vertex_idx] = np.mean(self.psi[ix1:ix2+1,
-                                                        iy1:iy2+1,
-                                                        iz1:iz2+1,
-                                                        self.time_index])
+            psi_vertices[vertex_idx] = np.mean(self._psi[ix1:ix2+1,
+                                                         iy1:iy2+1,
+                                                         iz1:iz2+1])
 
         # Generate the colors for the vertices.
         color_rgba = colors.make_rgba_array(psi_vertices, vertices.shape[0],
@@ -1052,4 +1055,7 @@ class Contour3d(object):
         Updates the plot according to the function specified.
         """
 
-        self.plot()
+        if not self.time is None:
+            self.plot()
+        else:
+            pass
