@@ -128,10 +128,10 @@ class Surface(object):
         # Define the locally used time-independent data and parameters.
         self._x = 0
         self._y = 0
-        self._z = 0
-        self._c = 0
-        self._vmin = 0
-        self._vmax = 0
+        self._z = None
+        self._c = None
+        self._vmin = None
+        self._vmax = None
 
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
