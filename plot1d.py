@@ -162,7 +162,7 @@ class PathLine(object):
         self._x = 0
         self._y = 0
         self._z = 0
-        self._radius = 0
+        self._radius = 0.1
         self._rotation_x = 0
         self._rotation_y = 0
         self._rotation_z = 0
