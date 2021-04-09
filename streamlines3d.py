@@ -24,6 +24,10 @@ xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
 u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
 w = np.ones_like(u)*0.1
+time = np.linspace(0, 100, 101)
+u = u[..., np.newaxis] * np.sin(time)
+v = v[..., np.newaxis] + np.zeros_like(time)
+w = w[..., np.newaxis] + np.zeros_like(time)
 color = np.random.random([20, 4])
 color[:, 3] = 1
 stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=20, color=color, integration_time=20, integration_steps=100, seed_radius=3)
@@ -66,9 +70,10 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
     streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=None,
                          seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
                          metric=None, integration_time=1, integration_steps=10,
-                         integration_direction='both',
-                         color=(0, 1, 0, 1), color_scalar=None, emission=None, roughness=1,
-                         radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None)
+                         integration_direction='both', color=(0, 1, 0, 1),
+                         color_scalar=None, emission=None, roughness=1,
+                         radius=0.1, resolution=8, vmin=None, vmax=None,
+                         color_map=None, n_proc=1)
 
     Keyword arguments:
 
@@ -89,7 +94,7 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
       of radius seed_radius centered at seed_center.
 
     *seeds*
-      Seeds for the streamline tracing of shape [n_seeds, 3].
+      Seeds for the streamline tracing of shape (n_seeds, 3).
       Overrides n_seeds.
 
     *seed_radius*:
@@ -179,13 +184,15 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
     return streamlines_return
 
 
+
 def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=None,
                       seed_radius=1, periodic=None,
                       interpolation='tricubic', method='DOP853', atol=1e-8, rtol=1e-8,
                       metric=None, integration_time=1, integration_steps=10,
                       integration_direction='both',
                       color=(0, 1, 0, 1), color_scalar=None, emission=None, roughness=1,
-                      radius=0.1, resolution=8, vmin=0, vmax=1, color_map=None, n_proc=1):
+                      radius=0.1, resolution=8, vmin=0, vmax=1, color_map=None,
+                      n_proc=1, time=None):
     """
     Plot streamlines of a given vector field.
 
@@ -197,7 +204,8 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
                       metric=None, integration_time=1, integration_steps=10,
                       integration_direction='both',
                       color=(0, 1, 0, 1), color_scalar=None, emission=None, roughness=1,
-                      radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None)
+                      radius=0.1, resolution=8, vmin=0, vmax=1, color_map=None,
+                      n_proc=1, time=None)
 
     Keyword arguments:
 
@@ -289,6 +297,10 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
     *n_proc*:
       Number of processors to run the streamline integration on, default 1.
 
+    *time*:
+      Float array with the time information of the data.
+      Has length nt.
+
     Examples:
       import numpy as np
       import blendaviz as blt
@@ -316,6 +328,7 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
     return streamlines_return
 
 
+
 class Streamline3d(object):
     """
     Streamline class containing geometry, parameters and plotting function.
@@ -325,6 +338,8 @@ class Streamline3d(object):
         """
         Fill members with default values.
         """
+
+        import bpy
 
         self.field_function = lambda t, xx: [0., 0., 1.]
         self.n_seeds = 100
@@ -356,6 +371,12 @@ class Streamline3d(object):
         self.tracers = []
         self.n_proc = 1
 
+        # Define the locally used time-independent data and parameters.
+        self._field_function = lambda t, xx: [0., 0., 1.]
+
+        # Set the handler function for frame changes (time).
+        bpy.app.handlers.frame_change_pre.append(self.time_handler)
+
 
     def plot(self):
         """
@@ -366,7 +387,7 @@ class Streamline3d(object):
         from . import colors
 
         # Delete existing curves.
-        bpy.ops.object.select_all(action='DESELECT') # deselect any already selected objects
+        bpy.ops.object.select_all(action='DESELECT')
         if self.mesh is not None:
             bpy.ops.object.select_all(action='DESELECT')
             self.mesh.select_set(True)
@@ -390,12 +411,12 @@ class Streamline3d(object):
                                                 self.color_map, self.vmin, self.vmax)
 
         self.prepare_field_function()
-        # empty the tracers before calculating new
+
+        # Empty the tracers before calculating new.
         self.tracers = []
 
         if self.n_proc == 1:
             # Compute the traces serially
-            print('single processor')
             for tracer_idx in range(self.n_seeds):
                 self.tracers.append(self.__tracer(xx=self.seeds[tracer_idx]))
         else:
@@ -474,26 +495,33 @@ class Streamline3d(object):
 
         return 0
 
+
     def prepare_field_function(self):
         """
         Prepare the function to be called by the streamline tracing routine.
         """
+
         import inspect
+        import bpy
         import numpy as np
+
         numargs = len(inspect.signature(self.field_function).parameters)
-        # test if the function takes only one argument
+
+        # Test if the function takes only one argument.
         if numargs == 1:
-            # replace with function with proper call signature
-            print('adding time dependence to the function')
+            # Replace with function with proper call signature.
             position_function = self.field_function
-            self.field_function = lambda t, xx: position_function(xx)
-        elif numargs > 2:
-            print("Error: function call signature takes too many arguments")
+            self._field_function = lambda t, xx: position_function(xx)
+        elif numargs > 3:
+            print("Error: function call signature takes too many arguments.")
             raise TypeError
-        # evaluate the function:
-        testvalue = self.field_function(np.pi, np.random.random(3))
+        else:
+            self._field_function = lambda t, xx: self.field_function(bpy.context.scene.frame_float, xx)
+
+        # Evaluate the function.
+        testvalue = self._field_function(np.pi, np.random.random(3))
         if (not isinstance(testvalue, np.ndarray)) or (testvalue.size != 3):
-            print("Error: function return incorrect")
+            print("Error: function return incorrect.")
             raise TypeError
         return 0
 
@@ -512,7 +540,8 @@ class Streamline3d(object):
         *xx*:
           Starting point of the field line integration with starting time.
         """
-        # portion up the work given i_proc and n_proc
+
+        # Portion up the work given i_proc and n_proc.
         fstep = self.n_seeds/n_proc
         if fstep.is_integer():
             step = int(fstep)
@@ -556,14 +585,14 @@ class Streamline3d(object):
             self.metric = lambda xx: np.eye(3)
 
         # Set up the ode solver.
-        tracers = solve_ivp(self.field_function, (time[0], time[-1]), xx,
+        tracers = solve_ivp(self._field_function, (time[0], time[-1]), xx,
                             t_eval=time, rtol=self.rtol, atol=self.atol,
                             method=self.method).y.T
 
         # In case of forward and backward field integration trace backward.
         if self.integration_direction == 'both':
             time = -time
-            backtracers = solve_ivp(self.field_function, (time[0], time[-1]), xx,
+            backtracers = solve_ivp(self._field_function, (time[0], time[-1]), xx,
                                     t_eval=time, rtol=self.rtol, atol=self.atol,
                                     method=self.method).y.T
             # Glue the forward and backward field tracers together.
@@ -758,7 +787,7 @@ class Streamline3d(object):
         scalar_values = np.zeros(self.tracers[tracer_idx].shape[0])
         if self.color_scalar == 'magnitude':
             for idx in range(self.tracers[tracer_idx].shape[0]):
-                scalar_values[idx] = np.sqrt(np.sum(self.field_function(0, self.tracers[tracer_idx][idx, :])**2))
+                scalar_values[idx] = np.sqrt(np.sum(self._field_function(0, self.tracers[tracer_idx][idx, :])**2))
         else:
             for idx in range(self.tracers[tracer_idx].shape[0]):
                 scalar_values[idx] = np.sqrt(np.sum(self.color_scalar(self.tracers[tracer_idx][idx, :])**2))
@@ -802,22 +831,57 @@ class Streamline3d(object):
         return 0
 
 
+    def time_handler(self, scene, depsgraph):
+        """
+        Function to be called whenever any Blender animation functions are used.
+        Updates the plot according to the function specified.
+        """
+
+        import inspect
+
+        numargs = len(inspect.signature(self.field_function).parameters)
+        if numargs == 2:
+            self.plot()
+        else:
+            pass
+
+
+
 class Streamline3dArray(Streamline3d):
     """
     Derived streamline class for field function given as data array.
     """
 
     def __init__(self):
+        """
+        Fill members with default values.
+        """
+
+        import bpy
+
         super().__init__()
-        #these will be re-set later when the calling function unloads all it's kwargs
+
         self.x = None
         self.y = None
         self.z = None
         self.u = None
         self.v = None
         self.w = None
+        self.time = None
+        self.time_index = 0
         self.periodic = [False, False, False]
         self.interpolation = 'tricubic'
+
+        # Define the locally used time-independent data and parameters.
+        self._x = None
+        self._y = None
+        self._z = None
+        self._u = None
+        self._v = None
+        self._w = None
+
+        # Set the handler function for frame changes (time).
+        bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
 
     def prepare_field_function(self):
@@ -827,6 +891,20 @@ class Streamline3dArray(Streamline3d):
         """
 
         import numpy as np
+        import bpy
+
+        # Check if there is any time array.
+        if not self.time is None:
+            if not isinstance(self.time, np.ndarray):
+                print("Error: time is not a valid array.")
+                return -1
+            elif self.time.ndim != 1:
+                print("Error: time array must be 1d.")
+                return -1
+            # Determine the time index.
+            self.time_index = np.argmin(abs(bpy.context.scene.frame_float - self.time))
+        else:
+            self.time_index = 0
 
         # Check the validity of the input arrays.
         if not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray) \
@@ -837,6 +915,15 @@ class Streamline3dArray(Streamline3d):
                (self.u.shape == self.v.shape == self.w.shape):
             print("Error: input array shapes invalid.")
             return -1
+
+        # Point the local variables to the correct arrays.
+        arrays_with_time_list = ['x', 'y', 'z', 'u', 'v', 'w']
+        for array_with_time in arrays_with_time_list:
+            array_value = getattr(self, array_with_time)
+            if (array_value.ndim == 1) or (array_value.ndim == 3):
+                setattr(self, '_' + array_with_time, array_value)
+            else:
+                setattr(self, '_' + array_with_time, array_value[..., self.time_index])
 
         if self.interpolation == 'tricubic':
             try:
@@ -850,23 +937,24 @@ class Streamline3dArray(Streamline3d):
                        tricubic interpolation.\n')
                 print('Warning: Fall back to trilinear.')
                 self.interpolation = 'trilinear'
+
         # Set up the splines for the tricubic interpolation.
         if self.interpolation == 'tricubic':
             splines = []
-            splines.append(Spline(self.z, self.y, self.x, np.swapaxes(self.u, 0, 2)))
-            splines.append(Spline(self.z, self.y, self.x, np.swapaxes(self.v, 0, 2)))
-            splines.append(Spline(self.z, self.y, self.x, np.swapaxes(self.w, 0, 2)))
+            splines.append(Spline(self._z, self._y, self._x, np.swapaxes(self._u, 0, 2)))
+            splines.append(Spline(self._z, self._y, self._x, np.swapaxes(self._v, 0, 2)))
+            splines.append(Spline(self._z, self._y, self._x, np.swapaxes(self._w, 0, 2)))
         else:
             splines = None
 
         # Redefine the derivative y for the scipy ode integrator using the given parameters.
         if (self.interpolation == 'mean') or (self.interpolation == 'trilinear'):
-            self.field_function = lambda t, xx: self.__vec_int(xx)
+            self._field_function = lambda t, xx: self.__vec_int(xx)
         if self.interpolation == 'tricubic':
             field_x = splines[0]
             field_y = splines[1]
             field_z = splines[2]
-            self.field_function = lambda t, xx: self.__trilinear_func(xx, field_x, field_y, field_z)
+            self._field_function = lambda t, xx: self.__trilinear_func(xx, field_x, field_y, field_z)
 
         return 0
 
@@ -889,11 +977,11 @@ class Streamline3dArray(Streamline3d):
         if isinstance(self.color_scalar, str):
             if self.color_scalar == 'magnitude':
                 for idx in range(self.tracers[tracer_idx].shape[0]):
-                    scalar_values[idx] = np.sqrt(np.sum(self.field_function(0, self.tracers[tracer_idx][idx, :])**2))
+                    scalar_values[idx] = np.sqrt(np.sum(self._field_function(0, self.tracers[tracer_idx][idx, :])**2))
         else:
             from scipy.interpolate import RegularGridInterpolator
             # Prepare the interpolation function.
-            scalar_interpolation = RegularGridInterpolator((self.x, self.y, self.z), self.color_scalar)
+            scalar_interpolation = RegularGridInterpolator((self._x, self._y, self._z), self.color_scalar)
             for idx in range(self.tracers[tracer_idx].shape[0]):
                 scalar_values[idx] = scalar_interpolation(self.tracers[tracer_idx][idx, :])
 
@@ -921,12 +1009,12 @@ class Streamline3dArray(Streamline3d):
         import numpy as np
 
         # Determine some parameters.
-        Ox = self.x.min()
-        Oy = self.y.min()
-        Oz = self.z.min()
-        Lx = self.x.max()
-        Ly = self.y.max()
-        Lz = self.z.max()
+        Ox = self._x.min()
+        Oy = self._y.min()
+        Oz = self._z.min()
+        Lx = self._x.max()
+        Ly = self._y.max()
+        Lz = self._z.max()
 
         if (xx[0] < Ox) + (xx[0] > Ox + Lx) + \
            (xx[1] < Oy) + (xx[1] > Oy + Ly) + \
@@ -965,15 +1053,15 @@ class Streamline3dArray(Streamline3d):
         import numpy as np
 
         # Determine some parameters.
-        Ox = self.x.min()
-        Oy = self.y.min()
-        Oz = self.z.min()
-        dx = self.x[1] - self.x[0]
-        dy = self.y[1] - self.y[0]
-        dz = self.z[1] - self.z[0]
-        nx = np.size(self.x)
-        ny = np.size(self.y)
-        nz = np.size(self.z)
+        Ox = self._x.min()
+        Oy = self._y.min()
+        Oz = self._z.min()
+        dx = self._x[1] - self._x[0]
+        dy = self._y[1] - self._y[0]
+        dz = self._z[1] - self._z[0]
+        nx = np.size(self._x)
+        ny = np.size(self._y)
+        nz = np.size(self._z)
 
         if (self.interpolation == 'mean') or (self.interpolation == 'trilinear'):
             # Find the adjacent indices.
@@ -1021,9 +1109,9 @@ class Streamline3dArray(Streamline3d):
 
         # Interpolate the field.
         if self.interpolation == 'mean':
-            sub_field = [self.u[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
-                         self.v[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
-                         self.w[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1]]
+            sub_field = [self._u[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
+                         self._v[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
+                         self._w[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1]]
             return np.mean(np.array(sub_field), axis=(1, 2, 3))
 
         if self.interpolation == 'trilinear':
@@ -1052,9 +1140,9 @@ class Streamline3dArray(Streamline3d):
                     w3 = (k-kk[::-1])
 
             weight = abs(w1.reshape((2, 1, 1))*w2.reshape((1, 2, 1))*w3.reshape((1, 1, 2)))
-            sub_field = [self.u[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
-                         self.v[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
-                         self.w[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1]]
+            sub_field = [self._u[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
+                         self._v[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
+                         self._w[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1]]
             return np.sum(np.array(sub_field)*weight, axis=(1, 2, 3))/np.sum(weight)
 
         # If the point lies outside the domain, return 0.
@@ -1080,12 +1168,12 @@ class Streamline3dArray(Streamline3d):
         import numpy as np
 
         # Determine some parameters.
-        Ox = self.x.min()
-        Oy = self.y.min()
-        Oz = self.z.min()
-        Lx = self.x.max()-self.x.min()
-        Ly = self.y.max()-self.y.min()
-        Lz = self.z.max()-self.z.min()
+        Ox = self._x.min()
+        Oy = self._y.min()
+        Oz = self._z.min()
+        Lx = self._x.max() - self._x.min()
+        Ly = self._y.max() - self._y.min()
+        Lz = self._z.max() - self._z.min()
 
         # Remove points that lie outside the domain and interpolation on the boundary.
         cut_mask = ((tracers[:, 0] > Ox+Lx) + \
@@ -1131,3 +1219,14 @@ class Streamline3dArray(Streamline3d):
 
         return tracers
 
+
+    def time_handler(self, scene, depsgraph):
+        """
+        Function to be called whenever any Blender animation functions are used.
+        Updates the plot according to the function specified.
+        """
+
+        if not self.time is None:
+            self.plot()
+        else:
+            pass
