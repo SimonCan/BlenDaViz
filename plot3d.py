@@ -1006,9 +1006,9 @@ class Contour3d(object):
         for vertex_idx in range(vertices.shape[0]):
             vertex = vertices[vertex_idx]
             # Find the xyz indices for the interpolation.
-            ix1 = sum(self._x[:, 0, 0] <= vertex[0]) - 1
-            iy1 = sum(self._y[0, :, 0] <= vertex[1]) - 1
-            iz1 = sum(self._z[0, 0, :] <= vertex[2]) - 1
+            ix1 = sum(self._x <= vertex[0]) - 1
+            iy1 = sum(self._y <= vertex[1]) - 1
+            iz1 = sum(self._z <= vertex[2]) - 1
             ix2 = ix1 + 1
             iy2 = iy1 + 1
             iz2 = iz1 + 1
