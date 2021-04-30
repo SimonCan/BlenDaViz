@@ -4,6 +4,7 @@
 #
 
 # Load sub-modules.
+from .generic import *
 from .plot1d import *
 from .plot2d import *
 from .plot3d import *
@@ -11,6 +12,8 @@ from .streamlines3d import *
 from .colors import *
 from .vectors import *
 #from .seeds import *
+
+__stack__ = []
 
 # Install missing python packages using:
 # python3.7m -m pip install [LIB_NAME]
