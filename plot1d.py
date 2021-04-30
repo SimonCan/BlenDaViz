@@ -1,10 +1,6 @@
 # plot1d.py
 """
 Contains routines to one-dimensional plots.
-
-Created on Wed Sep 27 12:34:00 2017
-
-@author: Simon Candelaresi
 """
 
 
@@ -37,6 +33,9 @@ pl = blt.plot(x, y, z, marker='cube', color=colors)
 pl.z = np.linspace(0, 1, 5)
 pl.plot()
 '''
+
+from .generic import GenericPlot
+
 
 def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
          emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
@@ -124,7 +123,7 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
 
 
 
-class PathLine(object):
+class PathLine(GenericPlot):
     """
     Path line class including the vertices, parameters and plotting function.
     """
@@ -135,6 +134,7 @@ class PathLine(object):
         """
 
         import bpy
+        import blendaviz as blt
 
         # Define the members that can be seen by the user.
         self.x = 0
@@ -169,6 +169,25 @@ class PathLine(object):
 
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
+
+        # Add the path line to the stack.
+        blt.__stack__.append(self)
+
+
+    def __del__(self):
+        """
+        Delete geometry and materials and remove time handler
+        and plot object from the stack.
+        """
+
+        import bpy
+        import blendaviz as blt
+
+        print("plot1d")
+        self.__delete_meshes__()
+        self.__delete_materials__()
+        bpy.app.handlers.frame_change_pre.remove(self.time_handler)
+        blt.__stack__.remove(self)
 
 
     def plot(self):
@@ -211,25 +230,10 @@ class PathLine(object):
             self.curve_data = None
 
         # Delete existing meshes.
-        if not self.marker_mesh is None:
-            bpy.ops.object.select_all(action='DESELECT')
-            if isinstance(self.marker_mesh, list):
-                for marker_mesh in self.marker_mesh:
-                    marker_mesh.select_set(True)
-                    bpy.ops.object.delete()
-            else:
-                self.marker_mesh.select_set(True)
-                bpy.ops.object.delete()
-            self.marker_mesh = None
+        self.__delete_meshes__()
 
         # Delete existing materials.
-        if not self.mesh_material is None:
-            if isinstance(self.mesh_material, list):
-                for mesh_material in self.mesh_material:
-                    bpy.data.materials.remove(mesh_material)
-            else:
-                bpy.data.materials.remove(self.mesh_material)
-            self.mesh_material = None
+        self.__delete_materials__()
 
         # Create the bezier curve.
         if self.marker is None:
@@ -436,13 +440,48 @@ class PathLine(object):
         return 0
 
 
-    def time_handler(self, scene, depsgraph):
+    def __delete_meshes__(self):
         """
-        Function to be called whenever any Blender animation functions are used.
-        Updates the plot according to the function specified.
+        Delete all existing meshes that are part of this plot.
         """
 
-        if not self.time is None:
-            self.plot()
-        else:
-            pass
+        import bpy
+
+        if not self.marker_mesh is None:
+            bpy.ops.object.select_all(action='DESELECT')
+            if isinstance(self.marker_mesh, list):
+                for marker_mesh in self.marker_mesh:
+                    marker_mesh.select_set(True)
+                    bpy.ops.object.delete()
+            else:
+                self.marker_mesh.select_set(True)
+                bpy.ops.object.delete()
+            self.marker_mesh = None
+
+
+    def __delete_materials__(self):
+        """
+        Delete all existing meshes that are part of this plot.
+        """
+
+        import bpy
+
+        if not self.mesh_material is None:
+            if isinstance(self.mesh_material, list):
+                for mesh_material in self.mesh_material:
+                    bpy.data.materials.remove(mesh_material)
+            else:
+                bpy.data.materials.remove(self.mesh_material)
+            self.mesh_material = None
+
+
+#    def time_handler(self, scene, depsgraph):
+#        """
+#        Function to be called whenever any Blender animation functions are used.
+#        Updates the plot according to the function specified.
+#        """
+#
+#        if not self.time is None:
+#            self.plot()
+#        else:
+#            pass
