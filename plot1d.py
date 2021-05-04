@@ -15,8 +15,8 @@ importlib.reload(blt)
 n = 30
 nt = 100
 time = np.linspace(0, 100, nt)
-# z = np.linspace(0, 6*np.pi, n)
-z = np.linspace(0, 6*np.pi, n)[:, np.newaxis] + np.sin(time/5)/5
+z = np.linspace(0, 6*np.pi, n)
+# z = np.linspace(0, 6*np.pi, n)[:, np.newaxis] + np.sin(time/5)/5
 x = 3*np.cos(z)
 y = 3*np.sin(z)
 r = np.linspace(0.1, 0.5, 30)
@@ -172,22 +172,6 @@ class PathLine(GenericPlot):
 
         # Add the path line to the stack.
         blt.__stack__.append(self)
-
-
-    def __del__(self):
-        """
-        Delete geometry and materials and remove time handler
-        and plot object from the stack.
-        """
-
-        import bpy
-        import blendaviz as blt
-
-        print("plot1d")
-        self.__delete_meshes__()
-        self.__delete_materials__()
-        bpy.app.handlers.frame_change_pre.remove(self.time_handler)
-        blt.__stack__.remove(self)
 
 
     def plot(self):
@@ -473,15 +457,3 @@ class PathLine(GenericPlot):
             else:
                 bpy.data.materials.remove(self.mesh_material)
             self.mesh_material = None
-
-
-#    def time_handler(self, scene, depsgraph):
-#        """
-#        Function to be called whenever any Blender animation functions are used.
-#        Updates the plot according to the function specified.
-#        """
-#
-#        if not self.time is None:
-#            self.plot()
-#        else:
-#            pass

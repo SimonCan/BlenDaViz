@@ -16,22 +16,10 @@ class GenericPlot(object):
         import bpy
 
         # Define the members that can be seen by the user.
-        self. time = None
-
-        # Define the locally used time-independent data and parameters.
+        self.time = None
 
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
-
-
-    def __del__(self):
-        """
-        Delete geometry and materials and remove time handler
-        and plot object from the stack.
-        """
-
-        plot("generic")
-        pass
 
 
     def plot(self):
