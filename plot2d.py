@@ -109,6 +109,7 @@ class Surface(object):
         """
 
         import bpy
+        import blendaviz as blt
 
         # Define the members that can be seen by the user.
         self.x = 0
@@ -124,6 +125,7 @@ class Surface(object):
         self.mesh_data = None
         self.mesh_object = None
         self.mesh_material = None
+        self.deletable_object = None
 
         # Define the locally used time-independent data and parameters.
         self._x = 0
@@ -135,6 +137,9 @@ class Surface(object):
 
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
+
+        # Add the plot to the stack.
+        blt.__stack__.append(self)
 
 
     def plot(self):
@@ -321,12 +326,15 @@ class Surface(object):
                 polygon_idx += 1
         else:
             # Transform color string into rgba.
-            from . import colors
+            from blendaviz import colors
 
             self.mesh_material.diffuse_color = colors.string_to_rgba(self._c)
 
             # Link the mesh object with the scene.
             bpy.context.scene.collection.objects.link(self.mesh_object)
+
+        # Make the mesh the deletable object.
+        self.deletable_object = self.mesh_object
 
         return 0
 

@@ -34,7 +34,7 @@ pl.z = np.linspace(0, 1, 5)
 pl.plot()
 '''
 
-from .generic import GenericPlot
+from blendaviz.generic import GenericPlot
 
 
 def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
@@ -157,6 +157,7 @@ class PathLine(GenericPlot):
         self.marker_mesh = None
         self.mesh_material = None
         self.poly_line = None
+        self.deletable_object = None
 
         # Define the locally used time-independent data and parameters.
         self._x = 0
@@ -170,7 +171,7 @@ class PathLine(GenericPlot):
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
-        # Add the path line to the stack.
+        # Add the plot to the stack.
         blt.__stack__.append(self)
 
 
@@ -181,7 +182,7 @@ class PathLine(GenericPlot):
 
         import bpy
         import numpy as np
-        from . import colors
+        from blendaviz import colors
 
         # Check if there is any time array.
         if not self.time is None:
@@ -268,6 +269,9 @@ class PathLine(GenericPlot):
 
             # Link the curve object with the scene.
             bpy.context.scene.collection.objects.link(self.curve_object)
+
+            # Make this curve the object to be deleted.
+            self.deletable_object = self.curve_object
 
         # Transform color string into rgb.
         color_rgba = colors.make_rgba_array(self.color, self._x.shape[0])
@@ -419,7 +423,8 @@ class PathLine(GenericPlot):
             bpy.ops.object.join()
             self.marker_mesh = bpy.context.object
             self.marker_mesh.select_set(state=False)
-
+            # Make the grouped meshes the deletable object.
+            self.deletable_object = self.marker_mesh
 
         return 0
 

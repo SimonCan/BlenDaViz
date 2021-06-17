@@ -304,6 +304,7 @@ class Quiver3d(object):
         """
 
         import bpy
+        import blendaviz as blt
 
         # Define the members that can be seen by the user.
         self.x = 0
@@ -327,6 +328,7 @@ class Quiver3d(object):
         self.color_map = None
         self.arrow_mesh = None
         self.mesh_material = None
+        self.deletable_object = None
 
         # Define the locally used time-independent data and parameters.
         self._x = 0
@@ -339,6 +341,9 @@ class Quiver3d(object):
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
+        # Add the plot to the stack.
+        blt.__stack__.append(self)
+
 
     def plot(self):
         """
@@ -348,7 +353,7 @@ class Quiver3d(object):
         import bpy
         import numpy as np
         from mathutils import Vector
-        from . import colors
+        from blendaviz import colors
 
         # Check if there is any time array.
         if not self.time is None:
@@ -487,6 +492,9 @@ class Quiver3d(object):
         self.arrow_mesh = bpy.context.object
         self.arrow_mesh.select_set(state=False)
 
+        # Make the mesh the deletable object.
+        self.deletable_object = self.arrow_mesh
+
         return 0
 
 
@@ -623,7 +631,7 @@ xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
 time = np.linspace(0, 100, 101)
 phi = np.sin(3*xx) + np.cos(2*yy) + np.sin(zz)
 phi = phi[..., np.newaxis]*time
-iso = blt.contour(phi, x, y, z, contours=[0.5], time=time)
+iso = blt.contour(phi, x, y, z, contours=[0.5, 0.6], time=time)
 #iso = blt.contour(phi, x, y, z, contours=[0.3, 0.6], color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
 '''
 
@@ -712,6 +720,7 @@ class Contour3d(object):
         """
 
         import bpy
+        import blendaviz as blt
 
         # Define the members that can be seen by the user.
         self.phi = 0
@@ -731,6 +740,7 @@ class Contour3d(object):
         self.mesh_material = None
         self.time = None
         self.time_index = 0
+        self.deletable_object = None
 
         # Define the locally used time-independent data and parameters.
         self._phi = 0
@@ -742,6 +752,9 @@ class Contour3d(object):
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
+        # Add the plot to the stack.
+        blt.__stack__.append(self)
+
 
     def plot(self):
         """
@@ -751,7 +764,7 @@ class Contour3d(object):
         import bpy
         import numpy as np
         from skimage import measure
-        from . import colors
+        from blendaviz import colors
 
         # Check if there is any time array.
         if not self.time is None:
@@ -877,6 +890,17 @@ class Contour3d(object):
             # Link the mesh object with the scene.
             bpy.context.scene.collection.objects.link(self.mesh_object[-1])
 
+        # Group the meshes together.
+        for mesh in self.mesh_object[::-1]:
+            mesh.select_set(state=True)
+            bpy.context.view_layer.objects.active = mesh
+        bpy.ops.object.join()
+        self.mesh_object = bpy.context.object
+        self.mesh_object.select_set(state=False)
+
+        # Make the grouped meshes the deletable object.
+        self.deletable_object = self.mesh_object
+
         return 0
 
 
@@ -999,7 +1023,7 @@ class Contour3d(object):
 
         import bpy
         import numpy as np
-        from . import colors
+        from blendaviz import colors
 
         # Find interpolated values for Psi on the vertex location.
         psi_vertices = np.zeros(vertices.shape[0])

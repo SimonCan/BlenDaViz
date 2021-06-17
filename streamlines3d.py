@@ -340,6 +340,7 @@ class Streamline3d(object):
         """
 
         import bpy
+        import blendaviz as blt
 
         self.field_function = lambda t, xx: [0., 0., 1.]
         self.n_seeds = 100
@@ -370,12 +371,16 @@ class Streamline3d(object):
         self.mesh_texture = None
         self.tracers = []
         self.n_proc = 1
+        self.deletable_object = None
 
         # Define the locally used time-independent data and parameters.
         self._field_function = lambda t, xx: [0., 0., 1.]
 
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
+
+        # Add the plot to the stack.
+        blt.__stack__.append(self)
 
 
     def plot(self):
@@ -384,7 +389,7 @@ class Streamline3d(object):
         """
 
         import bpy
-        from . import colors
+        from blendaviz import colors
 
         # Delete existing curves.
         bpy.ops.object.select_all(action='DESELECT')
@@ -492,6 +497,9 @@ class Streamline3d(object):
         bpy.ops.object.join()
         self.mesh = bpy.context.selected_objects[0]
         self.mesh.select_set(False)
+
+        # Make the grouped meshes the deletable object.
+        self.deletable_object = self.mesh
 
         return 0
 
