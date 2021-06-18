@@ -3,6 +3,9 @@
 # set everything up properly.
 #
 
+# Install missing python packages using:
+# python3.7m -m pip install [LIB_NAME]
+
 # Load sub-modules.
 from .generic import *
 from .plot1d import *
@@ -11,12 +14,12 @@ from .plot3d import *
 from .streamlines3d import *
 from .colors import *
 from .vectors import *
+from .globals import *
+from .box import *
 #from .seeds import *
 
 __stack__ = []
-
-# Install missing python packages using:
-# python3.7m -m pip install [LIB_NAME]
+house_keeping = HouseKeeping()
 
 # Override the object delete operation.
 import bpy

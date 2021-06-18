@@ -151,7 +151,6 @@ class PathLine(GenericPlot):
         self.marker = None
         self.time = None
         self.time_index = 0
-        self.bounding_box = None
         self.curve_data = None
         self.curve_object = None
         self.marker_mesh = None
@@ -426,6 +425,8 @@ class PathLine(GenericPlot):
             # Make the grouped meshes the deletable object.
             self.deletable_object = self.marker_mesh
 
+        self.update_globals()
+
         return 0
 
 
@@ -462,3 +463,41 @@ class PathLine(GenericPlot):
             else:
                 bpy.data.materials.remove(self.mesh_material)
             self.mesh_material = None
+
+
+    def update_globals(self):
+        """
+        Update the extrema.
+        """
+
+        import blendaviz as blt
+
+        if blt.house_keeping.x_min is None:
+            blt.house_keeping.x_min = self.x.min()
+        elif self.x.min() < blt.house_keeping.x_min:
+            blt.house_keeping.x_min = self.x.min()
+        if blt.house_keeping.x_max is None:
+            blt.house_keeping.x_max = self.x.max()
+        elif self.x.max() > blt.house_keeping.x_max:
+            blt.house_keeping.x_max = self.x.max()
+
+        if blt.house_keeping.y_min is None:
+            blt.house_keeping.y_min = self.y.min()
+        elif self.y.min() < blt.house_keeping.y_min:
+            blt.house_keeping.y_min = self.y.min()
+        if blt.house_keeping.y_max is None:
+            blt.house_keeping.y_max = self.y.max()
+        elif self.y.max() > blt.house_keeping.y_max:
+            blt.house_keeping.y_max = self.y.max()
+
+        if blt.house_keeping.z_min is None:
+            blt.house_keeping.z_min = self.z.min()
+        elif self.z.min() < blt.house_keeping.z_min:
+            blt.house_keeping.z_min = self.z.min()
+        if blt.house_keeping.z_max is None:
+            blt.house_keeping.z_max = self.z.max()
+        elif self.z.max() > blt.house_keeping.z_max:
+            blt.house_keeping.z_max = self.z.max()
+
+        blt.bounding_box()
+            

@@ -40,3 +40,11 @@ class GenericPlot(object):
             self.plot()
         else:
             pass
+
+
+    def update_globals(self):
+        """
+        Update the global variables.
+        """
+
+        pass
