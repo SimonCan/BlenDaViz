@@ -4,12 +4,13 @@ Contains routines to generate the bounding box.
 """
 
 '''
+import numpy as np
 import importlib
 import blendaviz as blt
 importlib.reload(blt.box)
 importlib.reload(blt)
 
-extrema = (0, 1, 0, 2, 0, 3)
+extrema = np.array([0, 1, 0, 2, 0, 3])
 blt.bounding_box(extrema)
 '''
 
@@ -81,14 +82,11 @@ class BoundingBox(object):
         """
 
         import bpy
-        import blendaviz as blt
 #        from blendaviz import colors
 
         # Check if extrema are given.
         if self.extrema is None:
-            self.extrema = (blt.house_keeping.x_min, blt.house_keeping.x_max,
-                            blt.house_keeping.y_min, blt.house_keeping.y_max,
-                            blt.house_keeping.z_min, blt.house_keeping.z_max)
+            self.get_extrema()
 
         # Delete existing curve.
         if not self.curve_data is None:
@@ -218,12 +216,23 @@ class BoundingBox(object):
             curve_object.select_set(state=True)
             bpy.context.view_layer.objects.active = curve_object
         bpy.ops.object.join()
-
-        blt.house_keeping.box = self
+        self.curve_object = self.curve_object[0]
+        # Make this box the object to be deleted.
+        self.deletable_object = self.curve_object
 
         return 0
 
 
+    def get_extrema(self):
+        """
+        Get the extrema from the global structure.
+        """
+
+        import blendaviz as blt
+
+        self.extrema = (blt.house_keeping.x_min, blt.house_keeping.x_max,
+                        blt.house_keeping.y_min, blt.house_keeping.y_max,
+                        blt.house_keeping.z_min, blt.house_keeping.z_max)
 
 
 

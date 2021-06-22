@@ -336,6 +336,8 @@ class Surface(object):
         # Make the mesh the deletable object.
         self.deletable_object = self.mesh_object
 
+        self.update_globals()
+
         return 0
 
 
@@ -349,3 +351,54 @@ class Surface(object):
             self.plot()
         else:
             pass
+
+
+    def update_globals(self):
+        """
+        Update the extrema.
+        """
+
+        import blendaviz as blt
+
+        if blt.house_keeping.x_min is None:
+            blt.house_keeping.x_min = self.x.min()
+        elif self.x.min() < blt.house_keeping.x_min:
+            blt.house_keeping.x_min = self.x.min()
+        if blt.house_keeping.x_max is None:
+            blt.house_keeping.x_max = self.x.max()
+        elif self.x.max() > blt.house_keeping.x_max:
+            blt.house_keeping.x_max = self.x.max()
+
+        if blt.house_keeping.y_min is None:
+            blt.house_keeping.y_min = self.y.min()
+        elif self.y.min() < blt.house_keeping.y_min:
+            blt.house_keeping.y_min = self.y.min()
+        if blt.house_keeping.y_max is None:
+            blt.house_keeping.y_max = self.y.max()
+        elif self.y.max() > blt.house_keeping.y_max:
+            blt.house_keeping.y_max = self.y.max()
+
+        if not self.z is None:
+            if blt.house_keeping.z_min is None:
+                blt.house_keeping.z_min = self.z.min()
+            elif self.z.min() < blt.house_keeping.z_min:
+                blt.house_keeping.z_min = self.z.min()
+            if blt.house_keeping.z_max is None:
+                blt.house_keeping.z_max = self.z.max()
+            elif self.z.max() > blt.house_keeping.z_max:
+                blt.house_keeping.z_max = self.z.max()
+        else:
+            if blt.house_keeping.z_min is None:
+                blt.house_keeping.z_min = 0
+            elif 0 < blt.house_keeping.z_min:
+                blt.house_keeping.z_min = 0
+            if blt.house_keeping.z_max is None:
+                blt.house_keeping.z_max = 0
+            elif 0 > blt.house_keeping.z_max:
+                blt.house_keeping.z_max = 0
+
+        if blt.house_keeping.box is None:
+            blt.house_keeping.box = blt.bounding_box()
+        else:
+            blt.house_keeping.box.get_extrema()
+            blt.house_keeping.box.plot()

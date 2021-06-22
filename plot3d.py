@@ -495,6 +495,8 @@ class Quiver3d(object):
         # Make the mesh the deletable object.
         self.deletable_object = self.arrow_mesh
 
+        self.update_globals()
+
         return 0
 
 
@@ -612,6 +614,47 @@ class Quiver3d(object):
             self.plot()
         else:
             pass
+
+
+    def update_globals(self):
+        """
+        Update the extrema.
+        """
+
+        import blendaviz as blt
+
+        if blt.house_keeping.x_min is None:
+            blt.house_keeping.x_min = self.x.min()
+        elif self.x.min() < blt.house_keeping.x_min:
+            blt.house_keeping.x_min = self.x.min()
+        if blt.house_keeping.x_max is None:
+            blt.house_keeping.x_max = self.x.max()
+        elif self.x.max() > blt.house_keeping.x_max:
+            blt.house_keeping.x_max = self.x.max()
+
+        if blt.house_keeping.y_min is None:
+            blt.house_keeping.y_min = self.y.min()
+        elif self.y.min() < blt.house_keeping.y_min:
+            blt.house_keeping.y_min = self.y.min()
+        if blt.house_keeping.y_max is None:
+            blt.house_keeping.y_max = self.y.max()
+        elif self.y.max() > blt.house_keeping.y_max:
+            blt.house_keeping.y_max = self.y.max()
+
+        if blt.house_keeping.z_min is None:
+            blt.house_keeping.z_min = self.z.min()
+        elif self.z.min() < blt.house_keeping.z_min:
+            blt.house_keeping.z_min = self.z.min()
+        if blt.house_keeping.z_max is None:
+            blt.house_keeping.z_max = self.z.max()
+        elif self.z.max() > blt.house_keeping.z_max:
+            blt.house_keeping.z_max = self.z.max()
+
+        if blt.house_keeping.box is None:
+            blt.house_keeping.box = blt.bounding_box()
+        else:
+            blt.house_keeping.box.get_extrema()
+            blt.house_keeping.box.plot()
 
 
 '''
@@ -849,9 +892,8 @@ class Contour3d(object):
         # Delete existing meshes.
         if not self.mesh_object is None:
             bpy.ops.object.select_all(action='DESELECT')
-            for mesh_object in self.mesh_object:
-                mesh_object.select_set(state=True)
-                bpy.ops.object.delete()
+            self.mesh_object.select_set(state=True)
+            bpy.ops.object.delete()
             self.mesh_object = None
 
         # Delete existing materials.
@@ -900,6 +942,8 @@ class Contour3d(object):
 
         # Make the grouped meshes the deletable object.
         self.deletable_object = self.mesh_object
+
+        self.update_globals()
 
         return 0
 
@@ -1083,3 +1127,44 @@ class Contour3d(object):
             self.plot()
         else:
             pass
+
+
+    def update_globals(self):
+        """
+        Update the extrema.
+        """
+
+        import blendaviz as blt
+
+        if blt.house_keeping.x_min is None:
+            blt.house_keeping.x_min = self.x.min()
+        elif self.x.min() < blt.house_keeping.x_min:
+            blt.house_keeping.x_min = self.x.min()
+        if blt.house_keeping.x_max is None:
+            blt.house_keeping.x_max = self.x.max()
+        elif self.x.max() > blt.house_keeping.x_max:
+            blt.house_keeping.x_max = self.x.max()
+
+        if blt.house_keeping.y_min is None:
+            blt.house_keeping.y_min = self.y.min()
+        elif self.y.min() < blt.house_keeping.y_min:
+            blt.house_keeping.y_min = self.y.min()
+        if blt.house_keeping.y_max is None:
+            blt.house_keeping.y_max = self.y.max()
+        elif self.y.max() > blt.house_keeping.y_max:
+            blt.house_keeping.y_max = self.y.max()
+
+        if blt.house_keeping.z_min is None:
+            blt.house_keeping.z_min = self.z.min()
+        elif self.z.min() < blt.house_keeping.z_min:
+            blt.house_keeping.z_min = self.z.min()
+        if blt.house_keeping.z_max is None:
+            blt.house_keeping.z_max = self.z.max()
+        elif self.z.max() > blt.house_keeping.z_max:
+            blt.house_keeping.z_max = self.z.max()
+
+        if blt.house_keeping.box is None:
+            blt.house_keeping.box = blt.bounding_box()
+        else:
+            blt.house_keeping.box.get_extrema()
+            blt.house_keeping.box.plot()
