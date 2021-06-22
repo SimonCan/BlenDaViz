@@ -22,3 +22,5 @@ class HouseKeeping(object):
         self.z_max = None
 
         self.box = None
+
+        self.lights = None

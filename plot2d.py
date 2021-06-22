@@ -402,3 +402,6 @@ class Surface(object):
         else:
             blt.house_keeping.box.get_extrema()
             blt.house_keeping.box.plot()
+
+        # Add some light.
+        blt.adjust_lights()

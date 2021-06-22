@@ -48,3 +48,4 @@ class GenericPlot(object):
         """
 
         pass
+

@@ -656,6 +656,9 @@ class Quiver3d(object):
             blt.house_keeping.box.get_extrema()
             blt.house_keeping.box.plot()
 
+        # Add some light.
+        blt.adjust_lights()
+
 
 '''
 Test:
@@ -1168,3 +1171,6 @@ class Contour3d(object):
         else:
             blt.house_keeping.box.get_extrema()
             blt.house_keeping.box.plot()
+
+        # Add some light.
+        blt.adjust_lights()

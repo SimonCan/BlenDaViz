@@ -16,6 +16,7 @@ from .colors import *
 from .vectors import *
 from .globals import *
 from .box import *
+from .lights import *
 #from .seeds import *
 
 __stack__ = []

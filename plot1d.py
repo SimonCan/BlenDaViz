@@ -499,9 +499,14 @@ class PathLine(GenericPlot):
         elif self.z.max() > blt.house_keeping.z_max:
             blt.house_keeping.z_max = self.z.max()
 
+        # Add or update bounding box.
         if blt.house_keeping.box is None:
             blt.house_keeping.box = blt.bounding_box()
         else:
             blt.house_keeping.box.get_extrema()
             blt.house_keeping.box.plot()
-            
+
+        # Add some light.
+        blt.adjust_lights()
+
+                                                

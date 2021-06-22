@@ -1279,3 +1279,6 @@ class Streamline3dArray(Streamline3d):
         else:
             blt.house_keeping.box.get_extrema()
             blt.house_keeping.box.plot()
+
+        # Add some light.
+        blt.adjust_lights()
