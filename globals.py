@@ -24,3 +24,5 @@ class HouseKeeping(object):
         self.box = None
 
         self.lights = None
+
+        self.camera = None

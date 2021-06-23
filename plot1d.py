@@ -10,6 +10,7 @@ import numpy as np
 import importlib
 import blendaviz as blt
 importlib.reload(blt.plot1d)
+importlib.reload(blt.camera)
 importlib.reload(blt)
 
 n = 30
@@ -509,4 +510,5 @@ class PathLine(GenericPlot):
         # Add some light.
         blt.adjust_lights()
 
-                                                
+        # Add a camera.
+        blt.adjust_camera()
