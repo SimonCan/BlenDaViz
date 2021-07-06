@@ -12,6 +12,7 @@ from .plot1d import *
 from .plot2d import *
 from .plot3d import *
 from .streamlines3d import *
+from .matplotlib_bridge import *
 from .colors import *
 from .vectors import *
 from .globals import *
