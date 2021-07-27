@@ -1,24 +1,19 @@
 # colors.py
 """
 Contains routines to handle colors.
-
-Created on Mon Aug 27 18:00:35 2018
-
-@author: Simon Candelaresi
 """
 
 def string_to_rgba(color_string):
     """
     Converts a color string or character into an rgb value.
 
-    call signature:
+    Signature:
 
     string_to_rgb(color_string):
 
-    Keyword arguments:
-
-    *color_string*:
-      Any valid color string or character.
+    Parameters
+    ----------
+    color_string:  Any valid color string or character.
     """
 
     if color_string == 'b':
@@ -63,25 +58,21 @@ def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
     Creates an rgb array for the given color, which can be rgb, scalar array
     or string (array).
 
-    call signature:
+    Signature:
 
     make_rgba_array(color, length, color_map, vmin, vmax):
 
-    Keyword arguments:
+    Parameters
+    ----------
+    color:  Any valid color string, character, tuple, array or list.
 
-    *color*:
-      Any valid color string, character, tuple, array or list.
+    length:  Length of the data array (int).
 
-    *length*:
-      Length of the data array (int).
+    color_map:  Color map for the values.
+        These are the same as in matplotlib.
 
-    *color_map*:
-      Color map for the values.
-      These are the same as in matplotlib.
-
-    *vmin, vmax*
-      Minimum and maximum values for the colormap. If not specify, determine
-      from the input arrays.
+    vmin, vmax:  Minimum and maximum values for the colormap. If not specify,
+        determine from the input arrays.
     """
 
     import numpy as np

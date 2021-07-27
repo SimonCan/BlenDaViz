@@ -1,60 +1,34 @@
 # plot3d.py
 """
 Contains routines to three-dimensional plots.
-
-Created on Wed Dec 16 10:34:00 2018
-
-@authors: Simon Candelaresi, Chris Smiet (csmiet@pppl.gov)
 """
 
-'''
-Test:
-import numpy as np
-import importlib
-import sys
-sys.path.append('~/codes/blendaviz')
-import blendaviz as blt
-importlib.reload(blt.plot3d)
-importlib.reload(blt.colors)
-importlib.reload(blt)
-x0 = np.linspace(-3, 3, 20)
-y0 = np.linspace(-3, 3, 20)
-z0 = np.linspace(-3, 3, 20)
-x, y, z = np.meshgrid(x0, y0, z0, indexing='ij')
-phi = np.exp(-(x**2 + y**2 + z**2))*np.cos(z)
-emission = np.sin(np.linspace(phi.min(), phi.max(), 100))
-vol = blt.vol(phi, x, y, z)
-vol.plot()
-
-# Generate the 3d image.
-voxel_image = bpy.data.images.new('VoxelImage', 20, 20)
-'''
 
 def vol(phi, x, y, z, emission=None, color_map=None):
     """
     Plot a 3d volume rendering of a scalar field.
 
-    call signature:
+    Signature:
 
     vol(phi, x, y, z, alpha=None, color_map=None)
 
-    Keyword arguments:
+    Parameters
+    ----------
+    phi:  Scalar field in 3d of shape (nx, ny, nz).
 
-    *phi*:
-      Scalar field in 3d of shape (nx, ny, nz).
+    x, y, z:  1d arrays for the coordinates.
 
-    *x, y, z*:
-      1d arrays for the coordinates.
+    emission:  1d or 2d array of floats containing the emission values for phi.
+        If specified as 2d array fo shape (2, n_emission) the emission[0, :] are the values
+        phi which must be monotonously increasing and emission[1, ;] are their corresponding
+        emission values.
 
-    *emission*:
-      1d or 2d array of floats containing the emission values for phi.
-      If specified as 2d array fo shape (2, n_emission) the emission[0, :] are the values
-      phi which must be monotonously increasing and emission[1, ;] are their corresponding
-      emission values.
+    color_map:  Color map for the values stored in the array 'c'.
+        These are the same as in matplotlib.
 
-    *color_map*:
-      Color map for the values stored in the array 'c'.
-      These are the same as in matplotlib.
+    Returns
+    -------
+    Volume plot object.
     """
 
     import inspect
@@ -180,29 +154,6 @@ class Volume(object):
 
 
 
-'''
-Test:
-import numpy as np
-import importlib
-import sys
-sys.path.append('~/codes/blendaviz')
-import blendaviz as blt
-importlib.reload(blt)
-importlib.reload(blt.plot3d)
-importlib.reload(blt.colors)
-
-x = np.linspace(-2, 2, 5)
-y = np.linspace(-2, 2, 5)
-z = np.linspace(-2, 2, 5)
-t = np.linspace(0, 100, 101)
-xx, yy, zz, tt = np.meshgrid(x, y, z, t, indexing='ij')
-uu = np.cos(xx) + np.sin(yy)
-vv = np.sin(yy) + np.cos(yy)
-ww = np.ones_like(xx) + 10*np.sin(tt/15)
-
-qu = blt.quiver(xx, yy, zz, uu, vv, ww, pivot='mid', color='red', time=t)
-'''
-
 def quiver(x, y, z, u, v, w, pivot='middle', length=1,
            radius_shaft=0.25, radius_tip=0.5, scale=1,
            color=(0, 1, 0, 1), emission=None, roughness=1,
@@ -210,76 +161,70 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
     """
     Plot arrows for a given vector field.
 
-    call signature:
+    Signature:
 
     quiver(x, y, z, u, v, w, pivot='middle', length=1,
            radius_shaft=0.25, radius_tip=0.5, scale=1,
            color=(0, 1, 0, 1), emission=None, roughness=1,
            vmin=None, vmax=None, color_map=None, time=None):
 
-    Keyword arguments:
-    *x, y, z*:
-      x, y and z position of the data.
-      These can be 1d arrays of the same length n or of shape (nx, ny, nz)
-      for time independent data
-      or of shape (n, nt) or (nx, ny, nz, nt) for time dependent data.
+    Parameters
+    ----------
+    x, y, z:  x, y and z position of the data.
+        These can be 1d arrays of the same length n or of shape (nx, ny, nz)
+        for time independent data
+        or of shape (n, nt) or (nx, ny, nz, nt) for time dependent data.
 
-    *u, v, w*
-      x, y and z components of the vector field.
-      Must be of the same shape as the x, y and z arrays.
+    u, v, w:  x, y and z components of the vector field.
+        Must be of the same shape as the x, y and z arrays.
 
-    *pivot*:
-      Part of the arrow around which it is rotated.
-      Can be 'tail', 'mid', 'middle' or 'tip'.
+    pivot:  Part of the arrow around which it is rotated.
+        Can be 'tail', 'mid', 'middle' or 'tip'.
 
-    *length*:
-      Length of the arrows.
-      If specified as the string 'magnitude' use the vector's magnitude.
+    length:  Length of the arrows.
+        If specified as the string 'magnitude' use the vector's magnitude.
 
-    *radius_shaft, radius_tip*:
-      Radii of the shaft and tip of the arrows.
-      If specified as string 'magnitude' use the vector's magnitude
-      and multiply by 0.25 for radius_shaft and 0.5 for radius_tip.
+    radius_shaft, radius_tip:  Radii of the shaft and tip of the arrows.
+        If specified as string 'magnitude' use the vector's magnitude
+        and multiply by 0.25 for radius_shaft and 0.5 for radius_tip.
 
-    *scale*:
-        Scale the arrows (length, raddius_shaft and radius_tip).
+    scale:  Scale the arrows (length, raddius_shaft and radius_tip).
         Can be constant or array of the same shape as x, y and z.
 
-    *color*:
-      rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
-      e.g. 'red' or character, e.g. 'r', or list of strings/character,
-      or [n, 4] array with rgba values or array of the same shape as input array
-      or 'magnitude' (use vector length).
+    color:  rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
+        e.g. 'red' or character, e.g. 'r', or list of strings/character,
+        or [n, 4] array with rgba values or array of the same shape as input array
+        or 'magnitude' (use vector length).
 
-    *emission*
-      Light emission by the arrows. This overrides 'roughness'.
-      Real number or array or 'magnitude' (use vector length).
+    emission:  Light emission by the arrows. This overrides 'roughness'.
+        Real number or array or 'magnitude' (use vector length).
 
-    *roughness*:
-      Texture roughness.
+    roughness:  Texture roughness.
 
-    *vmin, vmax*
-      Minimum and maximum values for the colormap.
-      If not specify, determine from the input arrays.
+    vmin, vmax:  Minimum and maximum values for the colormap.
+        If not specify, determine from the input arrays.
 
-    *color_map*:
-      Color map for the values stored in the array 'c'.
-      These are the same as in matplotlib.
+    color_map:  Color map for the values stored in the array 'c'.
+        These are the same as in matplotlib.
 
-    *time*:
-      Float array with the time information of the data.
-      Has length nt.
+    time:  Float array with the time information of the data.
+        Has length nt.
 
-    Examples:
-      import numpy as np
-      import blendaviz as blt
-      x = np.linspace(-2, 2, 5)
-      y = np.linspace(-2, 2, 5)
-      z = np.linspace(-2, 2, 5)
-      u = np.array([1, 0, 0, 1, 0])
-      v = np.array([0, 1, 0, 1, 1])
-      w = np.array([0, 0, 1, 0, 1])
-      qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='magnitude')
+    Returns
+    -------
+    3d Quiver plot object.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import blendaviz as blt
+    >>> x = np.linspace(-2, 2, 5)
+    >>> y = np.linspace(-2, 2, 5)
+    >>> z = np.linspace(-2, 2, 5)
+    >>> u = np.array([1, 0, 0, 1, 0])
+    >>> v = np.array([0, 1, 0, 1, 1])
+    >>> w = np.array([0, 0, 1, 0, 1])
+    >>> qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='magnitude')
     """
 
     import inspect
@@ -383,27 +328,6 @@ class Quiver3d(object):
             print("Error: input array shapes invalid.")
             return -1
 
-# Perhaps it is better not to have these as arrays.
-#        # Check the shape of the optional arrays.
-#        if isinstance(self.length, np.ndarray):
-#            if not (self.x.shape == self.length.shape):
-#                print("Error: length array invalid.")
-#                return -1
-#            else:
-#                self.length = self.length.ravel()
-#        if isinstance(self.radius_shaft, np.ndarray):
-#            if not (self.x.shape == self.radius_shaft.shape):
-#                print("Error: radius_shaft array invalid.")
-#                return -1
-#            else:
-#                self.radius_shaft = self.radius_shaft.ravel()
-#        if isinstance(self.radius_tip, np.ndarray):
-#            if not (self.x.shape == self.radius_tip.shape):
-#                print("Error: radius_tip array invalid.")
-#                return -1
-#            else:
-#                self.radius_tip = self.radius_tip.ravel()
-
         # Point the local variables to the correct arrays.
         arrays_with_time_list = ['x', 'y', 'z', 'u', 'v', 'w']
         for array_with_time in arrays_with_time_list:
@@ -445,7 +369,8 @@ class Quiver3d(object):
             magnitude = np.sqrt(self._u[idx]**2 + self._v[idx]**2 + self._w[idx]**2)
             normed = np.array([self._u[idx], self._v[idx], self._w[idx]])/magnitude
             rotation = Vector((0, 0, 1)).rotation_difference([self._u[idx],
-                              self._v[idx], self._w[idx]]).to_euler()
+                                                              self._v[idx],
+                                                              self._w[idx]]).to_euler()
 
             # Define the arrow's length.
             if self.length == 'magnitude':
@@ -457,7 +382,7 @@ class Quiver3d(object):
             # Define the arrows' radii.
             radius_shaft = self.radius_shaft
             radius_shaft *= self.scale
-            
+
             # Define the arrows' scale.
             radius_tip = self.radius_tip
             radius_tip *= self.scale
@@ -504,17 +429,15 @@ class Quiver3d(object):
         """
         Set the mesh material.
 
-        call signature:
+        Signature:
 
         __set_material(idx, color_rgba):
 
-        Keyword arguments:
+        Parameters
+        ----------
+        idx:  Index of the material.
 
-        *idx*:
-          Index of the material.
-
-        *color_rgba*:
-          The rgba values of the colors to be used.
+        color_rgba:  The rgba values of the colors to be used.
         """
 
         import bpy
@@ -618,7 +541,7 @@ class Quiver3d(object):
 
     def update_globals(self):
         """
-        Update the extrema.
+        Update the extrema and lights.
         """
 
         import blendaviz as blt
@@ -660,26 +583,6 @@ class Quiver3d(object):
         blt.adjust_lights()
 
 
-'''
-Test:
-import numpy as np
-import importlib
-import sys
-sys.path.append('~/codes/blendaviz')
-import blendaviz as blt
-importlib.reload(blt)
-importlib.reload(blt.plot3d)
-
-x = np.linspace(-2, 2, 21)
-y = np.linspace(-2, 2, 21)
-z = np.linspace(-2, 2, 21)
-xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
-time = np.linspace(0, 100, 101)
-phi = np.sin(3*xx) + np.cos(2*yy) + np.sin(zz)
-phi = phi[..., np.newaxis]*time
-iso = blt.contour(phi, x, y, z, contours=[0.5, 0.6], time=time)
-#iso = blt.contour(phi, x, y, z, contours=[0.3, 0.6], color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
-'''
 
 def contour(phi, x, y, z, contours=1, psi=None,
             color=(0, 1, 0, 1), emission=None, roughness=1,
@@ -687,61 +590,56 @@ def contour(phi, x, y, z, contours=1, psi=None,
     """
     Plot contours to a given scalar field.
 
-    call signature:
+    Signature:
 
     contour(phi, x, y, z, contours=1, psi=None,
             color=(0, 1, 0, 1), emission=None, roughness=1,
             vmin=None, vmax=None, color_map=None, time=None):
 
-    Keyword arguments:
-    *phi*:
-      Scalar of shape (nx, ny, nz) or (nx, ny, nz, nt) for time dependent arrays..
+    Signature:
+    phi:  Scalar of shape (nx, ny, nz) or (nx, ny, nz, nt) for time dependent arrays..
 
-    *x, y, z*:
-      x, y and z position of the data. These can be 1d arrays
-      or 2d arrays of shape (nxyz, nt) for time dependent xyz.
+    x, y, z:  x, y and z position of the data. These can be 1d arrays
+        or 2d arrays of shape (nxyz, nt) for time dependent xyz.
 
-    *contours*:
-      Number of contours to be plotted, or array of contour levels.
+    contours:  Number of contours to be plotted, or array of contour levels.
 
-    *psi*:
-      Secondary scalar array of the same shape as phi, after which the
-      contours are being textured.
-      Use in conjunction with vmin and vmax.
-      Recommended to use only one isosurface with psi.
+    psi:  Secondary scalar array of the same shape as phi, after which the
+        contours are being textured.
+        Use in conjunction with vmin and vmax.
+        Recommended to use only one isosurface with psi.
 
-    *color*:
-      rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
-      e.g. 'red' or character, e.g. 'r', or list of strings/character,
-      or [n, 4] array with rgba values or array of the same shape as input array.
+    color:  rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
+        e.g. 'red' or character, e.g. 'r', or list of strings/character,
+        or [n, 4] array with rgba values or array of the same shape as input array.
 
-    *emission*
-      Light emission by the contours. This overrides 'roughness'.
+    emission:  Light emission by the contours. This overrides 'roughness'.
 
-    *roughness*:
-      Texture roughness.
+    roughness:  Texture roughness.
 
-    *vmin, vmax*
-      Minimum and maximum values for the colormap. If not specify, determine
-      from the input arrays.
+    vmin, vmax:  Minimum and maximum values for the colormap. If not specify, determine
+        from the input arrays.
 
-    *color_map*:
-      Color map for the values stored in the array 'c'.
-      These are the same as in matplotlib.
+    color_map:  Color map for the values stored in the array 'c'.
+        These are the same as in matplotlib.
 
-    *time*:
-      Float array with the time information of the data.
-      Has length nt.
+    time:  Float array with the time information of the data.
+        Has length nt.
 
-    Examples:
-      import numpy as np
-      import blendaviz as blt
-      x = np.linspace(-2, 2, 21)
-      y = np.linspace(-2, 2, 21)
-      z = np.linspace(-2, 2, 21)
-      xx, yy, zz = np.meshgrid(x, y, z)
-      phi = xx**2 + yy**2 + zz**2
-      iso = blt.contour(phi, xx, yy, zz, contours=[0.3, 0.6], color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
+    Returns
+    -------
+    3d Contour plot object.
+
+    Examples
+    ----
+    >>> import numpy as np
+    >>> import blendaviz as blt
+    >>> x = np.linspace(-2, 2, 21)
+    >>> y = np.linspace(-2, 2, 21)
+    >>> z = np.linspace(-2, 2, 21)
+    >>> xx, yy, zz = np.meshgrid(x, y, z)
+    >>> phi = xx**2 + yy**2 + zz**2
+    >>> iso = blt.contour(phi, xx, yy, zz, contours=[0.3, 0.6], color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
     """
 
     import inspect
@@ -955,20 +853,17 @@ class Contour3d(object):
         """
         Set the mesh material.
 
-        call signature:
+        Signature:
 
         __set_material(idx, color_rgba, n_levels):
 
-        Keyword arguments:
+        Parameters
+        ----------
+        idx:  Index of the material.
 
-        *idx*:
-          Index of the material.
+        color_rgba:  The rgba values of the colors to be used.
 
-        *color_rgba*:
-          The rgba values of the colors to be used.
-
-        *n_levels*
-          Number of levels/isosurface.
+        n_levels:  Number of levels/isosurface.
         """
 
         import bpy
@@ -1055,17 +950,15 @@ class Contour3d(object):
         """
         Set the mesh texture.
 
-        call signature:
+        Signature:
 
         __color_vertices(idx, vertices):
 
-        Keyword arguments:
+        Parameters
+        ----------
+        idx:  Index of the material.
 
-        *idx*:
-          Index of the material.
-
-        *vertices*:
-          Vertices of the isosurfaces.
+        vertices:  Vertices of the isosurfaces.
         """
 
         import bpy
@@ -1097,7 +990,7 @@ class Contour3d(object):
         # Generate the colors for the vertices.
         color_rgba = colors.make_rgba_array(psi_vertices, vertices.shape[0],
                                             self.color_map, self.vmin, self.vmax)
-        
+
         # Create a vertex color layer for the mesh.
         vcol_layer = self.mesh_object[idx].data.vertex_colors.new()
 
@@ -1112,7 +1005,7 @@ class Contour3d(object):
         node_vertex_shader = nodes.new(type='ShaderNodeVertexColor')
         node_tree.links.new(node_vertex_shader.outputs['Color'], node_diffuse.inputs['Color'])
         node_vertex_shader.layer_name = 'Col'
-        
+
         # Change the color of the vertices.
         for poly in self.mesh_object[idx].data.polygons:
             for loop_index in poly.loop_indices:
@@ -1134,7 +1027,7 @@ class Contour3d(object):
 
     def update_globals(self):
         """
-        Update the extrema.
+        Update the extrema and lights.
         """
 
         import blendaviz as blt

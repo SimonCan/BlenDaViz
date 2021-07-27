@@ -4,10 +4,10 @@ Contains routines to add and handle the camera.
 """
 
 def adjust_camera():
-    """
+    """7
     Add a camera or change its position and focus.
 
-    call signature:
+    Signature:
 
     adjust_camera()
     """

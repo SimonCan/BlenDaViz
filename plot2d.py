@@ -1,90 +1,62 @@
 # plot2d.py
 """
 Contains routines to two-dimensional plots.
-
-Created on Wed Oct 31 20:30:00 2018
-
-@author: Simon Candelaresi
 """
 
-
-'''
-Test:
-import sys
-sys.path.append('~/codes/blendaviz')
-import numpy as np
-import importlib
-import blendaviz as blt
-importlib.reload(blt.plot2d)
-importlib.reload(blt)
-
-x0 = np.linspace(-3, 3, 20)
-y0 = np.linspace(-3, 3, 20)
-time = np.linspace(0, 100, 101)
-x, y, tt = np.meshgrid(x0, y0, time, indexing='ij')
-z = np.ones_like(x)
-alpha = 0.5
-z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
-z = z*np.sin(tt/30)
-
-mesh = blt.mesh(x, y, z, c='r', time=time, alpha=alpha)
-mesh.plot()
-'''
 
 def mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None,
          time=None):
     """
     Plot a 2d surface with optional color.
 
-    call signature:
+    Signature:
 
     mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None,
          time=None)
 
-    Keyword arguments:
+    Parameters
+    ----------
+    x, y, z: x, y and z coordinates of the points on the surface of shape (nu, nv)
+        or of shape (nu, nv, nt) for time dependent arrays.
+        If z == None then z = 0.
 
-    *x, y, z*:
-      x, y and z coordinates of the points on the surface of shape (nu, nv)
-      or of shape (nu, nv, nt) for time dependent arrays.
-      If z == None then z = 0.
+    c:  Values to be used for the colors.
+        Can be a character or string for constant color, e.g. 'red'
+        or array of shape (nu, nv) for time independent colors
+        or array of shape (nu, nv, nt) for time dependent colors.
 
-    *c*:
-      Values to be used for the colors.
-      Can be a character or string for constant color, e.g. 'red'
-      or array of shape (nu, nv) for time independent colors
-      or array of shape (nu, nv, nt) for time dependent colors.
+    alpha:  Alpha values defining the opacity.
+        Single float or 2d array of shape (nu, nv).
 
-    *alpha*:
-      Alpha values defining the opacity.
-      Single float or 2d array of shape (nu, nv).
+    vmin, vmax:  Minimum and maximum values for the colormap.
+        If not specified, determine from the input arrays.
+        Can be float or array of length nt.
 
-    *vmin, vmax*
-      Minimum and maximum values for the colormap.
-      If not specified, determine from the input arrays.
-      Can be float or array of length nt.
+    color_map:  Color map for the values stored in the array 'c'.
+        These are the same as in matplotlib.
 
-    *color_map*:
-      Color map for the values stored in the array 'c'.
-      These are the same as in matplotlib.
+    time:  Float array with the time information of the data.
+        Has length nt.
 
-    *time*:
-      Float array with the time information of the data.
-      Has length nt.
+    Returns
+    -------
+    2d Surface object with the mesh plot.
 
-    Examples:
-      import numpy as np
-      import blendaviz as blt
-      x0 = np.linspace(-3, 3, 20)
-      y0 = np.linspace(-3, 3, 20)
-      x, y = np.meshgrid(x0, y0, indexing='ij')
-      z = np.ones_like(x)*np.linspace(0, 2, 20)
-      alpha = 0.5
-      z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
-      m = blt.mesh(x, y, z, c='r', alpha=alpha)
-      m.c = z
-      m.plot()
-      m.z = None
-      m.plot()
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import blendaviz as blt
+    >>> x0 = np.linspace(-3, 3, 20)
+    >>> y0 = np.linspace(-3, 3, 20)
+    >>> x, y = np.meshgrid(x0, y0, indexing='ij')
+    >>> z = np.ones_like(x)*np.linspace(0, 2, 20)
+    >>> alpha = 0.5
+    >>> z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
+    >>> m = blt.mesh(x, y, z, c='r', alpha=alpha)
+    >>> m.c = z
+    >>> m.plot()
+    >>> m.z = None
+    >>> m.plot()
     """
 
     import inspect
@@ -228,7 +200,7 @@ class Surface(object):
                 self._c = self.c[:, :, self.time_index]
             else:
                 self._c = self.c
-        
+
         # Delete existing meshes.
         if not self.mesh_object is None:
             bpy.ops.object.select_all(action='DESELECT')
@@ -273,7 +245,7 @@ class Surface(object):
         if isinstance(self._c, np.ndarray):
             mesh_image = bpy.data.images.new('ImageMesh', self._c.shape[0], self._c.shape[1])
             pixels = np.array(mesh_image.pixels)
-            
+
             # Determine the minimum and maximum value for the color map.
             vmin = self._vmin
             vmax = self._vmax
@@ -355,7 +327,7 @@ class Surface(object):
 
     def update_globals(self):
         """
-        Update the extrema.
+        Update the extrema and lights.
         """
 
         import blendaviz as blt
@@ -390,11 +362,11 @@ class Surface(object):
         else:
             if blt.house_keeping.z_min is None:
                 blt.house_keeping.z_min = 0
-            elif 0 < blt.house_keeping.z_min:
+            elif blt.house_keeping.z_min > 0:
                 blt.house_keeping.z_min = 0
             if blt.house_keeping.z_max is None:
                 blt.house_keeping.z_max = 0
-            elif 0 > blt.house_keeping.z_max:
+            elif blt.house_keeping.z_max < 0:
                 blt.house_keeping.z_max = 0
 
         if blt.house_keeping.box is None:

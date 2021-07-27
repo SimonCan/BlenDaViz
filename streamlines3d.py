@@ -1,10 +1,6 @@
 # streamlines3d.py
 """
 Contains routines to generate and plot streamlines.
-
-Created on Thu Jan 09 16:33:00 2020
-
-@authors: Simon Candelaresi
 """
 
 
@@ -65,7 +61,7 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
     """
     Plot streamlines of a given vector field.
 
-    call signature:
+    Signature:
 
     streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=None,
                          seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
@@ -75,102 +71,86 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
                          radius=0.1, resolution=8, vmin=None, vmax=None,
                          color_map=None, n_proc=1)
 
-    Keyword arguments:
-
-    *field_function*
-      Function that is to be integrated. Function has to accept following call signature:
+    Parameters
+    ----------
+    field_function:  Function that is to be integrated. Function has to accept following call signature:
         yy = function(t, xx)
-            *t*: 'time' variable for non-constant functions
-            *xx*: three-element numpy array of location in cartesian coordinates
-            *yy*: three-element numpy array representing vector field in cartesian coordinates
+        t:  'time' variable for non-constant functions
+        xx:  three-element numpy array of location in cartesian coordinates
+        yy:  three-element numpy array representing vector field in cartesian coordinates
     OR:
         yy = function(xx)
-            *xx*: three-element numpy array of location in cartesian coordinates
-            *yy*: three-element numpy array representing vector field in cartesian coordinates
+        xx:  three-element numpy array of location in cartesian coordinates
+        yy:  three-element numpy array representing vector field in cartesian coordinates
     and function will be assumed constant in time
 
-    *n_seeds*:
-      Number of randomly distributed seeds within a sphere
-      of radius seed_radius centered at seed_center.
+    n_seeds:  Number of randomly distributed seeds within a sphere
+        of radius seed_radius centered at seed_center.
 
-    *seeds*
-      Seeds for the streamline tracing of shape (n_seeds, 3).
-      Overrides n_seeds.
+    seeds:  Seeds for the streamline tracing of shape (n_seeds, 3).
+        Overrides n_seeds.
 
-    *seed_radius*:
-      Radius of the sphere with the seeds.
+    seed_radius:  Radius of the sphere with the seeds.
 
-    *seed_center*:
-       Center of the sphere with the seeds.
+    seed_center:  Center of the sphere with the seeds.
 
-    *method*:
-      Integration method for the scipy.integrate.solve_ivp method:
-      'RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA'.
+    method:  Integration method for the scipy.integrate.solve_ivp method:
+        'RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA'.
 
-    *atol*:
-      Absolute tolerance of the field line tracer.
+    atol:  Absolute tolerance of the field line tracer.
 
-    *rtol*:
-      Relative tolerance of the field line tracer.
+    rtol:  Relative tolerance of the field line tracer.
 
-    *metric*:
-      Metric function that takes a point [x, y, z] and an array
-      of shape [3, 3] that has the comkponents g_ij.
-      Use 'None' for Cartesian metric.
+    metric:  Metric function that takes a point [x, y, z] and an array
+        of shape [3, 3] that has the comkponents g_ij.
+        Use 'None' for Cartesian metric.
 
-    *integration_time*:
-      Length of the integration time. You need to adapt this according to your
-      field strength and box size.
+    integration_time:  Length of the integration time. You need to adapt this according to your
+        field strength and box size.
 
-    *integration_steps*:
-      Number of integration steps for the field line integration.
-      This determines how fine the curve appears.
+    integration_steps:  Number of integration steps for the field line integration.
+        This determines how fine the curve appears.
 
-    *integration_direction:
-      Can be 'forward', 'backward' or 'both' (default).
+    integration_direction:  Can be 'forward', 'backward' or 'both' (default).
 
-    *color*:
-      rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
-      e.g. 'red' or character, e.g. 'r', or list of strings/character,
-      or [n, 4] array with rgba values or array of the same shape as input array.
+    color:  rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
+        e.g. 'red' or character, e.g. 'r', or list of strings/character,
+        or [n, 4] array with rgba values or array of the same shape as input array.
 
-    *color_scalar*:
-      Scalar function to be used to color the streamlines.
-      Set to 'magnitude' to use the vector field's magnitude.
+    color_scalar:  Scalar function to be used to color the streamlines.
+        Set to 'magnitude' to use the vector field's magnitude.
 
-    *emission*
-      Light emission by the streamlines. This overrides 'roughness'.
+    emission:  Light emission by the streamlines. This overrides 'roughness'.
 
-    *roughness*:
-      Texture roughness.
+    roughness:  Texture roughness.
 
-    *radius*:
-      Radius of the plotted tube, i.e. line width.
+    radius:  Radius of the plotted tube, i.e. line width.
 
-    *resolution*:
-      Azimuthal resolution of the tubes in vertices.
-      Positive integer > 2.
+    resolution:  Azimuthal resolution of the tubes in vertices.
+        Positive integer > 2.
 
-    *vmin, vmax*:
-      Minimum and maximum values for the colormap. If not specify, determine
-      from the input arrays.
+    vmin, vmax:  Minimum and maximum values for the colormap. If not specify, determine
+        from the input arrays.
 
-    *color_map*:
-      Color map for the values stored in the array 'c'.
-      These are the same as in matplotlib.
+    color_map:  Color map for the values stored in the array 'c'.
+        These are the same as in matplotlib.
 
-    *n_proc*:
-      Number of processors to run the streamline integration on, default 1.
+    n_proc:  Number of processors to run the streamline integration on, default 1.
 
-    Examples:
-      import numpy as np
-      import blendaviz as blt
-      def irrational_hopf(t, xx):
-          return 1/(1+np.sum(x**2))**3 * \
-              np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),\
-              -2*(np.sqrt(2)*x[0] + x[1]*x[2]),\
-              (-1 + x[0]**2 +x[1]**2 -x[2]**2)])
-      stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500)
+    Returns
+    -------
+    3d Streamline plot object.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import blendaviz as blt
+    >>> def irrational_hopf(t, xx):
+    >>>     return 1/(1+np.sum(x**2))**3 * \
+    >>>     np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),\
+    >>>     -2*(np.sqrt(2)*x[0] + x[1]*x[2]),\
+    >>>     (-1 + x[0]**2 +x[1]**2 -x[2]**2)])
+    >>> stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500)
     """
 
     import inspect
@@ -196,7 +176,7 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
     """
     Plot streamlines of a given vector field.
 
-    call signature:
+    Signature:
 
     streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=None,
                       seed_radius=1, periodic=None,
@@ -207,111 +187,89 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
                       radius=0.1, resolution=8, vmin=0, vmax=1, color_map=None,
                       n_proc=1, time=None)
 
-    Keyword arguments:
+    Parameters
+    ----------
 
-    *x, y, z*:
-      x, y and z position of the data. These can be 1d arrays of the same length.
+    x, y, z:  x, y and z position of the data. These can be 1d arrays of the same length.
 
-    *u, v, w*
-      x, y and z components of the vector field of the shape [nx, ny, nz]
+    u, v, w:  x, y and z components of the vector field of the shape [nx, ny, nz]
 
-    *n_seeds*:
-      Number of randomly distributed seeds within a sphere
-      of radius seed_radius centered at seed_center.
+    n_seeds:  Number of randomly distributed seeds within a sphere
+        of radius seed_radius centered at seed_center.
 
-    *seeds*
-      Seeds for the streamline tracing of shape [n_seeds, 3].
-      Overrides n_seeds.
+    seeds:  Seeds for the streamline tracing of shape [n_seeds, 3].
+        Overrides n_seeds.
 
-    *periodic*:
-      Periodicity array/list for the three directions.
-      If true trace streamlines across the boundary and back.
+    periodic:  Periodicity array/list for the three directions.
+        If true trace streamlines across the boundary and back.
 
-    *interpolation*:
-       Interpolation of the vector field.
-       'mean': Take the mean of the adjacent grid point.
-       'trilinear': Weigh the adjacent grid points according to their distance.
-       'tricubic': Use a tricubic spline intnerpolation.
+    interpolation:  Interpolation of the vector field.
+        'mean': Take the mean of the adjacent grid point.
+        'trilinear': Weigh the adjacent grid points according to their distance.
+        'tricubic': Use a tricubic spline intnerpolation.
 
-    *method*:
-        Integration method for the scipy.integrate.solve_ivp method:
+    method:  Integration method for the scipy.integrate.solve_ivp method:
         'RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA'.
 
-    *atol*:
-      Absolute tolerance of the field line tracer.
+    atol:  Absolute tolerance of the field line tracer.
 
-    *rtol*:
-      Relative tolerance of the field line tracer.
+    rtol:  Relative tolerance of the field line tracer.
 
-    *metric*:
-        Metric function that takes a point [x, y, z] and an array
+    metric:  Metric function that takes a point [x, y, z] and an array
         of shape [3, 3] that has the comkponents g_ij.
         Use 'None' for Cartesian metric.
 
-    *integration_time*:
-      Length of the integration time. You need to adapt this according to your
-      field strength and box size.
+    integration_time:  Length of the integration time. You need to adapt this according to your
+        field strength and box size.
 
-    *integration_steps*:
-      Number of integration steps for the field line integration.
-      This determines how fine the curve appears.
+    integration_steps:  Number of integration steps for the field line integration.
+        This determines how fine the curve appears.
 
-    *integration_direction:
-      Can be 'forward', 'backward' or 'both' (default).
+    integration_direction:  Can be 'forward', 'backward' or 'both' (default).
 
-    *color*:
-      rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
-      e.g. 'red' or character, e.g. 'r', or list of strings/character,
-      or [n, 4] array with rgba values or array of the same shape as input array.
+    color:  rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
+        e.g. 'red' or character, e.g. 'r', or list of strings/character,
+        or [n, 4] array with rgba values or array of the same shape as input array.
 
-    *color_scalar*:
-      Scalar array of shape [nx, ny, nz] to be used to color the streamlines.
-      Set to 'magnitude' to use the vector field's magnitude.
+    color_scalar:  Scalar array of shape [nx, ny, nz] to be used to color the streamlines.
+        Set to 'magnitude' to use the vector field's magnitude.
 
-    *emission*
-      Light emission by the streamlines. This overrides 'roughness'.
+    emission:  Light emission by the streamlines. This overrides 'roughness'.
 
-    *roughness*:
-      Texture roughness.
+    roughness:  Texture roughness.
 
-    *radius*:
-      Radius of the plotted tube, i.e. line width.
+    radius:  Radius of the plotted tube, i.e. line width.
 
-    *resolution*:
-      Azimuthal resolution of the tubes in vertices.
-      Positive integer > 2.
+    resolution:  Azimuthal resolution of the tubes in vertices.
+        Positive integer > 2.
 
-    *x, y, z*:
-      x, y and z position of the data. These can be 1d arrays of the same length.
+    vmin, vmax:  Minimum and maximum values for the colormap. If not specify, determine
+        from the input arrays.
 
-    *u, v, w*
-      x, y and z components of the vector field of the shape [nx, ny, nz]
+    color_map:  Color map for the values stored in the array 'c'.
+        These are the same as in matplotlib.
 
-      Minimum and maximum values for the colormap. If not specify, determine
-      from the input arrays.
+    n_proc:  Number of processors to run the streamline integration on, default 1.
 
-    *color_map*:
-      Color map for the values stored in the array 'c'.
-      These are the same as in matplotlib.
+    time:  Float array with the time information of the data.
+        Has length nt.
 
-    *n_proc*:
-      Number of processors to run the streamline integration on, default 1.
+    Returns
+    -------
+    3d Streamline plot object.
 
-    *time*:
-      Float array with the time information of the data.
-      Has length nt.
-
-    Examples:
-      import numpy as np
-      import blendaviz as blt
-      x = np.linspace(-4, 4, 100)
-      y = np.linspace(-4, 4, 100)
-      z = np.linspace(-4, 4, 100)
-      xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
-      u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
-      v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
-      w = np.ones_like(u)*0.1
-      stream = blt.streamlines(x, y, z, u, v, w, n_seeds=20, integration_time=100, integration_steps=10)
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import blendaviz as blt
+    >>> x = np.linspace(-4, 4, 100)
+    >>> y = np.linspace(-4, 4, 100)
+    >>> z = np.linspace(-4, 4, 100)
+    >>> xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
+    >>> u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
+    >>> v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
+    >>> w = np.ones_like(u)*0.1
+    >>> stream = blt.streamlines(x, y, z, u, v, w, n_seeds=20, integration_time=100, integration_steps=10)
     """
 
     import inspect
@@ -539,14 +497,13 @@ class Streamline3d(object):
         Trace a field starting from xx in any rectilinear coordinate system
         with constant dx, dy and dz and with a given metric.
 
-        call signature:
+        Signature:
 
-        tracer(xx=(0, 0, 0)):
+        tracer(xx=(0, 0, 0))
 
-        Keyword arguments:
-
-        *xx*:
-          Starting point of the field line integration with starting time.
+        Parameters
+        ----------
+        xx:  Starting point of the field line integration with starting time.
         """
 
         # Portion up the work given i_proc and n_proc.
@@ -572,14 +529,13 @@ class Streamline3d(object):
         Trace a field starting from xx in any rectilinear coordinate system
         with constant dx, dy and dz and with a given metric.
 
-        call signature:
+        Signature:
 
-        tracer(xx=(0, 0, 0)):
+        tracer(xx=(0, 0, 0))
 
-        Keyword arguments:
-
-        *xx*:
-          Starting point of the field line integration with starting time.
+        Parameters
+        ----------
+        xx:  Starting point of the field line integration with starting time.
         """
 
         import numpy as np
@@ -612,19 +568,19 @@ class Streamline3d(object):
         return tracers
 
 
+# TODO: implement this
     def delete_outside_points(self, tracers):
         """
         [NOT IMPLEMENTED]
         Delete any points of the tracer that lie outside the domain.
 
-        call signature:
+        Signature:
 
         delete_outside_points(tracers)
 
-        Keyword arguments:
-
-        *tracers*:
-          Field line tracer array.
+        Parameters
+        ----------
+        tracers:  Field line tracer array.
         """
 
         return tracers
@@ -634,17 +590,15 @@ class Streamline3d(object):
         """
         Set the mesh material color.
 
-        call signature:
+        Signature:
 
-        __set_material(idx, color_rgba):
+        __set_material(idx, color_rgba)
 
-        Keyword arguments:
+        Parameters
+        ----------
+        idx:  Index of the material.
 
-        *idx*:
-          Index of the material.
-
-        *color_rgba*:
-          The rgba values of the colors to be used.
+        color_rgba:  The rgba values of the colors to be used.
         """
 
         import bpy
@@ -733,14 +687,13 @@ class Streamline3d(object):
         """
         Set the mesh material texture.
 
-        call signature:
+        Signature:
 
-        __set_material_texture(tracer_idx):
+        __set_material_texture(tracer_idx)
 
-        Keyword arguments:
-
-        *tracer_idx*:
-          Index of the tracer.
+        Parameters
+        ----------
+        tracer_idx:  Index of the tracer.
         """
 
         import bpy
@@ -782,12 +735,13 @@ class Streamline3d(object):
         """
         Find the scalar values for generating the texture along the streamlines.
 
-        call signature:
+        Signature:
 
-        set_texture_scalar_values(tracer_idx):
+        set_texture_scalar_values(tracer_idx)
 
-        *tracer_idx*:
-          Index of the tracer.
+        Parameters
+        ----------
+        tracer_idx:  Index of the tracer.
         """
 
         import numpy as np
@@ -805,12 +759,13 @@ class Streamline3d(object):
 
     def __generate_seed_points(self):
         """
-        Generate the seed points for the
+        Generate the seed points for the streamline tracer.
         Generates a random 3D unit vector (direction) with a uniform spherical distribution,
         and a uniformly distributed radius.
         This means points are weighted towards the center!
         Algo from http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution
         """
+
         import numpy as np
 
         if isinstance(self.seeds, np.ndarray):
@@ -830,7 +785,6 @@ class Streamline3d(object):
             costheta = np.random.uniform(-1, 1, self.n_seeds)
             theta = np.arccos(costheta)
             radius = self.seed_radius*np.cbrt(np.random.uniform(0, 1, self.n_seeds))
-#            radius = np.random.uniform(0, self.seed_radius)/(self.seed_radius**2) #needs to be adapted
             x = radius*np.sin(theta)*np.cos(phi) + self.seed_center[0]
             y = radius*np.sin(theta)*np.sin(phi) + self.seed_center[1]
             z = radius*np.cos(theta) + self.seed_center[2]
@@ -971,12 +925,11 @@ class Streamline3dArray(Streamline3d):
         """
         Find the scalar values for generating the texture along the streamlines.
 
-        call signature:
+        Signature:
 
-        set_texture_scalar_values(tracer_idx):
+        set_texture_scalar_values(tracer_idx)
 
-        *tracer_idx*:
-          Index of the tracer.
+        tracer_idx:  Index of the tracer.
         """
 
         import numpy as np
@@ -1001,17 +954,15 @@ class Streamline3dArray(Streamline3d):
         Trilinear spline interpolation like eqtools.trispline.Spline
         but return 0 if the point lies outside the box.
 
-        call signature:
+        Signature:
 
         trilinear_func(xx, field_x, field_y, field_z,)
 
-        Keyword arguments:
+        Parameters
+        ----------
+        xx:  The xyz coordinates of the point to interpolate the data.
 
-        *xx*:
-          The zyx coordinates of the point to interpolate the data.
-
-        *field_xyz*:
-          The Spline objects for the velocity fields.
+        field_xyz:  The Spline objects for the velocity fields.
         """
 
         import numpy as np
@@ -1045,17 +996,16 @@ class Streamline3dArray(Streamline3d):
         """
         Interpolates the vector field around position xx.
 
-        call signature:
+        Signature:
 
         vec_int(xx)
 
-        Keyword arguments:
+        Parameters
+        ----------
+        xx:  Position vector around which field will be interpolated.
 
-        *xx*:
-          Position vector around which field will be interpolated.
-
-        *interpolation*
-          the type of interpolation that is to be performed, 'mean', 'trilinear' or 'tricubic'
+        interpolation: The type of interpolation that is to be performed,
+            'mean', 'trilinear' or 'tricubic'
         """
 
         import numpy as np
@@ -1163,14 +1113,13 @@ class Streamline3dArray(Streamline3d):
         """
         Delete any points of the tracer that lie outside the domain.
 
-        call signature:
+        Signature:
 
         delete_outside_points(tracers)
 
-        Keyword arguments:
-
-        *tracers*:
-          Field line tracer array.
+        Parameters
+        ----------
+        tracers:  Field line tracer array.
         """
 
         import numpy as np
@@ -1242,7 +1191,7 @@ class Streamline3dArray(Streamline3d):
 
     def update_globals(self):
         """
-        Update the extrema.
+        Update the extrema and lights.
         """
 
         import blendaviz as blt

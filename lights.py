@@ -7,7 +7,7 @@ def adjust_lights():
     """
     Add lights or change their parameters.
 
-    call signature:
+    Signature:
 
     adjust_lights()
     """

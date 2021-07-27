@@ -4,37 +4,6 @@ Contains routines to one-dimensional plots.
 """
 
 
-'''
-Test:
-import numpy as np
-import importlib
-import blendaviz as blt
-importlib.reload(blt.plot1d)
-importlib.reload(blt.camera)
-importlib.reload(blt)
-
-n = 30
-nt = 100
-time = np.linspace(0, 100, nt)
-z = np.linspace(0, 6*np.pi, n)
-# z = np.linspace(0, 6*np.pi, n)[:, np.newaxis] + np.sin(time/5)/5
-x = 3*np.cos(z)
-y = 3*np.sin(z)
-r = np.linspace(0.1, 0.5, 30)
-r = r[:, np.newaxis]*np.linspace(1, 5, nt)
-# r = np.linspace(0.3, 1, 100)
-# r = r[np.newaxis, :]
-# rotation_x = np.ones([x.shape[0], time.shape[0]])*time/10
-pl = blt.plot(x, y, z, marker='cube', time=time, radius=r)
-
-pl = blt.plot(x, y, z, marker='cube', radius=0.5, rotation_x=z, rotation_y=np.zeros_like(x), rotation_z=np.zeros_like(x))
-colors = np.random.random([x.shape[0], 4])
-pl = blt.plot(x, y, z, marker='cube')
-pl = blt.plot(x, y, z, marker='cube', color=colors)
-pl.z = np.linspace(0, 1, 5)
-pl.plot()
-'''
-
 from blendaviz.generic import GenericPlot
 
 
@@ -44,70 +13,66 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
     """
     Line plot in 3 dimensions as a line, tube or shapes.
 
-    call signature:
+    Signature:
 
     plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
          emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
          marker=None, time=None)
 
-    Keyword arguments:
+    Parameters
+    ----------
+    x, y, z:  x, y and z coordinates of the points to be plotted.
+        These are 1d arrays of the same length n
+        or 2d time dependent arrays of shape (n, nt).
 
-    *x, y, z*:
-      x, y and z coordinates of the points to be plotted.
-      These are 1d arrays of the same length n
-      or 2d time dependent arrays of shape (n, nt).
+    radius:  Radius of the plotted tube, i.e. line width, or size of the markers.
+        Positive real number for point and time independenet radius
+        or 1d array of length n for point dependenet radius
+        or 2d array of length (n, nt) for point and time dependenet radius
+        or 2d array of length (1, nt) for time dependenet radius.
 
-    *radius*:
-      Radius of the plotted tube, i.e. line width, or size of the markers.
-      Positive real number for point and time independenet radius
-      or 1d array of length n for point dependenet radius
-      or 2d array of length (n, nt) for point and time dependenet radius
-      or 2d array of length (1, nt) for time dependenet radius.
+    rotation_[xyz]: Rotation angle around the xyz axis.
+        Real number for point and time independent radius
+        or array of length n for point dependent radius
+        or 2d array of length (n, nt) for point and time dependent radius
+        or 2d array of length (1, nt) for time dependent radius.
 
-    *rotation_[xyz]*:
-      Rotation angle around the xyz axis.
-      Real number for point and time independent radius
-      or array of length n for point dependent radius
-      or 2d array of length (n, nt) for point and time dependent radius
-      or 2d array of length (1, nt) for time dependent radius.
+    resolution:  Azimuthal resolution of the tubes in vertices.
+        Positive integer > 2.
 
-    *resolution*:
-      Azimuthal resolution of the tubes in vertices.
-      Positive integer > 2.
+    color:  rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
+        e.g. 'red', or character, e.g. 'r', or n-array of strings/character,
+        or [n, 4] array with rgba values.
 
-    *color*:
-      rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
-      e.g. 'red', or character, e.g. 'r', or n-array of strings/character,
-      or [n, 4] array with rgba values.
+    emission:  Light emission of the line or markers.
+        Real number for a line plot and array for markers.
 
-    *emission*
-      Light emission of the line or markers.
-      Real number for a line plot and array for markers.
+    roughness:  Texture roughness.
 
-    *roughness*:
-      Texture roughness.
+    marker:  Marker to be used for the plot.
+        String with standard Blender 3d shapes: 'cube', 'uv_sphere', 'ico_sphere',
+        'cylinder', 'cone', 'torus', 'monkey'.
+        Custom shape or blender object.
+        1d array of length n of one of the above.
 
-    *marker*:
-      Marker to be used for the plot.
-      String with standard Blender 3d shapes: 'cube', 'uv_sphere', 'ico_sphere',
-      'cylinder', 'cone', 'torus', 'monkey'.
-      Custom shape or blender object.
-      1d array of length n of one of the above.
+    time:  Float array with the time information of the data.
+        Has length nt.
 
-    *time*:
-      Float array with the time information of the data.
-      Has length nt.
+    Returns
+    -------
+    1d PathLine object.
 
-    Examples:
-      import numpy as np
-      import blendaviz as blt
-      z = np.linspace(0, 6*np.pi, 30)
-      x = 3*np.cos(z)
-      y = 3*np.sin(z)
-      pl = blt.plot(x, y, z, marker='cube', radius=0.5, rotation_x=z, rotation_y=np.zeros_like(x), rotation_z=np.zeros_like(x))
-      pl.colors = np.random.random([x.shape[0], 3])
-      pl.z = np.linspace(0, 6, 30)
-      pl.plot()
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import blendaviz as blt
+    >>> z = np.linspace(0, 6*np.pi, 30)
+    >>> x = 3*np.cos(z)
+    >>> y = 3*np.sin(z)
+    >>> pl = blt.plot(x, y, z, marker='cube', radius=0.5, rotation_x=z, rotation_y=np.zeros_like(x), rotation_z=np.zeros_like(x))
+    >>> pl.colors = np.random.random([x.shape[0], 3])
+    >>> pl.z = np.linspace(0, 6, 30)
+    >>> pl.plot()
     """
 
     import inspect
@@ -208,7 +173,7 @@ class PathLine(GenericPlot):
                 setattr(self, '_' + array_with_time, array_value)
             else:
                 setattr(self, '_' + array_with_time, array_value[:, self.time_index])
-        
+
         # Delete existing curve.
         if not self.curve_data is None:
             bpy.data.curves.remove(self.curve_data)
@@ -468,7 +433,7 @@ class PathLine(GenericPlot):
 
     def update_globals(self):
         """
-        Update the extrema.
+        Update the extrema, camera and lights.
         """
 
         import blendaviz as blt

@@ -4,48 +4,37 @@ Contains classes for the embedding of matplotlib plots in BlenDaViz.
 """
 
 
-'''
-Test:
-import sys
-sys.path.append('~/codes/blendaviz')
-import numpy as np
-import importlib
-import matplotlib.pyplot as plt
-import blendaviz as blt
-importlib.reload(blt.matplotlib_bridge)
-importlib.reload(blt)
-
-x = np.linspace(0, 5, 1000)
-fig = plt.figure()
-plt.plot(x, np.sin(x), color='g')
-plt.title("test")
-
-mbl = blt.mpl_figure_to_blender(fig)
-'''
-
 def mpl_figure_to_blender(figure, dpi=300, position=None, normal=None):
     """
     Plot a Matplotlib figure into blender.
 
-    call signature:
+    Signature:
 
     mesh(figure, dpi=300, corners=None)
 
-    Keyword arguments:
+    Parameters
+    ----------
+    figure:  Matplotlib figure from your plot.
 
-    *figure*:
-      Matplotlib figure from your plot.
+    dpi:  Resolution in dots per inch.
 
-    *dpi*:
-      Resolution in dots per inch.
+    position:  Lower left corner for positioning.
 
-    *position*:
-      Lower left corner for positioning.
+    normal:  Normal vector of the plane.
 
-    *normal*:
-      Normal vector of the plane.
+    Returns
+    -------
+    Class containing the mesh object.
 
-    Examples:
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import blendaviz as blt
+    >>> x = np.linspace(0, 5, 1000)
+    >>> fig = plt.figure()
+    >>> plt.plot(x, np.sin(x), color='g')
+    >>> plt.title("test")
+    >>> mbl = blt.mpl_figure_to_blender(fig)
     """
 
     import inspect
@@ -75,6 +64,7 @@ class MPLEmbedding(object):
         self.figure = None
         self.dpi = 300
         self.position = None
+        self.normal = None
 
         self.mesh_data = None
         self.mesh_object = None
@@ -103,7 +93,7 @@ class MPLEmbedding(object):
             self.normal = np.array([0, 0, 1])
         self.position = np.array(self.position)
         self.normal = np.array(self.normal)
-        
+
         # Delete existing meshes.
         if not self.mesh_object is None:
             bpy.ops.object.select_all(action='DESELECT')
@@ -123,7 +113,7 @@ class MPLEmbedding(object):
         # Resize the plane to match the plot size.
         bpy.ops.transform.resize(value=(self.figure.get_size_inches()[0],
                                         self.figure.get_size_inches()[1], 1),
-                                mirror=True)
+                                 mirror=True)
 
         # Orient the plane following the normal vector.
         rotation = np.zeros(3)
@@ -138,17 +128,17 @@ class MPLEmbedding(object):
         buffer.seek(0)
         im = Image.open(buffer)
         pixels = np.reshape(list(im.getdata()), [im.height, im.width, 4])[::-1, :, :]
-        
+
         # Assign a material to the surface.
         self.mesh_data = bpy.context.object.data
         self.mesh_material = bpy.data.materials.new('MaterialMesh')
         self.mesh_data.materials.append(self.mesh_material)
-        
+
         # Assign image texture to mesh.
         mesh_image = bpy.data.images.new('ImageMesh', im.width, im.height)
         print(np.array(pixels).shape)
         mesh_image.pixels = np.array(pixels).flatten()
-        
+
         # Assign the texture to the material.
         self.mesh_material.use_nodes = True
         self.mesh_texture = self.mesh_material.node_tree.nodes.new('ShaderNodeTexImage')
@@ -156,61 +146,10 @@ class MPLEmbedding(object):
         links = self.mesh_material.node_tree.links
         links.new(self.mesh_texture.outputs[0],
                   self.mesh_material.node_tree.nodes.get("Principled BSDF").inputs[0])
-        
+
         buffer.close()
 
         # Make the mesh the deletable object.
         self.deletable_object = self.mesh_object
 
-#        self.update_globals()
-
         return 0
-
-#
-#    def update_globals(self):
-#        """
-#        Update the extrema.
-#        """
-#
-#        import blendaviz as blt
-#        import numpy as np
-
-#        if blt.house_keeping.x_min is None:
-#            blt.house_keeping.x_min = np.min(self.corners[:, 0])
-#        elif np.min(self.corners[:, 0]) < blt.house_keeping.x_min:
-#            blt.house_keeping.x_min = np.min(self.corners[:, 0])
-#        if blt.house_keeping.x_max is None:
-#            blt.house_keeping.x_max = np.max(self.corners[:, 0])
-#        elif np.max(self.corners[:, 0]) > blt.house_keeping.x_max:
-#            blt.house_keeping.x_max = np.max(self.corners[:, 0])
-#
-#        if blt.house_keeping.y_min is None:
-#            blt.house_keeping.y_min = np.min(self.corners[:, 1])
-#        elif np.min(self.corners[:, 1]) < blt.house_keeping.y_min:
-#            blt.house_keeping.y_min = np.min(self.corners[:, 1])
-#        if blt.house_keeping.y_max is None:
-#            blt.house_keeping.y_max = np.max(self.corners[:, 1])
-#        elif np.max(self.corners[:, 1]) > blt.house_keeping.y_max:
-#            blt.house_keeping.y_max = np.max(self.corners[:, 1])
-#
-#        if blt.house_keeping.z_min is None:
-#            blt.house_keeping.z_min = np.min(self.corners[:, 2])
-#        elif np.min(self.corners[:, 2]) < blt.house_keeping.z_min:
-#            blt.house_keeping.z_min = np.min(self.corners[:, 2])
-#        if blt.house_keeping.z_max is None:
-#            blt.house_keeping.z_max = np.max(self.corners[:, 2])
-#        elif np.max(self.corners[:, 2]) > blt.house_keeping.z_max:
-#            blt.house_keeping.z_max = np.max(self.corners[:, 2])
-#
-#        if blt.house_keeping.box is None:
-#            blt.house_keeping.box = blt.bounding_box()
-#        else:
-#            blt.house_keeping.box.get_extrema()
-#            blt.house_keeping.box.plot()
-
-#        # Add some light.
-#        blt.adjust_lights()
-
-
-
-

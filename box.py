@@ -3,38 +3,35 @@
 Contains routines to generate the bounding box.
 """
 
-'''
-import numpy as np
-import importlib
-import blendaviz as blt
-importlib.reload(blt.box)
-importlib.reload(blt)
-
-extrema = np.array([0, 1, 0, 2, 0, 3])
-blt.bounding_box(extrema)
-'''
-
 
 def bounding_box(extrema=None, thickness=0.1, color='k'):
     """
     Plot a bounding box with a given size.
 
-    call signature:
+    Signature:
 
     bounding_box(extrema, thickness=0.1, color='k')
 
-    Keyword arguments:
+    Parameters
+    ----------
+    extrema:  If none given, use globals.
+        Array of length 6 with components [x_min, x_max, y_min, y_max, z_min, z_max].
 
-    *extream*:
-      If none given, use globals.
-      Array of length 6 with components [x_min, x_max, y_min, y_max, z_min, z_max].
+    thickness:  Thickness of the lines.
 
-    *thickness*:
-      Thickness of the lines.
+    color:  rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1,
+        or string, e.g. 'red', or character, e.g. 'r'.
 
-    *color*:
-      rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1, or string,
-      e.g. 'red', or character, e.g. 'r'.
+    Returns
+    -------
+    Class containing the bounding box.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import blendaviz as blt
+    >>> extrema = np.array([0, 1, 0, 2, 0, 3])
+    >>> blt.bounding_box(extrema)
     """
 
     import inspect
@@ -92,10 +89,8 @@ class BoundingBox(object):
         if not self.curve_data is None:
             for curve_data in self.curve_data:
                 bpy.data.curves.remove(curve_data)
-#            for curve_object in self.curve_object:
-#                bpy.data.curves.remove(curve_data)
-#            curve_object
 
+# TODO: Implement colors.
 #        # Transform color string into rgba.
 #        color_rgba = colors.make_rgba_array(self.color, 1)
 
@@ -233,9 +228,3 @@ class BoundingBox(object):
         self.extrema = (blt.house_keeping.x_min, blt.house_keeping.x_max,
                         blt.house_keeping.y_min, blt.house_keeping.y_max,
                         blt.house_keeping.z_min, blt.house_keeping.z_max)
-
-
-
-
-
-

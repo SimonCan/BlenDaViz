@@ -6,6 +6,8 @@
 # Install missing python packages using:
 # python3.7m -m pip install [LIB_NAME]
 
+import bpy
+
 # Load sub-modules.
 from .generic import *
 from .plot1d import *
@@ -21,13 +23,18 @@ from .lights import *
 from .camera import *
 #from .seeds import *
 
+
+# Initialize our global housekeeping object.
 __stack__ = []
 house_keeping = HouseKeeping()
 
-# Override the object delete operation.
-import bpy
 
-class delete_override(bpy.types.Operator):
+# Override the object delete operation.
+class DeleteOverride(bpy.types.Operator):
+    """
+    Override the mesh delete operation.
+    """
+
     bl_idname = "object.delete"
     bl_label = "Object Delete Operator"
 
@@ -40,12 +47,6 @@ class delete_override(bpy.types.Operator):
         # Find the plot objects that will be removed from the stack.
         for obj in context.selected_objects:
             for plot in __stack__:
-#                if hasattr(plot, 'curve_object'):
-#                    if isinstance(plot.curve_object, bpy.types.Object):
-#                        stack_obj = plot.curve_object
-#                if hasattr(plot, 'marker_mesh'):
-#                    if isinstance(plot.marker_mesh, bpy.types.Object):
-#                        stack_obj = plot.marker_mesh
                 stack_obj = plot.deletable_object
                 if stack_obj == obj:
                     stack_remove_list.append(plot)
@@ -54,11 +55,11 @@ class delete_override(bpy.types.Operator):
         for plot in stack_remove_list:
             __stack__.remove(plot)
         return {'FINISHED'}
-    
-def register():
-    bpy.utils.register_class(delete_override)
-    
-def unregister():
-    bpy.utils.unregister_class(delete_override)
 
-register()
+def register_delete_override():
+    bpy.utils.register_class(DeleteOverride)
+
+def unregister_delete_override():
+    bpy.utils.unregister_class(DeleteOverride)
+
+register_delete_override()
