@@ -3,6 +3,7 @@
 Contains routines to add and handle lights.
 """
 
+
 def adjust_lights():
     """
     Add lights or change their parameters.
@@ -16,11 +17,10 @@ def adjust_lights():
     import blendaviz as blt
     import numpy as np
 
-    if blt.house_keeping.lights is None:
-        blt.house_keeping.lights = []
-        for i in range(6):
+    for i in range(6):
+        if blt.house_keeping.lights[i] is None:
             bpy.ops.object.light_add(type='SUN', radius=1, location=(0, 0, 0))
-            blt.house_keeping.lights.append(bpy.context.object)
+            blt.house_keeping.lights[i] = bpy.context.object
     blt.house_keeping.lights[0].location = [blt.house_keeping.x_max + (blt.house_keeping.x_max - blt.house_keeping.x_min)/4,
                                             (blt.house_keeping.y_min + blt.house_keeping.y_max)/2,
                                             (blt.house_keeping.z_min + blt.house_keeping.z_max)/2]
@@ -47,3 +47,4 @@ def adjust_lights():
     blt.house_keeping.lights[3].rotation_euler[0] = np.pi/2
     blt.house_keeping.lights[4].rotation_euler[0] = 0
     blt.house_keeping.lights[5].rotation_euler[0] = np.pi
+

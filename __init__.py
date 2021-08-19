@@ -50,6 +50,13 @@ class DeleteOverride(bpy.types.Operator):
                 stack_obj = plot.deletable_object
                 if stack_obj == obj:
                     stack_remove_list.append(plot)
+            for i, light in enumerate(house_keeping.lights):
+                if light == obj:
+                    house_keeping.lights[i] = None
+            if obj == house_keeping.camera:
+                house_keeping.camera = None
+            if obj == house_keeping.box:
+                house_keeping.box = None
             bpy.data.objects.remove(obj)
         # Remove all plot objects connected to the deleted geometry.
         for plot in stack_remove_list:
@@ -63,3 +70,6 @@ def unregister_delete_override():
     bpy.utils.unregister_class(DeleteOverride)
 
 register_delete_override()
+
+# Add the needed deletable_object object attribute to the Blender light class.
+setattr(bpy.types.Object, 'deletable_object', None)

@@ -23,6 +23,6 @@ class HouseKeeping(object):
 
         self.box = None
 
-        self.lights = None
+        self.lights = [None for i in range(6)]
 
         self.camera = None
