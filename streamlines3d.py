@@ -171,7 +171,7 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
                       metric=None, integration_time=1, integration_steps=10,
                       integration_direction='both',
                       color=(0, 1, 0, 1), color_scalar=None, emission=None, roughness=1,
-                      radius=0.1, resolution=8, vmin=0, vmax=1, color_map=None,
+                      radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None,
                       n_proc=1, time=None):
     """
     Plot streamlines of a given vector field.
@@ -184,7 +184,7 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
                       metric=None, integration_time=1, integration_steps=10,
                       integration_direction='both',
                       color=(0, 1, 0, 1), color_scalar=None, emission=None, roughness=1,
-                      radius=0.1, resolution=8, vmin=0, vmax=1, color_map=None,
+                      radius=0.1, resolution=8, vmin=None, vmax=None, color_map=None,
                       n_proc=1, time=None)
 
     Parameters
@@ -269,7 +269,7 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
     >>> u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
     >>> v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
     >>> w = np.ones_like(u)*0.1
-    >>> stream = blt.streamlines(x, y, z, u, v, w, n_seeds=20, integration_time=100, integration_steps=10)
+    >>> stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=20, integration_time=10, seed_radius=3)
     """
 
     import inspect
@@ -451,7 +451,10 @@ class Streamline3d(object):
         bpy.ops.object.select_all(action='DESELECT') # deselect any already selected objects
         for curve_object in self.curve_object[::-1]:
             curve_object.select_set(state=True)
+            curve_object.data.use_uv_as_generated = True
             bpy.context.view_layer.objects.active = curve_object
+        # Need to convert to a mesh to retain materials after join.
+        bpy.ops.object.convert(target='MESH')
         bpy.ops.object.join()
         self.mesh = bpy.context.selected_objects[0]
         self.mesh.select_set(False)
