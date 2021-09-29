@@ -937,6 +937,16 @@ class Streamline3dArray(Streamline3d):
 
         import numpy as np
 
+        # Find the min and max values of the sclara field, if there is any.
+        if self.color_scalar is None:
+            self.vmin = 0
+            self.vmax = 1
+        else:
+            if not isinstance(self.vmin, (int, float)):
+                self.vmin = self.color_scalar.min()
+            if not isinstance(self.vmax, (int, float)):
+                self.vmax = self.color_scalar.max()
+
         scalar_values = np.zeros(self.tracers[tracer_idx].shape[0])
         if isinstance(self.color_scalar, str):
             if self.color_scalar == 'magnitude':
