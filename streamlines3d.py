@@ -132,7 +132,7 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
     vmin, vmax:  Minimum and maximum values for the colormap. If not specify, determine
         from the input arrays.
 
-    color_map:  Color map for the values stored in the array 'c'.
+    color_map:  Color map for the values stored in the array color_scalar.
         These are the same as in matplotlib.
 
     n_proc:  Number of processors to run the streamline integration on, default 1.
