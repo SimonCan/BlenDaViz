@@ -121,6 +121,7 @@ class PathLine(GenericPlot):
         self.curve_object = None
         self.marker_mesh = None
         self.mesh_material = None
+        self.mesh_texture = None
         self.poly_line = None
         self.deletable_object = None
 
@@ -187,8 +188,13 @@ class PathLine(GenericPlot):
 
         # Create the bezier curve.
         if self.marker is None:
+            color_is_array = False
             # Transform color string into rgba.
-            color_rgba = colors.make_rgba_array(self.color, 1)
+            if isinstance(self.color, np.ndarray):
+                color_rgba = colors.make_rgba_array(self.color, self._x.shape[0])
+                color_is_array = True
+            else:
+                color_rgba = colors.make_rgba_array(self.color, 1)
 
             self.curve_data = bpy.data.curves.new('DataCurve', type='CURVE')
             self.curve_data.dimensions = '3D'
@@ -213,7 +219,27 @@ class PathLine(GenericPlot):
 
             # Set the material/color.
             self.mesh_material = bpy.data.materials.new('material')
-            self.mesh_material.diffuse_color = color_rgba[0]
+            if color_is_array:
+                # Assign the texture to the material.
+                self.mesh_material.use_nodes = True
+                self.mesh_texture = self.mesh_material.node_tree.nodes.new('ShaderNodeTexImage')
+                self.mesh_texture.extension = 'EXTEND'
+                # Prepare the image texture.
+                mesh_image = bpy.data.images.new('ImageMesh', self.color.shape[0], 1)
+                pixels = np.array(mesh_image.pixels)
+                # Assign the RGBa values to the pixels.
+                pixels[0::4] = color_rgba[:, 0]
+                pixels[1::4] = color_rgba[:, 1]
+                pixels[2::4] = color_rgba[:, 2]
+                pixels[3::4] = 1
+                mesh_image.pixels[:] = np.swapaxes(pixels.reshape([self.color.shape[0],
+                                                                   1, 4]), 0, 1).flatten()[:]
+                self.mesh_texture.image = mesh_image
+                links = self.mesh_material.node_tree.links
+                links.new(self.mesh_texture.outputs[0],
+                          self.mesh_material.node_tree.nodes.get("Principled BSDF").inputs[0])
+            else:
+                self.mesh_material.diffuse_color = color_rgba[0]
             self.mesh_material.roughness = self.roughness
             self.curve_object.active_material = self.mesh_material
 
