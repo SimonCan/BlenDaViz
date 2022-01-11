@@ -346,6 +346,7 @@ class Streamline3d(object):
         Plot the streamlines.
         """
 
+        import numpy as np
         import bpy
         from blendaviz import colors
 
@@ -369,6 +370,12 @@ class Streamline3d(object):
         self.__generate_seed_points()
 
         # Prepare the material colors.
+        if isinstance(self.color, list):
+            if not any(isinstance(color_index, str) for color_index in self.color):
+                self.color = np.array(self.color)
+        if isinstance(self.color, np.ndarray):
+            if self.color.ndim == 1:
+                self.color = self.color[np.newaxis, :]
         if self.color_scalar is None:
             color_rgba = colors.make_rgba_array(self.color, self.n_seeds,
                                                 self.color_map, self.vmin, self.vmax)
@@ -608,7 +615,7 @@ class Streamline3d(object):
         import numpy as np
 
         # Deterimne if we need a list of materials, i.e. for every streamline one.
-        if any([isinstance(self.color, np.ndarray),
+        if any([color_rgba.ndim == 2,
                 isinstance(self.emission, np.ndarray),
                 isinstance(self.roughness, np.ndarray)]):
             list_material = True
@@ -937,16 +944,6 @@ class Streamline3dArray(Streamline3d):
 
         import numpy as np
 
-        # Find the min and max values of the sclara field, if there is any.
-        if self.color_scalar is None:
-            self.vmin = 0
-            self.vmax = 1
-        else:
-            if not isinstance(self.vmin, (int, float)):
-                self.vmin = self.color_scalar.min()
-            if not isinstance(self.vmax, (int, float)):
-                self.vmax = self.color_scalar.max()
-
         scalar_values = np.zeros(self.tracers[tracer_idx].shape[0])
         if isinstance(self.color_scalar, str):
             if self.color_scalar == 'magnitude':
@@ -958,6 +955,22 @@ class Streamline3dArray(Streamline3d):
             scalar_interpolation = RegularGridInterpolator((self._x, self._y, self._z), self.color_scalar)
             for idx in range(self.tracers[tracer_idx].shape[0]):
                 scalar_values[idx] = scalar_interpolation(self.tracers[tracer_idx][idx, :])
+
+        # Find the min and max values of the sclara field, if there is any.
+        if self.color_scalar is None:
+            self.vmin = 0
+            self.vmax = 1
+        else:
+            if isinstance(self.color_scalar, str):
+                if not isinstance(self.vmin, (int, float)):
+                    self.vmin = np.sqrt(np.min(self.u**2 + self.v**2 + self.w**2))
+                if not isinstance(self.vmax, (int, float)):
+                    self.vmax = np.sqrt(np.max(self.u**2 + self.v**2 + self.w**2))
+            else:
+                if not isinstance(self.vmin, (int, float)):
+                    self.vmin = self.color_scalar.min()
+                if not isinstance(self.vmax, (int, float)):
+                    self.vmax = self.color_scalar.max()
 
         return scalar_values
 
