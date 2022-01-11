@@ -103,8 +103,9 @@ def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
         for color_index, color_string in enumerate(color):
             if isinstance(color_string, str):
                 color_rgba[color_index, :] = string_to_rgba(color_string)
-            elif isinstance(color_string, tuple):
+            elif isinstance(color_string, tuple) or isinstance(color_string, list):
                 color_rgba[color_index, :len(color_string)] = color_string
+        print(color_rgba.shape, color_rgba)
 
     # Transform single color string into color array.
     if isinstance(color, str):
