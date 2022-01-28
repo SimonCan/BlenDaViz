@@ -48,3 +48,19 @@ class GenericPlot(object):
         """
 
         pass
+
+
+    def object_reference_valid(self, obj):
+        """
+        Verify that the reference to the object obj is valid.
+        This is useful after the user manually deletes objects
+        and we try to refer to it.
+        """
+
+        try:
+            dir(obj)
+            valid = True
+        except:
+            valid = False
+
+        return valid

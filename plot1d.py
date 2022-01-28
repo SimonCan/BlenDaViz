@@ -419,8 +419,6 @@ class PathLine(GenericPlot):
 
         self.update_globals()
 
-        return 0
-
 
     def __delete_meshes__(self):
         """
@@ -431,13 +429,17 @@ class PathLine(GenericPlot):
 
         if not self.marker_mesh is None:
             bpy.ops.object.select_all(action='DESELECT')
-            if isinstance(self.marker_mesh, list):
-                for marker_mesh in self.marker_mesh:
-                    marker_mesh.select_set(True)
+            if self.object_reference_valid(self.marker_mesh):
+                if isinstance(self.marker_mesh, list):
+                    for marker_mesh in self.marker_mesh:
+                        if self.object_reference_valid(marker_mesh):
+                            marker_mesh.select_set(True)
+                            bpy.context.view_layer.objects.active = marker_mesh
+                            bpy.ops.object.delete()
+                else:
+                    self.marker_mesh.select_set(True)
+                    bpy.context.view_layer.objects.active = self.marker_mesh
                     bpy.ops.object.delete()
-            else:
-                self.marker_mesh.select_set(True)
-                bpy.ops.object.delete()
             self.marker_mesh = None
 
 
@@ -451,9 +453,11 @@ class PathLine(GenericPlot):
         if not self.mesh_material is None:
             if isinstance(self.mesh_material, list):
                 for mesh_material in self.mesh_material:
-                    bpy.data.materials.remove(mesh_material)
+                    if self.object_reference_valid(mesh_material):
+                        bpy.data.materials.remove(mesh_material)
             else:
-                bpy.data.materials.remove(self.mesh_material)
+                if self.object_reference_valid(self.mesh_material):
+                    bpy.data.materials.remove(self.mesh_material)
             self.mesh_material = None
 
 

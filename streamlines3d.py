@@ -51,6 +51,9 @@ stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1
 '''
 
 
+from blendaviz.generic import GenericPlot
+
+
 def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=None,
                          seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
                          metric=None, integration_time=1, integration_steps=10,
@@ -90,9 +93,9 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
     seeds:  Seeds for the streamline tracing of shape (n_seeds, 3).
         Overrides n_seeds.
 
-    seed_radius:  Radius of the sphere with the seeds.
-
     seed_center:  Center of the sphere with the seeds.
+
+    seed_radius:  Radius of the sphere with the seeds.
 
     method:  Integration method for the scipy.integrate.solve_ivp method:
         'RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA'.
@@ -200,6 +203,10 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
     seeds:  Seeds for the streamline tracing of shape [n_seeds, 3].
         Overrides n_seeds.
 
+    seed_center:  Center of the sphere with the seeds.
+
+    seed_radius:  Radius of the sphere with the seeds.
+
     periodic:  Periodicity array/list for the three directions.
         If true trace streamlines across the boundary and back.
 
@@ -287,7 +294,7 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
 
 
 
-class Streamline3d(object):
+class Streamline3d(GenericPlot):
     """
     Streamline class containing geometry, parameters and plotting function.
     """
@@ -354,8 +361,10 @@ class Streamline3d(object):
         bpy.ops.object.select_all(action='DESELECT')
         if self.mesh is not None:
             bpy.ops.object.select_all(action='DESELECT')
-            self.mesh.select_set(True)
-            bpy.ops.object.delete()
+            if self.object_reference_valid(self.mesh):
+                self.mesh.select_set(True)
+                bpy.context.view_layer.objects.active = self.mesh
+                bpy.ops.object.delete()
             self.curve_data = None
             self.curve_object = None
 
@@ -573,7 +582,7 @@ class Streamline3d(object):
             tracers = np.vstack([backtracers[::-1, :], tracers[1:, :]])
 
         # Delete points outside the domain.
-        tracers = self.delete_outside_points(tracers)
+#        tracers = self.delete_outside_points(tracers)
 
         return tracers
 

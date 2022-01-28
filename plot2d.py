@@ -4,6 +4,9 @@ Contains routines to two-dimensional plots.
 """
 
 
+from blendaviz.generic import GenericPlot
+
+
 def mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None,
          time=None):
     """
@@ -70,7 +73,7 @@ def mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None,
     return surface_return
 
 
-class Surface(object):
+class Surface(GenericPlot):
     """
     Surface class including the vertices, surfaces, parameters and plotting function.
     """
@@ -204,8 +207,10 @@ class Surface(object):
         # Delete existing meshes.
         if not self.mesh_object is None:
             bpy.ops.object.select_all(action='DESELECT')
-            self.mesh_object.select_set(state=True)
-            bpy.ops.object.delete()
+            if self.object_reference_valid(self.mesh_object):
+                self.mesh_object.select_set(state=True)
+                bpy.context.view_layer.objects.active = self.mesh_object
+                bpy.ops.object.delete()
             self.mesh_object = None
 
         # Delete existing materials.
@@ -309,8 +314,6 @@ class Surface(object):
         self.deletable_object = self.mesh_object
 
         self.update_globals()
-
-        return 0
 
 
     def time_handler(self, scene, depsgraph):

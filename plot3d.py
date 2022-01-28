@@ -4,6 +4,9 @@ Contains routines to three-dimensional plots.
 """
 
 
+from blendaviz.generic import GenericPlot
+
+
 def vol(phi, x, y, z, emission=None, color_map=None):
     """
     Plot a 3d volume rendering of a scalar field.
@@ -42,7 +45,7 @@ def vol(phi, x, y, z, emission=None, color_map=None):
     return volume_return
 
 
-class Volume(object):
+class Volume(GenericPlot):
     """
     Volume class including the data, 3d texture and parameters.
     """
@@ -238,7 +241,7 @@ def quiver(x, y, z, u, v, w, pivot='middle', length=1,
     return quiver_return
 
 
-class Quiver3d(object):
+class Quiver3d(GenericPlot):
     """
     Quiver class containing geometry, parameters and plotting function.
     """
@@ -340,8 +343,10 @@ class Quiver3d(object):
         # Delete existing meshes.
         if not self.arrow_mesh is None:
             bpy.ops.object.select_all(action='DESELECT')
-            self.arrow_mesh.select_set(True)
-            bpy.ops.object.delete()
+            if self.object_reference_valid(self.arrow_mesh):
+                self.arrow_mesh.select_set(True)
+                bpy.context.view_layer.objects.active = self.arrow_mesh
+                bpy.ops.object.delete()
             self.arrow_mesh = None
         self.arrow_mesh = []
 
@@ -653,7 +658,7 @@ def contour(phi, x, y, z, contours=1, psi=None,
     return contour_return
 
 
-class Contour3d(object):
+class Contour3d(GenericPlot):
     """
     Contour class containing geometry, parameters and plotting function.
     """
@@ -793,8 +798,10 @@ class Contour3d(object):
         # Delete existing meshes.
         if not self.mesh_object is None:
             bpy.ops.object.select_all(action='DESELECT')
-            self.mesh_object.select_set(state=True)
-            bpy.ops.object.delete()
+            if self.object_reference_valid(self.mesh_object):
+                self.mesh_object.select_set(state=True)
+                bpy.context.view_layer.objects.active = self.mesh_object
+                bpy.ops.object.delete()
             self.mesh_object = None
 
         # Delete existing materials.
