@@ -37,6 +37,7 @@ class GenericPlot(object):
         """
 
         if not self.time is None:
+#            self.deletable_object.evaluated_get(depsgraph)
             self.plot()
         else:
             pass

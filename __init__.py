@@ -40,7 +40,11 @@ class DeleteOverride(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        try:
+            active_object = context.active_object
+        except:
+            active_object = None
+        return active_object is not None
 
     def execute(self, context):
         stack_remove_list = []

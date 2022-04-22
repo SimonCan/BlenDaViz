@@ -478,6 +478,8 @@ class Streamline3d(GenericPlot):
         # Make the grouped meshes the deletable object.
         self.deletable_object = self.mesh
 
+        self.update_globals()
+
         return 0
 
 
