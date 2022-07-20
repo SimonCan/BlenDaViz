@@ -55,7 +55,7 @@ from blendaviz.generic import GenericPlot
 
 
 def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=None,
-                         seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
+                         seed_radius=1, method='DOP853', atol=1e-4, rtol=1e-4,
                          metric=None, integration_time=1, integration_steps=10,
                          integration_direction='both', color=(0, 1, 0, 1),
                          color_scalar=None, emission=None, roughness=1,
@@ -67,7 +67,7 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
     Signature:
 
     streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=None,
-                         seed_radius=1, method='DOP853', atol=1e-8, rtol=1e-8,
+                         seed_radius=1, method='DOP853', atol=1e-4, rtol=1e-4,
                          metric=None, integration_time=1, integration_steps=10,
                          integration_direction='both', color=(0, 1, 0, 1),
                          color_scalar=None, emission=None, roughness=1,
@@ -313,8 +313,8 @@ class Streamline3d(GenericPlot):
         self.seed_center = None
         self.seed_radius = 1
         self.method = 'DOP853'
-        self.atol = 1e-8
-        self.rtol = 1e-8
+        self.atol = 1e-4
+        self.rtol = 1e-4
         self.metric = None
         self.integration_time = 1
         self.integration_steps = 10
