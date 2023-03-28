@@ -164,6 +164,11 @@ class PathLine(GenericPlot):
             self.time = np.array([0])
             self.time_index = 0
 
+        # Convert lists to arrays.
+        self.x = np.array(self.x)
+        self.y = np.array(self.y)
+        self.z = np.array(self.z)
+        
         # Point the local variables to the correct time index.
         arrays_with_time_list = ['x', 'y', 'z', 'radius', 'rotation_x', 'rotation_y', 'rotation_z']
         for array_with_time in arrays_with_time_list:

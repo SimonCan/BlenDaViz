@@ -816,8 +816,9 @@ class Contour3d(GenericPlot):
 
         for idx, level in enumerate(level_list):
             # Find the vertices and faces of the isosurfaces.
-            vertices, faces = measure.marching_cubes_classic(self._phi,
-                                                             level, spacing=(dx, dy, dz))
+            vertices, faces, normals, values = measure.marching_cubes(self._phi,
+                                                                      level,
+                                                                      spacing=(dx, dy, dz))
             vertices[:, 0] += self._x.min()
             vertices[:, 1] += self._y.min()
             vertices[:, 2] += self._z.min()

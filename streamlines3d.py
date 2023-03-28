@@ -467,7 +467,7 @@ class Streamline3d(GenericPlot):
         bpy.ops.object.select_all(action='DESELECT') # deselect any already selected objects
         for curve_object in self.curve_object[::-1]:
             curve_object.select_set(state=True)
-            curve_object.data.use_uv_as_generated = True
+            # curve_object.data.use_uv_as_generated = True
             bpy.context.view_layer.objects.active = curve_object
         # Need to convert to a mesh to retain materials after join.
         bpy.ops.object.convert(target='MESH')
