@@ -365,6 +365,9 @@ class Streamline3d(GenericPlot):
                 self.mesh.select_set(True)
                 bpy.context.view_layer.objects.active = self.mesh
                 bpy.ops.object.delete()
+            del(self.curve_data)
+            del(self.curve_object)
+            del(self._field_function)
             self.curve_data = None
             self.curve_object = None
 
@@ -392,6 +395,7 @@ class Streamline3d(GenericPlot):
         self.prepare_field_function()
 
         # Empty the tracers before calculating new.
+        del(self.tracers)
         self.tracers = []
 
         if self.n_proc == 1:
