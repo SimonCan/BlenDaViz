@@ -73,7 +73,7 @@ def register_delete_override():
 def unregister_delete_override():
     bpy.utils.unregister_class(DeleteOverride)
 
-register_delete_override()
+#register_delete_override()
 
 # Add the needed deletable_object object attribute to the Blender light class.
 setattr(bpy.types.Object, 'deletable_object', None)
