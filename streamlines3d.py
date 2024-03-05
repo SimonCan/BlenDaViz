@@ -1063,7 +1063,12 @@ class Streamline3dArray(Streamline3d):
         nz = np.size(self._z)
 
         if (self.interpolation == 'mean') or (self.interpolation == 'trilinear'):
-            # Find the adjacent indices.
+            # Use temporary pointers to the data. This is convenient for the periodic case.
+            u = self._u
+            v = self._v
+            w = self._w
+            
+            # Find the adjacent indices and roll the arrays for periodic domains.
             i = (xx[0]-Ox)/dx
             ii = np.array([int(np.floor(i)), int(np.ceil(i))])
             if not self.periodic[0]:
@@ -1073,10 +1078,18 @@ class Streamline3dArray(Streamline3d):
                     i = nx-1
                 ii = np.array([int(np.floor(i)), int(np.ceil(i))])
             else:
-                i = i%nx
-                ii = np.array([int(np.floor(i)), int(np.ceil(i))])
+                if i < 0:
+                    u = np.roll(u, int(np.ceil(-i)), axis=0)
+                    v = np.roll(v, int(np.ceil(-i)), axis=0)
+                    w = np.roll(w, int(np.ceil(-i)), axis=0)
+                    i += np.ceil(-i)
+                    ii = np.array([int(np.floor(i)), int(np.ceil(i))])
                 if i > nx-1:
-                    ii = np.array([int(np.floor(i)), 0])
+                    u = np.roll(u, int(-np.ceil(i - nx-1)), axis=0)                
+                    v = np.roll(v, int(-np.ceil(i - nx-1)), axis=0)                
+                    w = np.roll(w, int(-np.ceil(i - nx-1)), axis=0)                
+                    i -= np.ceil(i - nx - 1)
+                    ii = np.array([int(np.floor(i)), int(np.ceil(i))])
 
             j = (xx[1]-Oy)/dy
             jj = np.array([int(np.floor(j)), int(np.ceil(j))])
@@ -1087,10 +1100,18 @@ class Streamline3dArray(Streamline3d):
                     j = ny-1
                 jj = np.array([int(np.floor(j)), int(np.ceil(j))])
             else:
-                j = j%ny
-                jj = np.array([int(np.floor(j)), int(np.ceil(j))])
+                if j < 0:
+                    u = np.roll(u, int(np.ceil(-j)), axis=1)
+                    v = np.roll(v, int(np.ceil(-j)), axis=1)
+                    w = np.roll(w, int(np.ceil(-j)), axis=1)
+                    j += np.ceil(-j)
+                    jj = np.array([int(np.floor(j)), int(np.ceil(j))])
                 if j > ny-1:
-                    jj = np.array([int(np.floor(j)), 0])
+                    u = np.roll(u, int(-np.ceil(j - ny-1)), axis=1)                
+                    v = np.roll(v, int(-np.ceil(j - ny-1)), axis=1)                
+                    w = np.roll(w, int(-np.ceil(j - ny-1)), axis=1)                
+                    j -= np.ceil(j - ny - 1)
+                    jj = np.array([int(np.floor(j)), int(np.ceil(j))])
 
             k = (xx[2]-Oz)/dz
             kk = np.array([int(np.floor(k)), int(np.ceil(k))])
@@ -1101,16 +1122,24 @@ class Streamline3dArray(Streamline3d):
                     k = nz-1
                 kk = np.array([int(np.floor(k)), int(np.ceil(k))])
             else:
-                k = k%nz
-                kk = np.array([int(np.floor(k)), int(np.ceil(k))])
+                if k < 0:
+                    u = np.roll(u, int(np.ceil(-k)), axis=2)
+                    v = np.roll(v, int(np.ceil(-k)), axis=2)
+                    w = np.roll(w, int(np.ceil(-k)), axis=2)
+                    k += np.ceil(-k)
+                    kk = np.array([int(np.floor(k)), int(np.ceil(k))])
                 if k > nz-1:
-                    kk = np.array([int(np.floor(k)), 0])
+                    u = np.roll(u, int(-np.ceil(k - nz-1)), axis=2)                
+                    v = np.roll(v, int(-np.ceil(k - nz-1)), axis=2)                
+                    w = np.roll(w, int(-np.ceil(k - nz-1)), axis=2)                
+                    k -= np.ceil(k - nz - 1)
+                    kk = np.array([int(np.floor(k)), int(np.ceil(k))])               
 
         # Interpolate the field.
         if self.interpolation == 'mean':
-            sub_field = [self._u[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
-                         self._v[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
-                         self._w[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1]]
+            sub_field = [u[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
+                         v[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
+                         w[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1]]
             return np.mean(np.array(sub_field), axis=(1, 2, 3))
 
         if self.interpolation == 'trilinear':
@@ -1139,9 +1168,9 @@ class Streamline3dArray(Streamline3d):
                     w3 = (k-kk[::-1])
 
             weight = abs(w1.reshape((2, 1, 1))*w2.reshape((1, 2, 1))*w3.reshape((1, 1, 2)))
-            sub_field = [self._u[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
-                         self._v[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
-                         self._w[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1]]
+            sub_field = [u[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
+                         v[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
+                         w[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1]]
             return np.sum(np.array(sub_field)*weight, axis=(1, 2, 3))/np.sum(weight)
 
         # If the point lies outside the domain, return 0.
