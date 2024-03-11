@@ -70,87 +70,87 @@ class Volume(GenericPlot):
         Plot the 3d texture.
         """
 
-        import bpy
-        import numpy as np
-        import matplotlib.cm as cm
+#         import bpy
+#         import numpy as np
+#         import matplotlib.cm as cm
 
-        # Check the validity of the input arrays.
-        if (not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray)
-                or not isinstance(self.z, np.ndarray)):
-            print("Error: x OR y OR z array invalid.")
-            return -1
-        if not isinstance(self.phi, np.ndarray):
-            print("Error: phi must be numpy array.")
-            return -1
-        if self.emission:
-            if not isinstance(self.emission, np.ndarray):
-                print("Error: emission must be numpy array.")
-                return -1
+#         # Check the validity of the input arrays.
+#         if (not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray)
+#                 or not isinstance(self.z, np.ndarray)):
+#             print("Error: x OR y OR z array invalid.")
+#             return -1
+#         if not isinstance(self.phi, np.ndarray):
+#             print("Error: phi must be numpy array.")
+#             return -1
+#         if self.emission:
+#             if not isinstance(self.emission, np.ndarray):
+#                 print("Error: emission must be numpy array.")
+#                 return -1
 
-        # Using volumetric textures or voxels?
+#         # Using volumetric textures or voxels?
 
-        # Delete existing meshes.
-        if not self.mesh_object is None:
-            bpy.ops.object.select_all(action='DESELECT')
-            self.mesh_object.select = True
-            bpy.ops.object.delete()
-            self.mesh_object = None
+#         # Delete existing meshes.
+#         if not self.mesh_object is None:
+#             bpy.ops.object.select_all(action='DESELECT')
+#             self.mesh_object.select = True
+#             bpy.ops.object.delete()
+#             self.mesh_object = None
 
-        # Delete existing materials.
-        if not self.mesh_material is None:
-            bpy.data.materials.remove(self.mesh_material)
+#         # Delete existing materials.
+#         if not self.mesh_material is None:
+#             bpy.data.materials.remove(self.mesh_material)
 
-        # Create cuboid.
-        bpy.ops.mesh.primitive_cube_add()
-        self.mesh_object = bpy.context.object
+#         # Create cuboid.
+#         bpy.ops.mesh.primitive_cube_add()
+#         self.mesh_object = bpy.context.object
 
-        # Define the RGB value for each voxel.
-        phi_max = np.max(self.phi)
-        phi_min = np.min(self.phi)
-        if self.color_map is None:
-            self.color_map = cm.viridis
-#        pixels[0::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 0]
-#        pixels[1::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 1]
-#        pixels[2::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 2]
+#         # Define the RGB value for each voxel.
+#         phi_max = np.max(self.phi)
+#         phi_min = np.min(self.phi)
+#         if self.color_map is None:
+#             self.color_map = cm.viridis
+# #        pixels[0::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 0]
+# #        pixels[1::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 1]
+# #        pixels[2::3] = self.color_map((self.phi.flatten() - phi_min)/(phi_max - phi_min))[:, 2]
 
-        # Define the emission for each voxel.
-        emission = np.zeros_like(self.phi)
-        if self.emission.ndim == 1:
-            phi_emission = np.zeros([2, self.emission.size])
-            phi_emission[0, :] = np.linspace(self.phi.min(), self.size.max(), self.emission.size)
-            phi_emission[1, :] = self.emission
-        else:
-            phi_emission = self.emission
+#         # Define the emission for each voxel.
+#         emission = np.zeros_like(self.phi)
+#         if self.emission.ndim == 1:
+#             phi_emission = np.zeros([2, self.emission.size])
+#             phi_emission[0, :] = np.linspace(self.phi.min(), self.size.max(), self.emission.size)
+#             phi_emission[1, :] = self.emission
+#         else:
+#             phi_emission = self.emission
 
-        for emission_idx in self.emission.shape[-1]-1:
-            mask = self.phi >= phi_emission[0, emission_idx] and self.phi < phi_emission[0, emission_idx+1]
-            weight_left = self.phi[mask] - phi_emission[0, emission_idx]
-            weight_right = -self.phi[mask] + phi_emission[0, emission_idx+1]
-            emission[mask] = (weight_left*phi_emission[1, emission_idx] + \
-                              weight_right*phi_emission[1, emission_idx+1]) \
-                             /(weight_left + weight_right)
-        del(emission)
+#         for emission_idx in self.emission.shape[-1]-1:
+#             mask = self.phi >= phi_emission[0, emission_idx] and self.phi < phi_emission[0, emission_idx+1]
+#             weight_left = self.phi[mask] - phi_emission[0, emission_idx]
+#             weight_right = -self.phi[mask] + phi_emission[0, emission_idx+1]
+#             emission[mask] = (weight_left*phi_emission[1, emission_idx] + \
+#                               weight_right*phi_emission[1, emission_idx+1]) \
+#                              /(weight_left + weight_right)
+#         del(emission)
 
-        # Assign a material to the cuboid.
-        self.mesh_material = bpy.data.materials.new('MaterialMesh')
-        self.mesh_material.use_nodes = True
+#         # Assign a material to the cuboid.
+#         self.mesh_material = bpy.data.materials.new('MaterialMesh')
+#         self.mesh_material.use_nodes = True
 
-        # Add the RGB and emission values to the material.
-        nodes = node_tree.nodes
-        # Remove diffusive BSDF node.
-        nodes.remove(nodes[1])
-        # Add the emission shader.
-        node_emission = nodes.new(type='ShaderNodeEmission')
-        # Link the emission output to the material output.
-        node_tree.links.new(node_emission.outputs['Emission'],
-                            nodes[0].inputs['Volume'])
-        # Add the RGB source node.
+#         # Add the RGB and emission values to the material.
+#         nodes = node_tree.nodes
+#         # Remove diffusive BSDF node.
+#         nodes.remove(nodes[1])
+#         # Add the emission shader.
+#         node_emission = nodes.new(type='ShaderNodeEmission')
+#         # Link the emission output to the material output.
+#         node_tree.links.new(node_emission.outputs['Emission'],
+#                             nodes[0].inputs['Volume'])
+#         # Add the RGB source node.
 
-        # Link the RGB output to the emission shader  color input.
+#         # Link the RGB output to the emission shader  color input.
 
-        # Add the emission source node.
+#         # Add the emission source node.
 
-        # Link the emission output to the emission shader strength input.
+#         # Link the emission output to the emission shader strength input.
 
 
         return 0
