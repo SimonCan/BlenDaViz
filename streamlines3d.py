@@ -588,16 +588,14 @@ class Streamline3d(GenericPlot):
             tracers = np.vstack([backtracers[::-1, :], tracers[1:, :]])
 
         # Delete points outside the domain.
-#        tracers = self.delete_outside_points(tracers)
+        tracers = self.delete_outside_points(tracers)
 
         return tracers
 
 
-# TODO: implement this
     def delete_outside_points(self, tracers):
         """
-        [NOT IMPLEMENTED]
-        Delete any points of the tracer that lie outside the domain.
+        Dummy function for deleting any points of the tracer that lie outside the domain.
 
         Signature:
 
