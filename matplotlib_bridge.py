@@ -29,6 +29,7 @@ def mpl_figure_to_blender(figure, dpi=300, position=None, normal=None):
     Examples
     --------
     >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
     >>> import blendaviz as blt
     >>> x = np.linspace(0, 5, 1000)
     >>> fig = plt.figure()
