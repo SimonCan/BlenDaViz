@@ -3,9 +3,6 @@
 # set everything up properly.
 #
 
-# Install missing python packages using:
-# python3.7m -m pip install [LIB_NAME]
-
 import bpy
 
 # Load sub-modules.
