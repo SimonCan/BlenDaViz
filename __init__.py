@@ -47,10 +47,10 @@ class DeleteOverride(bpy.types.Operator):
         stack_remove_list = []
         # Find the plot objects that will be removed from the stack.
         for obj in context.selected_objects:
-            for plot in __stack__:
-                stack_obj = plot.deletable_object
+            for plot_obj in __stack__:
+                stack_obj = plot_obj.deletable_object
                 if stack_obj == obj:
-                    stack_remove_list.append(plot)
+                    stack_remove_list.append(plot_obj)
             for i, light in enumerate(house_keeping.lights):
                 if light == obj:
                     house_keeping.lights[i] = None
@@ -60,8 +60,8 @@ class DeleteOverride(bpy.types.Operator):
                 house_keeping.box = None
             bpy.data.objects.remove(obj)
         # Remove all plot objects connected to the deleted geometry.
-        for plot in stack_remove_list:
-            __stack__.remove(plot)
+        for plot_obj in stack_remove_list:
+            __stack__.remove(plot_obj)
         return {'FINISHED'}
 
 def register_delete_override():
@@ -76,10 +76,10 @@ def unregister_delete_override():
 def delete_plot_object(obj):
     stack_remove_list = []
     # Find the plot objects that will be removed from the stack.
-    for plot in __stack__:
-        stack_obj = plot.deletable_object
+    for plot_obj in __stack__:
+        stack_obj = plot_obj.deletable_object
         if stack_obj == obj:
-            stack_remove_list.append(plot)
+            stack_remove_list.append(plot_obj)
     for i, light in enumerate(house_keeping.lights):
         if light == obj:
             house_keeping.lights[i] = None
@@ -89,8 +89,8 @@ def delete_plot_object(obj):
         house_keeping.box = None
 #    bpy.data.objects.remove(obj)
     # Remove all plot objects connected to the deleted geometry.
-    for plot in stack_remove_list:
-        __stack__.remove(plot)
+    for plot_obj in stack_remove_list:
+        __stack__.remove(plot_obj)
 
 bpy.types.Object.__del__ = delete_plot_object
 
