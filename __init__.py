@@ -6,19 +6,19 @@
 import bpy
 
 # Load sub-modules.
-from .generic import *
-from .plot1d import *
-from .plot2d import *
-from .plot3d import *
-from .streamlines3d import *
-from .matplotlib_bridge import *
-from .colors import *
-from .vectors import *
-from .globals import *
-from .box import *
-from .lights import *
-from .camera import *
-#from .seeds import *
+from .generic import GenericPlot
+from .plot1d import plot, PathLine
+from .plot2d import mesh, Surface
+from .plot3d import vol, Volume, quiver, Quiver3d, contour, Contour3d
+from .streamlines3d import streamlines_function, streamlines_array, \
+    Streamline3d, Streamline3dArray
+from .matplotlib_bridge import mpl_figure_to_blender, MPLEmbedding
+from .colors import string_to_rgba, make_rgba_array
+from .vectors import vec, arrow
+from .globals import HouseKeeping
+from .box import bounding_box, BoundingBox
+from .lights import adjust_lights
+from .camera import adjust_camera
 
 
 # Initialize our global housekeeping object.
