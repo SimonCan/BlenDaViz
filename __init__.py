@@ -25,55 +25,14 @@ from .camera import adjust_camera
 __stack__ = []
 house_keeping = HouseKeeping()
 
-
-# Override the object delete operation.
-class DeleteOverride(bpy.types.Operator):
-    """
-    Override the mesh delete operation.
-    """
-
-    bl_idname = "object.delete"
-    bl_label = "Object Delete Operator"
-
-    @classmethod
-    def poll(cls, context):
-        try:
-            active_object = context.active_object
-        except:
-            active_object = None
-        return active_object is not None
-
-    def execute(self, context):
-        stack_remove_list = []
-        # Find the plot objects that will be removed from the stack.
-        for obj in context.selected_objects:
-            for plot_obj in __stack__:
-                stack_obj = plot_obj.deletable_object
-                if stack_obj == obj:
-                    stack_remove_list.append(plot_obj)
-            for i, light in enumerate(house_keeping.lights):
-                if light == obj:
-                    house_keeping.lights[i] = None
-            if obj == house_keeping.camera:
-                house_keeping.camera = None
-            if obj == house_keeping.box:
-                house_keeping.box = None
-            bpy.data.objects.remove(obj)
-        # Remove all plot objects connected to the deleted geometry.
-        for plot_obj in stack_remove_list:
-            __stack__.remove(plot_obj)
-        return {'FINISHED'}
-
-def register_delete_override():
-    bpy.utils.register_class(DeleteOverride)
-
-def unregister_delete_override():
-    bpy.utils.unregister_class(DeleteOverride)
-
-#register_delete_override()
+# import inspect
 
 # Remove plot from stack when deleting the geometry.
 def delete_plot_object(obj):
+    # curframe = inspect.currentframe()
+    # calframe = inspect.getouterframes(curframe, 1)
+    # print('caller name:', calframe[1])
+    print("delete_plot_object")
     stack_remove_list = []
     # Find the plot objects that will be removed from the stack.
     for plot_obj in __stack__:
@@ -87,13 +46,11 @@ def delete_plot_object(obj):
         house_keeping.camera = None
     if obj == house_keeping.box:
         house_keeping.box = None
-#    bpy.data.objects.remove(obj)
     # Remove all plot objects connected to the deleted geometry.
     for plot_obj in stack_remove_list:
         __stack__.remove(plot_obj)
 
 bpy.types.Object.__del__ = delete_plot_object
-
 
 # Add the needed deletable_object object attribute to the Blender light class.
 setattr(bpy.types.Object, 'deletable_object', None)
