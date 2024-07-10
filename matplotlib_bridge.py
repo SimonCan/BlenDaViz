@@ -35,7 +35,7 @@ def mpl_figure_to_blender(figure, dpi=300, position=None, normal=None):
     >>> fig = plt.figure()
     >>> plt.plot(x, np.sin(x), color='g')
     >>> plt.title("test")
-    >>> mbl = blt.mpl_figure_to_blender(fig)
+    >>> mpl = blt.mpl_figure_to_blender(fig)
     """
 
     import inspect
@@ -45,6 +45,8 @@ def mpl_figure_to_blender(figure, dpi=300, position=None, normal=None):
     argument_dict = inspect.getargvalues(inspect.currentframe()).locals
     for argument in argument_dict:
         setattr(mpl_embedding_return, argument, argument_dict[argument])
+
+    # Plot the matplotlib figure into Blender.
     mpl_embedding_return.plot()
     return mpl_embedding_return
 
@@ -118,8 +120,8 @@ class MPLEmbedding(object):
 
         # Orient the plane following the normal vector.
         rotation = np.zeros(3)
-        rotation[0] = np.arcsin(self.normal[0]/np.sqrt(np.sum(self.normal**2)))
-        rotation[1] = np.arcsin(self.normal[1]/np.sqrt(np.sum(self.normal**2)))
+        rotation[0] = np.arcsin(self.normal[1]/np.sqrt(np.sum(self.normal**2)))
+        rotation[1] = np.arcsin(self.normal[0]/np.sqrt(np.sum(self.normal**2)))
         bpy.ops.transform.rotate(value=rotation[0], orient_axis='X')
         bpy.ops.transform.rotate(value=rotation[1], orient_axis='Y')
 
@@ -153,4 +155,66 @@ class MPLEmbedding(object):
         # Make the mesh the deletable object.
         self.deletable_object = self.mesh_object
 
-        return 0
+        self.update_globals()
+
+
+    def update_globals(self):
+        """
+        Update the extrema, camera and lights.
+        """
+
+        import blendaviz as blt
+        import numpy as np
+
+        # Compute he corners in the rotated image.
+        x = np.array([-self.figure.get_size_inches()[0]/2 * self.normal[2] - self.figure.get_size_inches()[0]/2 * self.normal[1],
+                      self.figure.get_size_inches()[0]/2 * self.normal[2] + self.figure.get_size_inches()[0]/2 * self.normal[1]]) + \
+            self.position[0]
+
+        y = np.array([-self.figure.get_size_inches()[1]/2 * self.normal[2] - self.figure.get_size_inches()[1]/2 * self.normal[0],
+                      self.figure.get_size_inches()[1]/2 * self.normal[2] + self.figure.get_size_inches()[1]/2 * self.normal[0]]) + \
+            self.position[1]
+
+        z = np.array([self.figure.get_size_inches()[0]/2 * self.normal[1] + self.figure.get_size_inches()[1]/2 * self.normal[0],
+                      -self.figure.get_size_inches()[0]/2 * self.normal[1] - self.figure.get_size_inches()[1]/2 * self.normal[0]]) + \
+            self.position[2]
+
+        if blt.house_keeping.x_min is None:
+            blt.house_keeping.x_min = x.min()
+        elif x.min() < blt.house_keeping.x_min:
+            blt.house_keeping.x_min = x.min()
+        if blt.house_keeping.x_max is None:
+            blt.house_keeping.x_max = x.max()
+        elif x.max() > blt.house_keeping.x_max:
+            blt.house_keeping.x_max = x.max()
+
+        if blt.house_keeping.y_min is None:
+            blt.house_keeping.y_min = y.min()
+        elif y.min() < blt.house_keeping.y_min:
+            blt.house_keeping.y_min = y.min()
+        if blt.house_keeping.y_max is None:
+            blt.house_keeping.y_max = y.max()
+        elif y.max() > blt.house_keeping.y_max:
+            blt.house_keeping.y_max = y.max()
+
+        if blt.house_keeping.z_min is None:
+            blt.house_keeping.z_min = z.min()
+        elif z.min() < blt.house_keeping.z_min:
+            blt.house_keeping.z_min = z.min()
+        if blt.house_keeping.z_max is None:
+            blt.house_keeping.z_max = z.max()
+        elif z.max() > blt.house_keeping.z_max:
+            blt.house_keeping.z_max = z.max()
+
+        # Add or update bounding box.
+        if blt.house_keeping.box is None:
+            blt.house_keeping.box = blt.bounding_box()
+        else:
+            blt.house_keeping.box.get_extrema()
+            blt.house_keeping.box.plot()
+
+        # Add some light.
+        blt.adjust_lights()
+
+        # Add a camera.
+        blt.adjust_camera()
