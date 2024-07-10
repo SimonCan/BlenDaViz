@@ -21,8 +21,8 @@ from .lights import adjust_lights
 from .camera import adjust_camera
 
 
-# Initialize our global housekeeping object.
-__stack__ = []
+# Initialize our plot stack and global housekeeping object.
+plot_stack = []
 house_keeping = HouseKeeping()
 
 # import inspect
@@ -35,7 +35,7 @@ def delete_plot_object(obj):
     print("delete_plot_object")
     stack_remove_list = []
     # Find the plot objects that will be removed from the stack.
-    for plot_obj in __stack__:
+    for plot_obj in plot_stack:
         stack_obj = plot_obj.deletable_object
         if stack_obj == obj:
             stack_remove_list.append(plot_obj)
@@ -48,7 +48,7 @@ def delete_plot_object(obj):
         house_keeping.box = None
     # Remove all plot objects connected to the deleted geometry.
     for plot_obj in stack_remove_list:
-        __stack__.remove(plot_obj)
+        plot_stack.remove(plot_obj)
 
 bpy.types.Object.__del__ = delete_plot_object
 

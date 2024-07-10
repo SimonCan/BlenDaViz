@@ -73,7 +73,7 @@ class MPLEmbedding(object):
         self.deletable_object = None
 
         # Add the plot to the stack.
-        blt.__stack__.append(self)
+        blt.plot_stack.append(self)
 
 
     def plot(self):

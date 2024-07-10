@@ -114,7 +114,7 @@ class Surface(GenericPlot):
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
         # Add the plot to the stack.
-        blt.__stack__.append(self)
+        blt.plot_stack.append(self)
 
 
     def plot(self):
