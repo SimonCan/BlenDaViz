@@ -4,23 +4,18 @@ Contains routines to generate the bounding box.
 """
 
 
-def bounding_box(extrema=None, thickness=0.1, color='k'):
+def bounding_box(extrema=None):
     """
     Plot a bounding box with a given size.
 
     Signature:
 
-    bounding_box(extrema, thickness=0.1, color='k')
+    bounding_box(extrema)
 
     Parameters
     ----------
     extrema:  If none given, use globals.
         Array of length 6 with components [x_min, x_max, y_min, y_max, z_min, z_max].
-
-    thickness:  Thickness of the lines.
-
-    color:  rgba values of the form (r, g, b, a) with 0 <= r, g, b, a <= 1,
-        or string, e.g. 'red', or character, e.g. 'r'.
 
     Returns
     -------
@@ -62,8 +57,6 @@ class BoundingBox(object):
 
         # Define the members that can be seen by the user.
         self.extrema = None
-        self.thickness = 1
-        self.color = (0, 1, 0, 1)
         self.curve_data = None
         self.curve_object = None
         self.poly_line = None
@@ -79,7 +72,7 @@ class BoundingBox(object):
         """
 
         import bpy
-#        from blendaviz import colors
+        from blendaviz import colors
 
         # Check if extrema are given.
         if self.extrema is None:
@@ -89,10 +82,6 @@ class BoundingBox(object):
         if not self.curve_data is None:
             for curve_data in self.curve_data:
                 bpy.data.curves.remove(curve_data)
-
-# TODO: Implement colors.
-#        # Transform color string into rgba.
-#        color_rgba = colors.make_rgba_array(self.color, 1)
 
         # Initialize the list of curve data and object.
         self.curve_data = []
