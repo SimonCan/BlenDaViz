@@ -151,6 +151,8 @@ class Surface(GenericPlot):
             if not self.z.shape[:2] == self.x.shape[:2]:
                 print("Error: z array shape invalid.")
                 return -1
+        else:
+            self.z = np.zeros_like(self.x)
         if isinstance(self.c, np.ndarray):
             if not self.c.shape[:2] == self.x.shape[:2]:
                 print("Error: c array shape invalid.")
