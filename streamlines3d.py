@@ -4,53 +4,6 @@ Contains routines to generate and plot streamlines.
 """
 
 
-'''
-Test:
-import numpy as np
-import importlib
-import sys
-sys.path.append('~/codes/blendaviz')
-import blendaviz as blt
-importlib.reload(blt)
-importlib.reload(blt.streamlines3d)
-x = np.linspace(-4, 4, 100)
-y = np.linspace(-4, 4, 100)
-z = np.linspace(-4, 4, 100)
-xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
-u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
-v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
-w = np.ones_like(u)*0.1
-time = np.linspace(0, 100, 101)
-u = u[..., np.newaxis] * np.sin(time)
-v = v[..., np.newaxis] + np.zeros_like(time)
-w = w[..., np.newaxis] + np.zeros_like(time)
-color = np.random.random([20, 4])
-color[:, 3] = 1
-stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=20, color=color, integration_time=20, integration_steps=100, seed_radius=3)
-stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=20, integration_time=20, integration_steps=100, seed_radius=3, vmin=0, vmax=1, color_scalar='magnitude')
-
-Test function:
-import numpy as np
-import importlib
-import blendaviz as blt
-importlib.reload(blt)
-importlib.reload(blt.streamlines3d)
-
-def irrational_hopf(t, xx):
-    x = np.array(xx)
-    return 1/(1+np.sum(x**2))**3 * \
-                    np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),\
-                             -2*(np.sqrt(2)*x[0] + x[1]*x[2]),\
-                             (-1 + x[0]**2 +x[1]**2 -x[2]**2)])
-
-def color_scalar(xx):
-    return xx[0]
-
-stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500, color_scalar='magnitude', vmin=0, vmax=1)
-stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500, color_scalar=color_scalar, vmin=0, vmax=1)
-'''
-
-
 from blendaviz.generic import GenericPlot
 
 
@@ -148,8 +101,8 @@ def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=No
     --------
     >>> import numpy as np
     >>> import blendaviz as blt
-    >>> def irrational_hopf(t, xx):
-    >>>     return 1/(1+np.sum(x**2))**3 * \
+    >>> def irrational_hopf(t, x):
+    >>>     return 1/(1+np.sum(x[0]**2+x[1]**2+x[2]**2))**3 * \
     >>>     np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),\
     >>>     -2*(np.sqrt(2)*x[0] + x[1]*x[2]),\
     >>>     (-1 + x[0]**2 +x[1]**2 -x[2]**2)])
@@ -276,7 +229,7 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
     >>> u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
     >>> v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
     >>> w = np.ones_like(u)*0.1
-    >>> stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=20, integration_time=10, seed_radius=3)
+    >>> stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=20, integration_time=20, seed_radius=3)
     """
 
     import inspect
