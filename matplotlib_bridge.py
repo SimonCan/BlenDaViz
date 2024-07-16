@@ -51,7 +51,7 @@ def mpl_figure_to_blender(figure, dpi=300, position=None, normal=None):
     return mpl_embedding_return
 
 
-class MPLEmbedding(object):
+class MPLEmbedding():
     """
     Surface class including the vertices, surfaces, parameters and plotting function.
     """
@@ -72,6 +72,7 @@ class MPLEmbedding(object):
         self.mesh_data = None
         self.mesh_object = None
         self.mesh_material = None
+        self.mesh_texture = None
         self.deletable_object = None
 
         # Add the plot to the stack.

@@ -43,7 +43,7 @@ def bounding_box(extrema=None):
 
 
 
-class BoundingBox(object):
+class BoundingBox():
     """
     Bounding box class including the splinces, parameters and plotting function.
     """
@@ -72,7 +72,7 @@ class BoundingBox(object):
         """
 
         import bpy
-        from blendaviz import colors
+        # from blendaviz import colors
 
         # Check if extrema are given.
         if self.extrema is None:

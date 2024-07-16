@@ -4,7 +4,7 @@ Contains some global variables for control.
 """
 
 
-class HouseKeeping(object):
+class HouseKeeping():
     """
     Contains some global house keeping variables.
     """

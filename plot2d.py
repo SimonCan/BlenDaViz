@@ -86,6 +86,8 @@ class Surface(GenericPlot):
         import bpy
         import blendaviz as blt
 
+        super().__init__()
+
         # Define the members that can be seen by the user.
         self.x = 0
         self.y = 0
@@ -94,12 +96,12 @@ class Surface(GenericPlot):
         self.alpha = None
         self.vmin = None
         self.vmax = None
-        self.time = None
         self.time_index = 0
         self.color_map = None
         self.mesh_data = None
         self.mesh_object = None
         self.mesh_material = None
+        self.mesh_texture = None
         self.deletable_object = None
 
         # Define the locally used time-independent data and parameters.
@@ -124,14 +126,14 @@ class Surface(GenericPlot):
 
         import bpy
         import numpy as np
-        import matplotlib.cm as cm
+        from matplotlib import cm
 
         # Check if there is any time array.
         if not self.time is None:
             if not isinstance(self.time, np.ndarray):
                 print("Error: time is not a valid array.")
                 return -1
-            elif self.time.ndim != 1:
+            if self.time.ndim != 1:
                 print("Error: time array must be 1d.")
                 return -1
             # Determine the time index.
@@ -316,6 +318,8 @@ class Surface(GenericPlot):
         self.deletable_object = self.mesh_object
 
         self.update_globals()
+
+        return 0
 
 
     def time_handler(self, scene, depsgraph):

@@ -3,7 +3,7 @@
 The generic plotting routine from which all others inherit.
 """
 
-class GenericPlot(object):
+class GenericPlot():
     """
     Generic plotting class with minimal functionality.
     """

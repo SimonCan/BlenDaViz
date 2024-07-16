@@ -48,4 +48,3 @@ def adjust_lights():
     blt.house_keeping.lights[3].rotation_euler[0] = np.pi/2
     blt.house_keeping.lights[4].rotation_euler[0] = 0
     blt.house_keeping.lights[5].rotation_euler[0] = np.pi
-

@@ -102,6 +102,8 @@ class PathLine(GenericPlot):
         import bpy
         import blendaviz as blt
 
+        super().__init__()
+
         # Define the members that can be seen by the user.
         self.x = 0
         self.y = 0
@@ -115,7 +117,6 @@ class PathLine(GenericPlot):
         self.roughness = 1.0
         self.emission = None
         self.marker = None
-        self.time = None
         self.time_index = 0
         self.curve_data = None
         self.curve_object = None
@@ -155,7 +156,7 @@ class PathLine(GenericPlot):
             if not isinstance(self.time, np.ndarray):
                 print("Error: time is not a valid array.")
                 return -1
-            elif self.time.ndim != 1:
+            if self.time.ndim != 1:
                 print("Error: time array must be 1d.")
                 return -1
             # Determine the time index.
@@ -168,7 +169,7 @@ class PathLine(GenericPlot):
         self.x = np.array(self.x)
         self.y = np.array(self.y)
         self.z = np.array(self.z)
-        
+
         # Point the local variables to the correct time index.
         arrays_with_time_list = ['x', 'y', 'z', 'radius', 'rotation_x', 'rotation_y', 'rotation_z']
         for array_with_time in arrays_with_time_list:
@@ -423,6 +424,8 @@ class PathLine(GenericPlot):
             self.deletable_object = self.marker_mesh
 
         self.update_globals()
+
+        return 0
 
 
     def __delete_meshes__(self):

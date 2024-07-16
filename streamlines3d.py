@@ -260,6 +260,8 @@ class Streamline3d(GenericPlot):
         import bpy
         import blendaviz as blt
 
+        super().__init__()
+
         self.field_function = lambda t, xx: [0., 0., 1.]
         self.n_seeds = 100
         self.seeds = None
@@ -674,7 +676,7 @@ class Streamline3d(GenericPlot):
 
         import bpy
         import numpy as np
-        import matplotlib.cm as cm
+        from matplotlib import cm
 
         # Compute the scalar values along the streamline.
         scalar_values = self.set_texture_scalar_values(tracer_idx)
@@ -836,7 +838,7 @@ class Streamline3dArray(Streamline3d):
             if not isinstance(self.time, np.ndarray):
                 print("Error: time is not a valid array.")
                 return -1
-            elif self.time.ndim != 1:
+            if self.time.ndim != 1:
                 print("Error: time array must be 1d.")
                 return -1
             # Determine the time index.
@@ -858,7 +860,7 @@ class Streamline3dArray(Streamline3d):
         arrays_with_time_list = ['x', 'y', 'z', 'u', 'v', 'w']
         for array_with_time in arrays_with_time_list:
             array_value = getattr(self, array_with_time)
-            if (array_value.ndim == 1) or (array_value.ndim == 3):
+            if array_value.ndim in (1, 3):
                 setattr(self, '_' + array_with_time, array_value)
             else:
                 setattr(self, '_' + array_with_time, array_value[..., self.time_index])
@@ -886,7 +888,7 @@ class Streamline3dArray(Streamline3d):
             splines = None
 
         # Redefine the derivative y for the scipy ode integrator using the given parameters.
-        if (self.interpolation == 'mean') or (self.interpolation == 'trilinear'):
+        if self.interpolation in ('mean', 'trilinear'):
             self._field_function = lambda t, xx: self.__vec_int(xx)
         if self.interpolation == 'tricubic':
             field_x = splines[0]
@@ -978,10 +980,10 @@ class Streamline3dArray(Streamline3d):
             if self.periodic[2]:
                 field[2] = (xx[2] - Oz)%Lz + Oz
             return field
-        else:
-            return np.array([field_x.ev(xx[2], xx[1], xx[0]),
-                             field_y.ev(xx[2], xx[1], xx[0]),
-                             field_z.ev(xx[2], xx[1], xx[0])])[:, 0]
+
+        return np.array([field_x.ev(xx[2], xx[1], xx[0]),
+                         field_y.ev(xx[2], xx[1], xx[0]),
+                         field_z.ev(xx[2], xx[1], xx[0])])[:, 0]
 
 
     def __vec_int(self, xx):
@@ -1013,12 +1015,12 @@ class Streamline3dArray(Streamline3d):
         ny = np.size(self._y)
         nz = np.size(self._z)
 
-        if (self.interpolation == 'mean') or (self.interpolation == 'trilinear'):
+        if self.interpolation in ('mean', 'trilinear'):
             # Use temporary pointers to the data. This is convenient for the periodic case.
             u = self._u
             v = self._v
             w = self._w
-            
+
             # Find the adjacent indices and roll the arrays for periodic domains.
             i = (xx[0]-Ox)/dx
             ii = np.array([int(np.floor(i)), int(np.ceil(i))])
@@ -1036,9 +1038,9 @@ class Streamline3dArray(Streamline3d):
                     i += np.ceil(-i)
                     ii = np.array([int(np.floor(i)), int(np.ceil(i))])
                 if i > nx-1:
-                    u = np.roll(u, int(-np.ceil(i - nx-1)), axis=0)                
-                    v = np.roll(v, int(-np.ceil(i - nx-1)), axis=0)                
-                    w = np.roll(w, int(-np.ceil(i - nx-1)), axis=0)                
+                    u = np.roll(u, int(-np.ceil(i - nx-1)), axis=0)
+                    v = np.roll(v, int(-np.ceil(i - nx-1)), axis=0)
+                    w = np.roll(w, int(-np.ceil(i - nx-1)), axis=0)
                     i -= np.ceil(i - nx - 1)
                     ii = np.array([int(np.floor(i)), int(np.ceil(i))])
 
@@ -1058,9 +1060,9 @@ class Streamline3dArray(Streamline3d):
                     j += np.ceil(-j)
                     jj = np.array([int(np.floor(j)), int(np.ceil(j))])
                 if j > ny-1:
-                    u = np.roll(u, int(-np.ceil(j - ny-1)), axis=1)                
-                    v = np.roll(v, int(-np.ceil(j - ny-1)), axis=1)                
-                    w = np.roll(w, int(-np.ceil(j - ny-1)), axis=1)                
+                    u = np.roll(u, int(-np.ceil(j - ny-1)), axis=1)
+                    v = np.roll(v, int(-np.ceil(j - ny-1)), axis=1)
+                    w = np.roll(w, int(-np.ceil(j - ny-1)), axis=1)
                     j -= np.ceil(j - ny - 1)
                     jj = np.array([int(np.floor(j)), int(np.ceil(j))])
 
@@ -1080,11 +1082,11 @@ class Streamline3dArray(Streamline3d):
                     k += np.ceil(-k)
                     kk = np.array([int(np.floor(k)), int(np.ceil(k))])
                 if k > nz-1:
-                    u = np.roll(u, int(-np.ceil(k - nz-1)), axis=2)                
-                    v = np.roll(v, int(-np.ceil(k - nz-1)), axis=2)                
-                    w = np.roll(w, int(-np.ceil(k - nz-1)), axis=2)                
+                    u = np.roll(u, int(-np.ceil(k - nz-1)), axis=2)
+                    v = np.roll(v, int(-np.ceil(k - nz-1)), axis=2)
+                    w = np.roll(w, int(-np.ceil(k - nz-1)), axis=2)
                     k -= np.ceil(k - nz - 1)
-                    kk = np.array([int(np.floor(k)), int(np.ceil(k))])               
+                    kk = np.array([int(np.floor(k)), int(np.ceil(k))])
 
         # Interpolate the field.
         if self.interpolation == 'mean':
@@ -1129,6 +1131,7 @@ class Streamline3dArray(Streamline3d):
             or (kk[0] < -1) or (kk[1] > nz):
             return np.zeros([0, 0, 0])
 
+        return -1
 
     def delete_outside_points(self, tracers):
         """

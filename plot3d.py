@@ -104,6 +104,8 @@ class Quiver3d(GenericPlot):
         import bpy
         import blendaviz as blt
 
+        super().__init__()
+
         # Define the members that can be seen by the user.
         self.x = 0
         self.y = 0
@@ -158,7 +160,7 @@ class Quiver3d(GenericPlot):
             if not isinstance(self.time, np.ndarray):
                 print("Error: time is not a valid array.")
                 return -1
-            elif self.time.ndim != 1:
+            if self.time.ndim != 1:
                 print("Error: time array must be 1d.")
                 return -1
             # Determine the time index.
@@ -185,7 +187,7 @@ class Quiver3d(GenericPlot):
         arrays_with_time_list = ['x', 'y', 'z', 'u', 'v', 'w']
         for array_with_time in arrays_with_time_list:
             array_value = getattr(self, array_with_time)
-            if (array_value.ndim == 1) or (array_value.ndim == 3):
+            if array_value.ndim in (1, 3):
                 setattr(self, '_' + array_with_time, array_value.ravel())
             else:
                 setattr(self, '_' + array_with_time, array_value[..., self.time_index].ravel())
@@ -254,7 +256,7 @@ class Quiver3d(GenericPlot):
                 location = [self._x[idx] - length*normed[0]/2,
                             self._y[idx] - length*normed[1]/2,
                             self._z[idx] - length*normed[2]/2]
-            if self.pivot == 'mid' or self.pivot == 'middle':
+            if self.pivot in ('mid', 'middle'):
                 location = [self._x[idx], self._y[idx], self._z[idx]]
             location = np.array(location)
 
@@ -525,6 +527,8 @@ class Contour3d(GenericPlot):
         import bpy
         import blendaviz as blt
 
+        super().__init__()
+
         # Define the members that can be seen by the user.
         self.phi = 0
         self.x = 0
@@ -574,7 +578,7 @@ class Contour3d(GenericPlot):
             if not isinstance(self.time, np.ndarray):
                 print("Error: time is not a valid array.")
                 return -1
-            elif self.time.ndim != 1:
+            if self.time.ndim != 1:
                 print("Error: time array must be 1d.")
                 return -1
             # Determine the time index.

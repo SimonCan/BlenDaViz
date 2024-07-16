@@ -76,7 +76,7 @@ def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
     """
 
     import numpy as np
-    import matplotlib.cm as cm
+    from matplotlib import cm
 
     # Assign the colormap to the rgb values.
     if isinstance(color, np.ndarray):
@@ -103,7 +103,7 @@ def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
         for color_index, color_string in enumerate(color):
             if isinstance(color_string, str):
                 color_rgba[color_index, :] = string_to_rgba(color_string)
-            elif isinstance(color_string, tuple) or isinstance(color_string, list):
+            elif isinstance(color_string, (tuple, list)):
                 color_rgba[color_index, :len(color_string)] = color_string
         print(color_rgba.shape, color_rgba)
 
