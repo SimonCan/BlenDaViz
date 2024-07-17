@@ -13,6 +13,7 @@ build:
     # nodejs: "20"
     # rust: "1.70"
     # golang: "1.20"
+  language = 'en'
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
