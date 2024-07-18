@@ -30,4 +30,4 @@ y = 3*np.sin(z)
 pl = blt.plot(x, y, z, marker='cube', radius=0.5)
 ```
 
-A more detailed set up guide can be found on the [documentation](https://blendaviz.readthedocs.io/en/latest documentation).
+A more detailed set up guide can be found on the [[documentation|https://blendaviz.readthedocs.io/en/latest]].
