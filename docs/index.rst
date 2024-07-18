@@ -15,12 +15,14 @@ BlenDaViz requires Blender version 2.8 or above and is not compatible with any p
 Note that the version of the library must correspond to the version of the inbuilt Python of Blender, rather than the one installed on your system. If both match you are lucky and have an easy installation. If not you need to follow some simple steps, as explained below.
 
 After the successful installation of Blender and the required libraries you need to download the BlenDaViz library and can store it wherever on your PC, say :code:`~/libs/blendaviz`. You now need to set your :code:`PYTHONPATH` variable on your system, which can be different depending on what operating system you are using and what shell (bash or tcsh). On any Unix system (Linux, MacOS, BSD) using bash just add this to your :code:`~/.bashrc`:
+
 .. code:: bash
 
    export PYTHONPATH=$PYTHONPATH:~/libs
 
 
 To make sure Python in Blender uses this environmental variable, you need to start Blender using:
+
 .. code:: bash
 
    blender --python-use-system-env
@@ -46,6 +48,7 @@ For this you need to verify the version of the inbuilt Python of Blender.
 You find this in the directory :code:`4.1/python/bin/` and replace :code:`4.1` with the right Blender version.
 For Blender 4.1.1 this is :code:`python3.11`.
 Now install the required libraries using pip for the correct Python version:
+
 .. code:: bash
 
    cd blender_dir/2.8X/python/bin
@@ -58,7 +61,9 @@ Now install the required libraries using pip for the correct Python version:
 
 4. **Upgrade the installed libraries (recommended).**
 You should do this step in case you are getting error messages when using the plotting commands.
+
 .. code:: bash
+
    ./python3.11 -m pip install numpy --upgrade
    ./python3.11 -m pip install scipy --upgrade
    ./python3.11 -m pip install eqtools --upgrade
@@ -66,12 +71,14 @@ You should do this step in case you are getting error messages when using the pl
 
 
 
-   Usage and Examples
+Usage and Examples
 ==================
 
 Open Blender and within Blender a Python console.
 Import BlendaViz and numpy:
+
 .. code:: python
+
    import blendaviz as blt
    import numpy as np
 
@@ -80,7 +87,9 @@ Marker Plots
 ------------
 
 In this simple line plot we will create some data and plot them. We will also see how we can manipulate existing plots.
+
 .. code:: python
+
    # Create the data.
    y = np.linspace(0, 6*np.pi, 20)
    x = 2*np.cos(y/2)
@@ -95,7 +104,7 @@ In this simple line plot we will create some data and plot them. We will also se
 
 Now you can render the scene by pressing F12.
 
-.. ![MarkerPlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/marker_plot.png)
+.. image:: marker_plot.png
 
 
 Line Plots
@@ -104,6 +113,7 @@ Line Plots
 A line plot is very similar to a marker plot. It draws the data points as a line/tube.
 
 .. code:: python
+
    import blendaviz as blt
    import numpy as np
    # Generate the data.
@@ -113,13 +123,15 @@ A line plot is very similar to a marker plot. It draws the data points as a line
    # Generate the line plot.
    pl = blt.plot(x, y, z, radius=0.5)
 
-.. ![LinePlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/line_plot.png)
+.. image:: line_plot.png
 
 
 Mesh Plots
 ----------
 We can plot 2d data arrays using :code:`mesh`. We need two 2d arrays containing the x and y coordinates of the data points.
+
 .. code:: python
+
    import numpy as np
    import blendaviz as blt
    # Generate the data.
@@ -130,14 +142,16 @@ We can plot 2d data arrays using :code:`mesh`. We need two 2d arrays containing 
    # Genereate the mesh plot.
    mesh = blt.mesh(x, y, z)
 
-.. ![MeshPlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/mesh_plot.png)
+.. image:: mesh_plot.png
 
 
 Quiver Plots
 ------------
 
 For three-dimensional vector arrays we can user quiver to plot the vector field as arrows. We need the x, y and z-coordinates of the data points as 3d arrays.
+
 .. code:: python
+
    import numpy as np
    import blendaviz as blt
    # Generate the data.
@@ -151,7 +165,7 @@ For three-dimensional vector arrays we can user quiver to plot the vector field 
    # Genereate the quiver plot.
    quiver = blt.quiver(xx, yy, zz, uu, vv, ww, length='magnitude', color='magnitude')
 
-.. ![QuiverPlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/quiver_plot.png)
+.. image:: quiver_plot.png
 
 
 Contour Plots
@@ -160,6 +174,7 @@ Contour Plots
 Three-dimensional scalar fields can be plotted using :code:`contour`. We need the x, z and z-coordinates of the data points as 3d arrays.
 
 .. code:: python
+
    import blendaviz as blt
    # Generate the data.
    x = np.linspace(-2, 2, 21)
@@ -170,7 +185,7 @@ Three-dimensional scalar fields can be plotted using :code:`contour`. We need th
    # Genereate the contour plot.
    contour = blt.contour(phi, xx, yy, zz)
 
-.. ![ContourPlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/contour_plot.png)
+.. image:: contour_plot.png
 
 
 Streamline Plots
@@ -179,6 +194,7 @@ Streamline Plots
 A three-dimensional vector field can be plotted as streamlines. For that we need specify the three components of the vector field as 3d arrays, the coordinates of the data points as 3d arrays and the position or number of seeds. If the number of seeds is passed, they will be randomly distributed within the domain.
 
 .. code:: python
+
    import numpy as np
    import blendaviz as blt
    # Generate the data.
@@ -194,7 +210,7 @@ A three-dimensional vector field can be plotted as streamlines. For that we need
    # Generate the streamline plot.
    streamlines = blt.streamlines(x, y, z, u, v, w, seeds=seeds, integration_time=100, integration_steps=80)
 
-.. ![StreamlinePlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/streamlines_plot.png)
+.. image:: streamlines_plot.png
 
 
 Plotting Without the Blender GUI
@@ -214,6 +230,7 @@ Using the GUI to set up the scene.
 5. Start Blender from the command line using the prepared scene and the plotting script.
 
 .. code:: bash
+
    blender --background my_plot.blend -P my_plot.py
 
 This will use your blender scene and execute the plotting script.
@@ -231,12 +248,15 @@ The steps in the script are basically:
 4. Render the scene and save the image.
 
 You then need to run the script using
+
 .. code:: bash
+
    blender -P my_script.py
 
 It should be evident that using a loop you can generate animations through a sequence of images. You can use ffmpeg to put the images into a video file.
 
 .. code:: python
+
    # line_plot_background.py
    '''
    Plotting example for a line plot in the background.
@@ -280,10 +300,3 @@ It should be evident that using a loop you can generate animations through a seq
    bpy.data.scenes['Scene'].render.filepath = 'line_plot.png'
    bpy.ops.render.render(write_still=True)
 
-
-.. Indices and tables
-.. ==================
-..
-.. * :ref:`genindex`
-.. * :ref:`modindex`
-.. * :ref:`search`
