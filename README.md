@@ -3,9 +3,6 @@ Scientific data visualization in Blender.
 
 BlenDaViz is a Python library for Blender made for scientific data visualization. It can be used directly in the Blender Python console.
 
-![Mesh plot](doc/mesh_plot.png?raw=true "Mesh plot in BlenDaViz")
-![[doc/mesh_plot.png](https://raw.githubusercontent.com/SimonCan/BlenDaViz/master/docs/mesh_plot.png)|alt=Mesh plot]]
-
 ![MarkerPlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/mesh_plot.png)
 
 # Set Up (Short Version)
@@ -33,4 +30,4 @@ y = 3*np.sin(z)
 pl = blt.plot(x, y, z, marker='cube', radius=0.5)
 ```
 
-A more detailed set up guide, including the local installation of blender 2.8 and libraries, such as scipy, can be found in the wiki.
+A more detailed set up guide can be found on the [//https://blendaviz.readthedocs.io/en/latest/ documentation]
