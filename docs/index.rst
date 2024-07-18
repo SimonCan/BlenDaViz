@@ -12,123 +12,123 @@ Set Up
 
 BlenDaViz requires Blender version 2.8 or above and is not compatible with any previous version due to syntax changes. It also requires the Python libraries numpy, scipy, eqtools and matplotlib, which can be installed via your package manager or via pip.
 
-Note that the version of the library must correspond to the version of the inbuilt Python of Blender, rather than the one installed on your system. If both match you are lucky and have an easy installation. If not you need to follow some simple steps, as explained below.
-
-After the successful installation of Blender and the required libraries you need to download the BlenDaViz library and can store it wherever on your PC, say :code:`~/libs/blendaviz`. You now need to set your :code:`PYTHONPATH` variable on your system, which can be different depending on what operating system you are using and what shell (bash or tcsh). On any Unix system (Linux, MacOS, BSD) using bash just add this to your :code:`~/.bashrc`:
-.. code:: bash
-
-   export PYTHONPATH=$PYTHONPATH:~/libs
-
-
-To make sure Python in Blender uses this environmental variable, you need to start Blender using:
-.. code:: bash
-
-   blender --python-use-system-env
-
-
-Once you start Blender, open a Python console in Blender and type :code:`import blendaviz as blt` and you are good to go.
-
-
-Install Blender 2.80+ and Libraries Locally
--------------------------------------------
-
-If your already installed Blender and Python libraries work together, there is no need to read this section.
-If you are trying to use BlenDaViz on a computer that requires a manual installation of Blender and the libraries or if you are on a computer for which you do not have root/admin access follow this guide.
-
-1. **Download and extract/install [Blender](https://www.blender.org/download/) 2.80+.**
-
-2. **Extract the file.**
-There will be an executable within the directory.
-Let us call this directory :code:`blender_dir`.
-
-3. **Install the required Python libraries for the correct version.** </br>
-For this you need to verify the version of the inbuilt Python of Blender.
-You find this in the directory :code:`4.1/python/bin/` and replace :code:`4.1` with the right Blender version.
-For Blender 4.1.1 this is :code:`python3.11`.
-Now install the required libraries using pip for the correct Python version:
-.. code:: bash
-
-   cd blender_dir/2.8X/python/bin
-   ./python3.11 -m ensurepip
-   ./python3.11 -m pip install numpy
-   ./python3.11 -m pip install scipy
-   ./python3.11 -m pip install eqtools
-   ./python3.11 -m pip install matplotlib
-   ./python3.11 -m pip install scikit-image
-
-4. **Upgrade the installed libraries (recommended).**
-You should do this step in case you are getting error messages when using the plotting commands.
-.. code:: bash
-   ./python3.11 -m pip install numpy --upgrade
-   ./python3.11 -m pip install scipy --upgrade
-   ./python3.11 -m pip install eqtools --upgrade
-   ./python3.11 -m pip install matplotlib --upgrade
-
-
-
-   Usage and Examples
-==================
-
-Open Blender and within Blender a Python console.
-Import BlendaViz and numpy:
-.. code:: python
-   import blendaviz as blt
-   import numpy as np
-
-
-Marker Plots
-------------
-
-In this simple line plot we will create some data and plot them. We will also see how we can manipulate existing plots.
-.. code:: python
-   # Create the data.
-   y = np.linspace(0, 6*np.pi, 20)
-   x = 2*np.cos(y/2)
-   z = 2*np.sin(y/2)
-   # Generate the scatter plot.
-   pl = blt.plot(x, y, z, marker='cube', radius=0.7)
-   # Change the color.
-   pl.color = np.ones([x.shape[0], 4])
-   pl.color[:, 0]  = np.linspace(0, 1, 20)
-   pl.color[:, 1] = 0
-   pl.plot()
-
-Now you can render the scene by pressing F12.
-
-.. ![MarkerPlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/marker_plot.png)
-
-
-Line Plots
-----------
-
-A line plot is very similar to a marker plot. It draws the data points as a line/tube.
-
-.. code:: python
-   import blendaviz as blt
-   import numpy as np
-   # Generate the data.
-   y = np.linspace(0, 6*np.pi, 400)
-   x = 2*np.cos(y)
-   z = 2*np.sin(y)
-   # Generate the line plot.
-   pl = blt.plot(x, y, z, radius=0.5)
-
-.. ![LinePlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/line_plot.png)
-
-
-Mesh Plots
-----------
-We can plot 2d data arrays using :code:`mesh`. We need two 2d arrays containing the x and y coordinates of the data points.
-.. code:: python
-   import numpy as np
-   import blendaviz as blt
-   # Generate the data.
-   x0 = np.linspace(-3, 3, 20)
-   y0 = np.linspace(-3, 3, 20)
-   x, y = np.meshgrid(x0, y0, indexing='ij')
-   z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
-   # Genereate the mesh plot.
-   mesh = blt.mesh(x, y, z)
+.. Note that the version of the library must correspond to the version of the inbuilt Python of Blender, rather than the one installed on your system. If both match you are lucky and have an easy installation. If not you need to follow some simple steps, as explained below.
+..
+.. After the successful installation of Blender and the required libraries you need to download the BlenDaViz library and can store it wherever on your PC, say :code:`~/libs/blendaviz`. You now need to set your :code:`PYTHONPATH` variable on your system, which can be different depending on what operating system you are using and what shell (bash or tcsh). On any Unix system (Linux, MacOS, BSD) using bash just add this to your :code:`~/.bashrc`:
+.. .. code:: bash
+..
+..    export PYTHONPATH=$PYTHONPATH:~/libs
+..
+..
+.. To make sure Python in Blender uses this environmental variable, you need to start Blender using:
+.. .. code:: bash
+..
+..    blender --python-use-system-env
+..
+..
+.. Once you start Blender, open a Python console in Blender and type :code:`import blendaviz as blt` and you are good to go.
+..
+..
+.. Install Blender 2.80+ and Libraries Locally
+.. -------------------------------------------
+..
+.. If your already installed Blender and Python libraries work together, there is no need to read this section.
+.. If you are trying to use BlenDaViz on a computer that requires a manual installation of Blender and the libraries or if you are on a computer for which you do not have root/admin access follow this guide.
+..
+.. 1. **Download and extract/install [Blender](https://www.blender.org/download/) 2.80+.**
+..
+.. 2. **Extract the file.**
+.. There will be an executable within the directory.
+.. Let us call this directory :code:`blender_dir`.
+..
+.. 3. **Install the required Python libraries for the correct version.** </br>
+.. For this you need to verify the version of the inbuilt Python of Blender.
+.. You find this in the directory :code:`4.1/python/bin/` and replace :code:`4.1` with the right Blender version.
+.. For Blender 4.1.1 this is :code:`python3.11`.
+.. Now install the required libraries using pip for the correct Python version:
+.. .. code:: bash
+..
+..    cd blender_dir/2.8X/python/bin
+..    ./python3.11 -m ensurepip
+..    ./python3.11 -m pip install numpy
+..    ./python3.11 -m pip install scipy
+..    ./python3.11 -m pip install eqtools
+..    ./python3.11 -m pip install matplotlib
+..    ./python3.11 -m pip install scikit-image
+..
+.. 4. **Upgrade the installed libraries (recommended).**
+.. You should do this step in case you are getting error messages when using the plotting commands.
+.. .. code:: bash
+..    ./python3.11 -m pip install numpy --upgrade
+..    ./python3.11 -m pip install scipy --upgrade
+..    ./python3.11 -m pip install eqtools --upgrade
+..    ./python3.11 -m pip install matplotlib --upgrade
+..
+..
+..
+..    Usage and Examples
+.. ==================
+..
+.. Open Blender and within Blender a Python console.
+.. Import BlendaViz and numpy:
+.. .. code:: python
+..    import blendaviz as blt
+..    import numpy as np
+..
+..
+.. Marker Plots
+.. ------------
+..
+.. In this simple line plot we will create some data and plot them. We will also see how we can manipulate existing plots.
+.. .. code:: python
+..    # Create the data.
+..    y = np.linspace(0, 6*np.pi, 20)
+..    x = 2*np.cos(y/2)
+..    z = 2*np.sin(y/2)
+..    # Generate the scatter plot.
+..    pl = blt.plot(x, y, z, marker='cube', radius=0.7)
+..    # Change the color.
+..    pl.color = np.ones([x.shape[0], 4])
+..    pl.color[:, 0]  = np.linspace(0, 1, 20)
+..    pl.color[:, 1] = 0
+..    pl.plot()
+..
+.. Now you can render the scene by pressing F12.
+..
+.. .. ![MarkerPlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/marker_plot.png)
+..
+..
+.. Line Plots
+.. ----------
+..
+.. A line plot is very similar to a marker plot. It draws the data points as a line/tube.
+..
+.. .. code:: python
+..    import blendaviz as blt
+..    import numpy as np
+..    # Generate the data.
+..    y = np.linspace(0, 6*np.pi, 400)
+..    x = 2*np.cos(y)
+..    z = 2*np.sin(y)
+..    # Generate the line plot.
+..    pl = blt.plot(x, y, z, radius=0.5)
+..
+.. .. ![LinePlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/line_plot.png)
+..
+..
+.. Mesh Plots
+.. ----------
+.. We can plot 2d data arrays using :code:`mesh`. We need two 2d arrays containing the x and y coordinates of the data points.
+.. .. code:: python
+..    import numpy as np
+..    import blendaviz as blt
+..    # Generate the data.
+..    x0 = np.linspace(-3, 3, 20)
+..    y0 = np.linspace(-3, 3, 20)
+..    x, y = np.meshgrid(x0, y0, indexing='ij')
+..    z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
+..    # Genereate the mesh plot.
+..    mesh = blt.mesh(x, y, z)
 
 .. ![MeshPlot](https://github.com/SimonCan/BlenDaViz/blob/master/docs/mesh_plot.png)
 
