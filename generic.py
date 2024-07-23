@@ -37,7 +37,7 @@ class GenericPlot():
         """
 
         if not self.time is None:
-#            self.deletable_object.evaluated_get(depsgraph)
+            bpy.ops.object.mode_set(mode='OBJECT')
             self.plot()
         else:
             pass

@@ -114,6 +114,7 @@ class Surface(GenericPlot):
 
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
+        bpy.app.handlers.render_pre.append(self.time_handler)
 
         # Add the plot to the stack.
         blt.plot_stack.append(self)
@@ -314,6 +315,11 @@ class Surface(GenericPlot):
             # Link the mesh object with the scene.
             bpy.context.scene.collection.objects.link(self.mesh_object)
 
+        # Render surface as smooth.
+        self.mesh_object.select_set(True)
+        bpy.ops.object.shade_smooth()
+        self.mesh_object.select_set(False)
+
         # Make the mesh the deletable object.
         self.deletable_object = self.mesh_object
 
@@ -328,7 +334,11 @@ class Surface(GenericPlot):
         Updates the plot according to the function specified.
         """
 
+        import bpy
+
         if not self.time is None:
+            print("time_handler")
+            bpy.ops.object.mode_set(mode='OBJECT')
             self.plot()
         else:
             pass
