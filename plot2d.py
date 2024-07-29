@@ -114,7 +114,6 @@ class Surface(GenericPlot):
 
         # Set the handler function for frame changes (time).
         bpy.app.handlers.frame_change_pre.append(self.time_handler)
-        bpy.app.handlers.render_pre.append(self.time_handler)
 
         # Add the plot to the stack.
         blt.plot_stack.append(self)
@@ -211,11 +210,11 @@ class Surface(GenericPlot):
 
         # Delete existing meshes.
         if not self.mesh_object is None:
-            bpy.ops.object.select_all(action='DESELECT')
+            for obj in bpy.context.view_layer.objects:
+                obj.select_set(False)
             if self.object_reference_valid(self.mesh_object):
                 self.mesh_object.select_set(state=True)
-                bpy.context.view_layer.objects.active = self.mesh_object
-                bpy.ops.object.delete()
+                bpy.data.objects.remove(self.mesh_object, do_unlink=True)
             self.mesh_object = None
 
         # Delete existing materials.
@@ -315,15 +314,18 @@ class Surface(GenericPlot):
             # Link the mesh object with the scene.
             bpy.context.scene.collection.objects.link(self.mesh_object)
 
+        #bpy.context.scene.collection.objects.link(self.mesh_object)
+
         # Render surface as smooth.
         self.mesh_object.select_set(True)
-        bpy.ops.object.shade_smooth()
+        if bpy.ops.object.mode_set.poll():
+            bpy.ops.object.shade_smooth()
         self.mesh_object.select_set(False)
 
         # Make the mesh the deletable object.
         self.deletable_object = self.mesh_object
 
-        self.update_globals()
+        #self.update_globals()
 
         return 0
 
@@ -337,8 +339,7 @@ class Surface(GenericPlot):
         import bpy
 
         if not self.time is None:
-            print("time_handler")
-            bpy.ops.object.mode_set(mode='OBJECT')
+            print("bpy.context.mode = {0}".format(bpy.context.mode))
             self.plot()
         else:
             pass
