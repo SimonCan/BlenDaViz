@@ -446,7 +446,6 @@ class PathLine(GenericPlot):
                             bpy.ops.object.delete()
                 else:
                     self.marker_mesh.select_set(True)
-                    print(type(self.marker_mesh))
                     bpy.context.view_layer.objects.active = self.marker_mesh
                     bpy.ops.object.delete()
             self.marker_mesh = None

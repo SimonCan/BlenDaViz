@@ -336,10 +336,7 @@ class Surface(GenericPlot):
         Updates the plot according to the function specified.
         """
 
-        import bpy
-
         if not self.time is None:
-            print("bpy.context.mode = {0}".format(bpy.context.mode))
             self.plot()
         else:
             pass

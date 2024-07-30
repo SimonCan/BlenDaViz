@@ -37,7 +37,6 @@ class GenericPlot():
         """
 
         if not self.time is None:
-            bpy.ops.object.mode_set(mode='OBJECT')
             self.plot()
         else:
             pass
