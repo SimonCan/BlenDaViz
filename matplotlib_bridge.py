@@ -140,7 +140,6 @@ class MPLEmbedding():
 
         # Assign image texture to mesh.
         mesh_image = bpy.data.images.new('ImageMesh', im.width, im.height)
-        print(np.array(pixels).shape)
         mesh_image.pixels = np.array(pixels).flatten()
 
         # Assign the texture to the material.
