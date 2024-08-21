@@ -94,8 +94,10 @@ In this simple line plot we will create some data and plot them. We will also se
    y = np.linspace(0, 6*np.pi, 20)
    x = 2*np.cos(y/2)
    z = 2*np.sin(y/2)
+
    # Generate the scatter plot.
    pl = blt.plot(x, y, z, marker='cube', radius=0.7)
+
    # Change the color.
    pl.color = np.ones([x.shape[0], 4])
    pl.color[:, 0]  = np.linspace(0, 1, 20)
@@ -116,10 +118,12 @@ A line plot is very similar to a marker plot. It draws the data points as a line
 
    import blendaviz as blt
    import numpy as np
+
    # Generate the data.
    y = np.linspace(0, 6*np.pi, 400)
    x = 2*np.cos(y)
    z = 2*np.sin(y)
+
    # Generate the line plot.
    pl = blt.plot(x, y, z, radius=0.5)
 
@@ -134,11 +138,13 @@ We can plot 2d data arrays using :code:`mesh`. We need two 2d arrays containing 
 
    import numpy as np
    import blendaviz as blt
+
    # Generate the data.
    x0 = np.linspace(-3, 3, 20)
    y0 = np.linspace(-3, 3, 20)
    x, y = np.meshgrid(x0, y0, indexing='ij')
    z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
+
    # Genereate the mesh plot.
    mesh = blt.mesh(x, y, z)
 
@@ -154,6 +160,7 @@ For three-dimensional vector arrays we can user quiver to plot the vector field 
 
    import numpy as np
    import blendaviz as blt
+
    # Generate the data.
    x = np.linspace(-3, 3, 3)
    y = np.linspace(-7, 7, 7)
@@ -162,6 +169,7 @@ For three-dimensional vector arrays we can user quiver to plot the vector field 
    uu = 0.3*(xx + yy)
    vv = 0.3*xx
    ww = 0.3*zz + 0.8
+
    # Genereate the quiver plot.
    quiver = blt.quiver(xx, yy, zz, uu, vv, ww, length='magnitude', color='magnitude')
 
@@ -176,12 +184,14 @@ Three-dimensional scalar fields can be plotted using :code:`contour`. We need th
 .. code:: python
 
    import blendaviz as blt
+
    # Generate the data.
    x = np.linspace(-2, 2, 21)
    y = np.linspace(-2, 2, 21)
    z = np.linspace(-2, 2, 21)
    xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
    phi = np.sin(3*xx) + np.cos(2*yy) + np.sin(zz)
+
    # Genereate the contour plot.
    contour = blt.contour(phi, xx, yy, zz)
 
@@ -197,6 +207,7 @@ A three-dimensional vector field can be plotted as streamlines. For that we need
 
    import numpy as np
    import blendaviz as blt
+
    # Generate the data.
    x = np.linspace(-4, 4, 100)
    y = np.linspace(-4, 4, 100)
@@ -205,12 +216,44 @@ A three-dimensional vector field can be plotted as streamlines. For that we need
    u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
    v = np.ones_like(u)*0.1
    w = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
+
    # Define the position of the seeds.
    seeds = np.array([np.random.random(10)*2-1, np.zeros(10), np.random.random(10)*2-1]).T
+
    # Generate the streamline plot.
    streamlines = blt.streamlines(x, y, z, u, v, w, seeds=seeds, integration_time=100, integration_steps=80)
 
 .. image:: streamlines_plot.png
+
+
+Matplotlib Bridge
+-----------------
+
+With BlenDaViz you can also generate plots in Matplotlib and embedthem into your Blender scene. The approach is very simple. You first generate the Matplotlib plot as you would normally do in Python, with no restrictions. Then you use BlenDaViz' command :code:`mpl_figure_to_blender` on the generated Matplotlib figure for the generation of the textured plane:
+
+.. code:: python
+
+   import numpy as np
+   import matplotlib.pyplot as plt
+   import blendaviz as blt   
+
+   # Define the data.
+   x = np.linspace(0, 5, 1000)
+   y = np.sin(x)   
+
+   # Plot the test data into a Matplotlib figure.
+   plt.rc('text', usetex=True)
+   plt.rc('font', family='arial')
+   fig = plt.figure()
+   plt.plot(x, y, color='g')
+   plt.title("sine function")   
+
+   # Generate a texture Blender plane with this plot.
+   mpl = blt.mpl_figure_to_blender(fig)
+
+.. image:: mpl_bridge.png
+
+The generated :code:`mpl` object has the Matplotlib figure object as member. It can be change to e.g. reflect different plotting style or data. Using :code:`mpl.plot()` would the replot the data.
 
 
 Plotting Without the Blender GUI
