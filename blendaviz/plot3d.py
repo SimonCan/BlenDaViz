@@ -214,12 +214,15 @@ class Quiver3d(GenericPlot):
         if isinstance(self.color, str):
             if self.color == 'magnitude':
                 self.color = np.sqrt(self._u**2 + self._v**2 + self._w**2)
-        if self.vmin == self.vmax:
-            self.vmax = 2*self.color.min()
-        if (self.vmin == 0) and (self.vmax == 0):
-            self.vmax = 1.0
-        color_rgba = colors.make_rgba_array(self.color, self._x.shape[0],
-                                            self.color_map, self.vmin, self.vmax)
+        if isinstance(self.color, np.ndarray):
+            if self.vmin == self.vmax:
+                self.vmax = 2*self.color.min()
+            if (self.vmin == 0) and (self.vmax == 0):
+                self.vmax = 1.0
+            color_rgba = colors.make_rgba_array(self.color, self._x.shape[0],
+                                                self.color_map, self.vmin, self.vmax)
+        if isinstance(self.color, tuple) or isinstance(self.color, list):
+            color_rgba = colors.make_rgba_array(self.color, self._x.shape[0])
 
         # Prepare the materials list.
         self.mesh_material = []
