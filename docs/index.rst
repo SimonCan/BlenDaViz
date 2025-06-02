@@ -10,64 +10,32 @@ BlenDaViz
 Set Up
 ======
 
-BlenDaViz requires Blender version 2.8 or above and is not compatible with any previous version due to syntax changes. It also requires the Python libraries numpy, scipy, eqtools and matplotlib, which can be installed via your package manager or via pip.
+BlenDaViz requires Blender version 4.4 or above. It also requires the Python libraries numpy, scipy and matplotlib.
 
-Note that the version of the library must correspond to the version of the inbuilt Python of Blender, rather than the one installed on your system. If both match you are lucky and have an easy installation. If not you need to follow some simple steps, as explained below.
+Blender can be installed via a package manager or downloaded as binary files. After that you need to download the BlenDaViz library and can store it wherever on your PC, say :code:`~/libs/blendaviz`.
 
-After the successful installation of Blender and the required libraries you need to download the BlenDaViz library and can store it wherever on your PC, say :code:`~/libs/blendaviz`. You now need to set your :code:`PYTHONPATH` variable on your system, which can be different depending on what operating system you are using and what shell (bash or tcsh). On any Unix system (Linux, MacOS, BSD) using bash just add this to your :code:`~/.bashrc`:
-
-.. code:: bash
-
-   export PYTHONPATH=$PYTHONPATH:~/libs
-
-
-To make sure Python in Blender uses this environmental variable, you need to start Blender using:
+To install the required Python libraries change to your `~libs/blendaviz` directory and execute
 
 .. code:: bash
 
-   blender --python-use-system-env
+   /path/to/blenders/python -m pip install -U
+
+Where `/path/to/blenders/python` is where you installed Blender.
+If you installed Blender through a package manager you can find the path to its Python executable by opening Blender an in a Python console (`shift + F4`) type:
+
+..code:: python
+
+   import sys
+   print(sys.executable)
 
 
-Once you start Blender, open a Python console in Blender and type :code:`import blendaviz as blt` and you are good to go.
+Once you start Blender, open a Python console and type
 
+.. code:: python
 
-Install Blender 2.80+ and Libraries Locally
--------------------------------------------
+   import blendaviz as blt
 
-If your already installed Blender and Python libraries work together, there is no need to read this section.
-If you are trying to use BlenDaViz on a computer that requires a manual installation of Blender and the libraries or if you are on a computer for which you do not have root/admin access follow this guide.
-
-1. **Download and extract/install [Blender](https://www.blender.org/download/) 2.80+.**
-
-2. **Extract the file.**
-There will be an executable within the directory.
-Let us call this directory :code:`blender_dir`.
-
-3. **Install the required Python libraries for the correct version.** </br>
-For this you need to verify the version of the inbuilt Python of Blender.
-You find this in the directory :code:`4.1/python/bin/` and replace :code:`4.1` with the right Blender version.
-For Blender 4.1.1 this is :code:`python3.11`.
-Now install the required libraries using pip for the correct Python version:
-
-.. code:: bash
-
-   cd blender_dir/2.8X/python/bin
-   ./python3.11 -m ensurepip
-   ./python3.11 -m pip install numpy
-   ./python3.11 -m pip install scipy
-   ./python3.11 -m pip install eqtools
-   ./python3.11 -m pip install matplotlib
-   ./python3.11 -m pip install scikit-image
-
-4. **Upgrade the installed libraries (recommended).**
-You should do this step in case you are getting error messages when using the plotting commands.
-
-.. code:: bash
-
-   ./python3.11 -m pip install numpy --upgrade
-   ./python3.11 -m pip install scipy --upgrade
-   ./python3.11 -m pip install eqtools --upgrade
-   ./python3.11 -m pip install matplotlib --upgrade
+and you are good to go.
 
 
 
