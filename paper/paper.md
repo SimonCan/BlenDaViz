@@ -27,8 +27,32 @@ bibliography: paper.bib
 
 # Summary
 
+BlenDaViz is a 3d plotting library for the visualization tool Blender, written in Python.
+It is able to visualize line plots, scatter plots, surfaces,
+iso-surfaces, glyphs (arrows) and streamlines from Numpy arrays.
+The user can load BlenDaViz within a Blender Python console as any other library.
+Its design is close to other plotting libraries, especially Matplotlib, which means that
+every part of a plot is treated as an object that can be changed when updating the plot
+with new parameters or data.
+Compared to other 3d visualization software, we achieve higher image quality, thanks to Blender's
+ray tracing capabilities.
+
 
 # Statement of need
+
+In scientific fields, like structure mechanics, computational fluid dynamics,
+astrophysics, or molecular dynamics, it is common to use 3d visualization tools
+like Paraview, Vapor, Mayavi or Visit.
+They are capable to load a variety of data formats and visualize different
+aspects of the data using filters.
+However, they often lack the image quality needed that would make understanding
+the data easy.
+Their limited shaders can create optical illusions where the depth of the geometry
+is not clear, or the colors are off due to unrealistic image generation.
+BlenDaViz fills this gap by giving the users all the rendering and ray tracing
+capabilities of Blender, combined with the ease of use and modularity we know
+from libraries like Matplotlib.
+
 
 
 # Mathematics
