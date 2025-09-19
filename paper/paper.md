@@ -58,7 +58,7 @@ modelling tools like [Blender](https://www.blender.org), not only improve the im
 quality, but make it easier to understand the three-dimensional structure
 and colors.
 For instance, contextually-implied scattered light can have a significant impact
-on the perceived color of objects, as exemplified by *The Dress* controversy~\cite{chetverikov2016seeing}.
+on the perceived color of objects, as exemplified by *The Dress* controversy [@chetverikov2016seeing].
 Using lighting, shadow, depth and scattering can be used to generate photorealistic images
 where the interpretation is made easier.
 
@@ -131,6 +131,8 @@ To highlight its geometry we added a plane with a checker board
 texture in the background and readjusted the camera.
 Such manual adjustments can be done directly in Blender
 and can greatly improve the plot quality.
+
+![Mesh plot of a Gaussian using a colormap.\label{fig: mesh_plot}](mesh_plot.png){height="150pt"}
 
 
 # Handling of time
