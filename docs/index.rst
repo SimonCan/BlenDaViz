@@ -23,7 +23,7 @@ To install the required Python libraries change to your `~libs/blendaviz` direct
 Where `/path/to/blenders/python` is where you installed Blender.
 If you installed Blender through a package manager you can find the path to its Python executable by opening Blender an in a Python console (`shift + F4`) type:
 
-..code:: python
+.. code:: python
 
    import sys
    print(sys.executable)
