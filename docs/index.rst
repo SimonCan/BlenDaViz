@@ -18,7 +18,7 @@ To install the required Python libraries change to your `~libs/blendaviz` direct
 
 .. code:: bash
 
-   /path/to/blenders/python -m pip install -U
+   /path/to/blenders/python -m pip install -U pyproject.toml
 
 Where `/path/to/blenders/python` is where you installed Blender.
 If you installed Blender through a package manager you can find the path to its Python executable by opening Blender an in a Python console (`shift + F4`) type:
