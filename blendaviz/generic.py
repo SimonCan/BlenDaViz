@@ -18,8 +18,8 @@ class GenericPlot():
         # Define the members that can be seen by the user.
         self.time = None
 
-        # Set the handler function for frame changes (time).
-        bpy.app.handlers.frame_change_pre.append(self.time_handler)
+        ## Set the handler function for frame changes (time).
+        #bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
 
     def plot(self):

@@ -136,7 +136,7 @@ class PathLine(GenericPlot):
         self._rotation_z = 0
 
         # Set the handler function for frame changes (time).
-        bpy.app.handlers.frame_change_pre.append(self.time_handler)
+        #bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
         # Add the plot to the stack.
         blt.plot_stack.append(self)
@@ -309,6 +309,7 @@ class PathLine(GenericPlot):
                                                       rotation=(self._rotation_x[idx],
                                                                 self._rotation_y[idx],
                                                                 self._rotation_z[idx]))
+                bpy.ops.object.shade_smooth()
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'monkey':
             for idx in range(self._x):
@@ -336,6 +337,7 @@ class PathLine(GenericPlot):
                                                      rotation=(self._rotation_x[idx],
                                                                self._rotation_y[idx],
                                                                self._rotation_z[idx]))
+                bpy.ops.object.shade_smooth()
                 self.marker_mesh.append(bpy.context.object)
         if isinstance(self.marker, bpy.types.Object):
             if self.marker.type == 'MESH':
