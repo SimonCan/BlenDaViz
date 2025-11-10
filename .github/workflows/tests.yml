@@ -1,0 +1,39 @@
+name: Blender CI Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget xvfb
+
+      - name: Install Python dependencies (from pyproject.toml)
+        run: |
+          pip install --upgrade pip
+          pip install .[test]
+
+      - name: Download Blender
+        run: |
+          wget https://mirror.clarkson.edu/blender/release/Blender4.4/blender-4.4.3-linux-x64.tar.xz
+          tar -xJf blender-4.4.3-linux-x64.tar.xz
+          mv blender-4.4.3-linux-x64 ~/blender
+
+      - name: Run Blender tests
+        run: |
+          xvfb-run --auto-servernum ~/blender/blender --background --factory-startup --python run_blender_tests.py
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: true

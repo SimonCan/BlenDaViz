@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blendaviz"
+version = "0.1.0"
+description = "A tool for data visualization inside Blender using Python."
+authors = [
+    { name="Christopher berg-Smiet", email="christopher.smiet@epfl.ch" },
+    { name="Simon Candelaresi", email="simon.candelresi@gmail.com" }
+]
+license = { text = "LGPL-3.0" }
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "scikit-image"
+    # Note: 'bpy' is Blender's Python module, often not installed via pip.
+]
+
+[project.urls]
+"Homepage" = "https://github.com/SimonCan/BlenDaViz"
+"Documentation" = "https://blendaviz.readthedocs.io/en/latest/"
+
+[project.optional-dependencies]
+test = [
+    "coverage",
+    "codecov",
+    "pytest",         # optional, can help later
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["blendaviz"]
+
+[tool.setuptools]
+py-modules = [
+    "box",
+    "camera",
+    "colors",
+    "generic",
+    "globals",
+    "lights",
+    "matplotlib_bridge",
+    "plot1d",
+    "plot2d",
+    "plot3d",
+    "streamlines3d"
+]
+
