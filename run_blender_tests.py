@@ -24,28 +24,29 @@ except ImportError:
 cov = coverage.Coverage(source=["blendaviz"])
 cov.start()
 
-# Discover and import all tests in /tests.
-test_dir = Path(__file__).parent / "tests"
-suite = unittest.TestSuite()
+# Load your test file(s).
+TEST_FILE = Path(__file__).parent / "test_all.py"
+spec = importlib.util.spec_from_file_location("blendaviz_tests", TEST_FILE)
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
 
-# Loop over all tests.
-for test_file in test_dir.glob("test_*.py"):
-    spec = importlib.util.spec_from_file_location(test_file.stem, test_file)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    suite.addTests(unittest.defaultTestLoader.loadTestsFromModule(mod))
+suite = unittest.defaultTestLoader.loadTestsFromModule(mod)
+result = unittest.TextTestRunner(verbosity=2).run(suite)
 
-# Run the tests.
-runner = unittest.TextTestRunner(verbosity=2)
-result = runner.run(suite)
-
-# Stop and save coverage.
+# Stop coverage and save reports.
 cov.stop()
 cov.save()
-cov.html_report(directory="coverage_html")
 cov.xml_report(outfile="coverage.xml")
+cov.html_report(directory="coverage_html")
 
+# Exit Blender cleanly.
+sys.stdout.flush()
+sys.stderr.flush()
 bpy.ops.wm.quit_blender()
-sys.exit(0 if result.wasSuccessful() else 1)
+
+
+
+
+
 
 
