@@ -1,4 +1,3 @@
-# box.py
 """
 Contains routines to generate the bounding box.
 """
