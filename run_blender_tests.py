@@ -20,6 +20,13 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "coverage"])
     import coverage
 
+# Ensure project root is on sys.path (so "import blendaviz" works).
+ROOT = Path(__file__).resolve().parent
+if (ROOT / "blendaviz").exists():
+    sys.path.insert(0, str(ROOT))
+elif (ROOT.parent / "blendaviz").exists():
+    sys.path.insert(0, str(ROOT.parent))
+
 # Start coverage collection before imports.
 cov = coverage.Coverage(source=["blendaviz"])
 cov.start()
