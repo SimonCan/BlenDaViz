@@ -25,7 +25,7 @@ cov = coverage.Coverage(source=["blendaviz"])
 cov.start()
 
 # Load your test file(s).
-TEST_FILE = Path(__file__).parent / "test_all.py"
+TEST_FILE = Path(__file__).parent / "tests/test_all.py"
 spec = importlib.util.spec_from_file_location("blendaviz_tests", TEST_FILE)
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
