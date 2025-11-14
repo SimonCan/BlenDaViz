@@ -15,9 +15,13 @@ class Plot1d(unittest.TestCase):
         x = 2*np.cos(y/2)
         z = 2*np.sin(y/2)
 
-        pl = blt.plot(x, y, z, marker='cube', radius=0.7)
+        # Line plot.
+        pl_1 = blt.plot(x, y, z, radius=0.1, color='red')
+        # Marker plot.
+        pl_2 = blt.plot(x, y, z, marker='cube', radius=0.7, color='b')
 
-        self.assertIsNotNone(pl, "blt.plot() returned None")
+        self.assertIsNotNone(pl_1, "blt.plot() returned None")
+        self.assertIsNotNone(pl_2, "blt.plot() returned None")
 
         objects = list(bpy.data.objects)
         self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
