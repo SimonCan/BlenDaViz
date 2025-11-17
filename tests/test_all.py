@@ -11,18 +11,58 @@ import sys
 
 class Plot1d(unittest.TestCase):
     def test_plot1d(self):
-        y = np.linspace(0, 6*np.pi, 20)
+        # Define the numbr of data points.
+        n = 20
+
+        # Generate the data.
+        y = np.linspace(0, 6*np.pi, n)
         x = 2*np.cos(y/2)
         z = 2*np.sin(y/2)
 
         # Line plot.
-        pl_1 = blt.plot(x, y, z, radius=0.1, color='red')
+        pl = blt.plot(x, y, z, radius=0.1, color='red')
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+
+        # Line plot with variable color.
+        pl.color = np.random.random([n, 4])
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+
+        # # Line plot with emission.
+        # pl.color = 'r'
+        # pl.emission = 10
+        # pl.plot()
+        # self.assertIsNotNone(pl, "blt.plot() returned None")
+
         # Marker plot.
-        pl_2 = blt.plot(x, y, z, marker='cube', radius=0.7, color='b')
+        pl.marker = marker='cube'
+        pl.radius = 0.7
+        pl.color = 'b'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
 
-        self.assertIsNotNone(pl_1, "blt.plot() returned None")
-        self.assertIsNotNone(pl_2, "blt.plot() returned None")
+        # Test different markers.
+        pl.marker = 'cone'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = 'cylinder'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = 'ico_sphere'
+        pl.plot()
+        # self.assertIsNotNone(pl, "blt.plot() returned None")
+        # pl.marker = 'monkey'
+        # pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = 'torus'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = 'uv_sphere'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
 
+
+        # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
         self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
 
