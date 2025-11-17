@@ -312,7 +312,7 @@ class PathLine(GenericPlot):
                 bpy.ops.object.shade_smooth()
                 self.marker_mesh.append(bpy.context.object)
         if self.marker == 'monkey':
-            for idx in range(self._x):
+            for idx in range(self._x.shape[0]):
                 bpy.ops.mesh.primitive_monkey_add(location=(self._x[idx], self._y[idx], self._z[idx]),
                                                   size=self._radius[idx],
                                                   rotation=(self._rotation_x[idx],
