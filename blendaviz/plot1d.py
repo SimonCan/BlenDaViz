@@ -16,7 +16,7 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
     Signature:
 
     plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
-         emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
+         =None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
          marker=None, time=None)
 
     Parameters
@@ -250,18 +250,32 @@ class PathLine(GenericPlot):
             self.curve_object.active_material = self.mesh_material
 
             # Set the emission.
-            if not self.emission is None:
+            if self.emission is not None:
                 self.mesh_material.use_nodes = True
                 node_tree = self.mesh_material.node_tree
                 nodes = node_tree.nodes
-                # Remove and Diffusive BSDF node.
-                nodes.remove(nodes[1])
+
+                # Find the material output node
+                output_node = None
+                for node in nodes:
+                    if node.type == 'OUTPUT_MATERIAL':
+                        output_node = node
+                        break
+
+                # Remove any Diffusive BSDF node.
+                for node in list(nodes):
+                    if node != output_node:
+                        nodes.remove(node)
+
+                # Create the emission node.
                 node_emission = nodes.new(type='ShaderNodeEmission')
+
                 # Change the input of the ouput node to emission.
                 node_tree.links.new(node_emission.outputs['Emission'],
-                                    nodes[0].inputs['Surface'])
+                                    output_node.inputs['Surface'])
+
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = color_rgba
+                node_emission.inputs['Color'].default_value = color_rgba[0]
                 node_emission.inputs['Strength'].default_value = self.emission
 
             # Link the curve object with the scene.

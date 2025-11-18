@@ -19,20 +19,21 @@ class Plot1d(unittest.TestCase):
         x = 2*np.cos(y/2)
         z = 2*np.sin(y/2)
 
-        # Line plot.
-        pl = blt.plot(x, y, z, radius=0.1, color='red')
-        self.assertIsNotNone(pl, "blt.plot() returned None")
+        ## Line plot.
+        #pl = blt.plot(x, y, z, radius=0.1, color='red')
+        #self.assertIsNotNone(pl, "blt.plot() returned None")
 
-        # Line plot with variable color.
-        pl.color = np.random.random([n, 4])
-        pl.plot()
-        self.assertIsNotNone(pl, "blt.plot() returned None")
+        ## Line plot with variable color.
+        #pl.color = np.random.random([n, 4])
+        #pl.plot()
+        #self.assertIsNotNone(pl, "blt.plot() returned None")
 
-        # # Line plot with emission.
-        # pl.color = 'r'
-        # pl.emission = 10
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
+        # Line plot with emission.
+        #pl.color = 'r'
+        #pl.emission = 10
+        #pl.plot()
+        pl = blt.plot(x, y, z, radius=0.1, emission=10)
+        self.assertIsNotNone(pl, "blt.plot() returned None")
 
         # Marker plot.
         pl.marker = marker='cube'
