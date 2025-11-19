@@ -355,13 +355,13 @@ class PathLine(GenericPlot):
                 self.marker_mesh.append(bpy.context.object)
         if isinstance(self.marker, bpy.types.Object):
             if self.marker.type == 'MESH':
-                bpy.context.object.select = False
-                self.marker.select = True
+                bpy.context.object.select_set(False)
+                self.marker.select_set(True)
                 for idx in range(self._x.shape[0]):
                     bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'})
                     bpy.context.object.location = (self._x[idx], self._y[idx], self._z[idx])
                     bpy.context.object.rotation_euler = (self._rotation_x[idx], self._rotation_y[idx], self._rotation_z[idx])
-                    self.marker.select = False
+                    self.marker.select_set(False)
                     self.marker_mesh.append(bpy.context.object)
 
         # Set the material and color.
@@ -393,12 +393,26 @@ class PathLine(GenericPlot):
                         self.mesh_material[idx].use_nodes = True
                         node_tree = self.mesh_material[idx].node_tree
                         nodes = node_tree.nodes
-                        # Remove and Diffusive BSDF node.
-                        nodes.remove(nodes[1])
+
+                        # Find the material output node
+                        output_node = None
+                        for node in nodes:
+                            if node.type == 'OUTPUT_MATERIAL':
+                                output_node = node
+                                break
+
+                        # Remove any Diffusive BSDF node.
+                        for node in list(nodes):
+                            if node != output_node:
+                                nodes.remove(node)
+
+                        # Create the emission node.
                         node_emission = nodes.new(type='ShaderNodeEmission')
+
                         # Change the input of the ouput node to emission.
                         node_tree.links.new(node_emission.outputs['Emission'],
-                                            nodes[0].inputs['Surface'])
+                                            output_node.inputs['Surface'])
+
                         # Adapt emission and color.
                         if color_is_array:
                             node_emission.inputs['Color'].default_value = tuple(color_rgba[idx])

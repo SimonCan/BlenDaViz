@@ -32,8 +32,14 @@ class Plot1d(unittest.TestCase):
         pl.color = 'r'
         pl.emission = 10
         pl.plot()
-        #pl = blt.plot(x, y, z, radius=0.1, emission=10)
         self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = marker='cube'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.emission = 10 + np.linspace(0, 10, n)
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.emission = None
 
         # Marker plot.
         pl.marker = marker='cube'
@@ -51,9 +57,9 @@ class Plot1d(unittest.TestCase):
         self.assertIsNotNone(pl, "blt.plot() returned None")
         pl.marker = 'ico_sphere'
         pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        # pl.marker = 'monkey'
-        # pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = 'monkey'
+        pl.plot()
         self.assertIsNotNone(pl, "blt.plot() returned None")
         pl.marker = 'torus'
         pl.plot()
@@ -62,6 +68,12 @@ class Plot1d(unittest.TestCase):
         pl.plot()
         self.assertIsNotNone(pl, "blt.plot() returned None")
 
+        # # Test custom marker.
+        # cube = bpy.ops.mesh.primitive_cube_add()
+        # pl.marker = bpy.context.object
+        # pl.plot()
+        # self.assertIsNotNone(pl, "blt.plot() returned None")
+        # bpy.ops.object.delete()
 
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
