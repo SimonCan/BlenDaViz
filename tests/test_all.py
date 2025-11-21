@@ -70,7 +70,7 @@ class Plot1d(unittest.TestCase):
 
         # Test custom marker.
         cube = bpy.ops.mesh.primitive_cube_add()
-        pl = blt.plot(x, y, z, radius=0.1, color='red', marker=bpy.ops.mesh.primitive_cube_add())
+        pl = blt.plot(x, y, z, radius=0.1, color='red', marker=bpy.context.object)
         self.assertIsNotNone(pl, "blt.plot() returned None")
 
         # Make sure no additional Blender objects were created.
