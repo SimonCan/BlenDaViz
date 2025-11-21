@@ -15,7 +15,7 @@ class Plot1d(unittest.TestCase):
         n = 20
 
         # Generate the data.
-        y = np.linspace(0, 6*np.pi, n)
+        y = np.linspace(-3*np.pi, 3*np.pi, n)
         x = 2*np.cos(y/2)
         z = 2*np.sin(y/2)
 
