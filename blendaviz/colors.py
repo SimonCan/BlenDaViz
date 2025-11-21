@@ -109,8 +109,7 @@ def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
 
     # Transform single color string into color array.
     if isinstance(color, str):
-        color_rgba = np.ones([length, 4])
-        color_rgba[:, :] = np.array(string_to_rgba(color))
+        color_rgba = np.array(string_to_rgba(color))
 
     # Transform single color tuple into color array.
     if isinstance(color, tuple):
@@ -118,6 +117,5 @@ def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
             color_rgba = color + (1,)
         else:
             color_rgba = color
-        color_rgba = np.ones([length, 4])*np.array(color_rgba)
 
     return color_rgba

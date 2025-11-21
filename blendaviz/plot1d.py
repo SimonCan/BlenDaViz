@@ -290,168 +290,169 @@ class PathLine(GenericPlot):
         # Plot the markers.
         if not self.marker is None:
             self.marker_mesh = []
-        if self.marker == 'cone':
-            for idx in range(self._x.shape[0]):
-                bpy.ops.mesh.primitive_cone_add(location=(self._x[idx], self._y[idx], self._z[idx]),
-                                                radius1=self._radius[idx],
-                                                depth=2*self._radius[idx],
-                                                rotation=(self._rotation_x[idx],
-                                                          self._rotation_y[idx],
-                                                          self._rotation_z[idx]))
-                self.marker_mesh.append(bpy.context.object)
-        if self.marker == 'cube':
-            for idx in range(self._x.shape[0]):
-                bpy.ops.mesh.primitive_cube_add(location=(self._x[idx], self._y[idx], self._z[idx]),
-                                                size=self._radius[idx],
-                                                rotation=(self._rotation_x[idx],
-                                                          self._rotation_y[idx],
-                                                          self._rotation_z[idx]))
-                self.marker_mesh.append(bpy.context.object)
-        if self.marker == 'cylinder':
-            for idx in range(self._x.shape[0]):
-                bpy.ops.mesh.primitive_cylinder_add(location=(self._x[idx], self._y[idx], self._z[idx]),
-                                                    radius=self._radius[idx],
+            if self.marker == 'cone':
+                for idx in range(self._x.shape[0]):
+                    bpy.ops.mesh.primitive_cone_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                    radius1=self._radius[idx],
                                                     depth=2*self._radius[idx],
                                                     rotation=(self._rotation_x[idx],
-                                                              self._rotation_y[idx],
-                                                              self._rotation_z[idx]))
-                self.marker_mesh.append(bpy.context.object)
-        if self.marker == 'ico_sphere':
-            for idx in range(self._x.shape[0]):
-                bpy.ops.mesh.primitive_ico_sphere_add(location=(self._x[idx], self._y[idx], self._z[idx]),
-                                                      radius=self._radius[idx],
-                                                      rotation=(self._rotation_x[idx],
-                                                                self._rotation_y[idx],
-                                                                self._rotation_z[idx]))
-                bpy.ops.object.shade_smooth()
-                self.marker_mesh.append(bpy.context.object)
-        if self.marker == 'monkey':
-            for idx in range(self._x.shape[0]):
-                bpy.ops.mesh.primitive_monkey_add(location=(self._x[idx], self._y[idx], self._z[idx]),
-                                                  size=self._radius[idx],
-                                                  rotation=(self._rotation_x[idx],
                                                             self._rotation_y[idx],
                                                             self._rotation_z[idx]))
-                self.marker_mesh.append(bpy.context.object)
-        if self.marker == 'torus':
-            for idx in range(self._x.shape[0]):
-                bpy.ops.mesh.primitive_torus_add(location=(self._x[idx], self._y[idx], self._z[idx]),
-                                                 major_radius=self._radius[idx],
-                                                 minor_radius=0.25*self._radius[idx],
-                                                 abso_major_rad=1.25*self._radius[idx],
-                                                 abso_minor_rad=0.75*self._radius[idx],
-                                                 rotation=(self._rotation_x[idx],
-                                                           self._rotation_y[idx],
-                                                           self._rotation_z[idx]))
-                self.marker_mesh.append(bpy.context.object)
-        if self.marker == 'uv_sphere':
-            for idx in range(self._x.shape[0]):
-                bpy.ops.mesh.primitive_uv_sphere_add(location=(self._x[idx], self._y[idx], self._z[idx]),
-                                                     radius=self._radius[idx],
-                                                     rotation=(self._rotation_x[idx],
-                                                               self._rotation_y[idx],
-                                                               self._rotation_z[idx]))
-                bpy.ops.object.shade_smooth()
-                self.marker_mesh.append(bpy.context.object)
-        if isinstance(self.marker, bpy.types.Object):
-            if self.marker.type == 'MESH':
-                bpy.context.object.select_set(False)
-                self.marker.select_set(True)
-                for idx in range(self._x.shape[0]):
-                    bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'})
-                    bpy.context.object.location = (self._x[idx], self._y[idx], self._z[idx])
-                    bpy.context.object.rotation_euler = (self._rotation_x[idx], self._rotation_y[idx], self._rotation_z[idx])
-                    self.marker.select_set(False)
                     self.marker_mesh.append(bpy.context.object)
-
-        # Set the material and color.
-        if not self.marker is None:
-            color_is_array = False
-            if isinstance(color_rgba, np.ndarray):
-                if color_rgba.ndim == 2:
-                    color_is_array = True
-
-            if any([color_is_array,
-                    isinstance(self.roughness, np.ndarray),
-                    isinstance(self.emission, np.ndarray)]):
-                self.mesh_material = []
-
+            if self.marker == 'cube':
                 for idx in range(self._x.shape[0]):
-                    self.mesh_material.append(bpy.data.materials.new('material'))
+                    bpy.ops.mesh.primitive_cube_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                    size=self._radius[idx],
+                                                    rotation=(self._rotation_x[idx],
+                                                            self._rotation_y[idx],
+                                                            self._rotation_z[idx]))
+                    self.marker_mesh.append(bpy.context.object)
+            if self.marker == 'cylinder':
+                for idx in range(self._x.shape[0]):
+                    bpy.ops.mesh.primitive_cylinder_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                        radius=self._radius[idx],
+                                                        depth=2*self._radius[idx],
+                                                        rotation=(self._rotation_x[idx],
+                                                                self._rotation_y[idx],
+                                                                self._rotation_z[idx]))
+                    self.marker_mesh.append(bpy.context.object)
+            if self.marker == 'ico_sphere':
+                for idx in range(self._x.shape[0]):
+                    bpy.ops.mesh.primitive_ico_sphere_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                        radius=self._radius[idx],
+                                                        rotation=(self._rotation_x[idx],
+                                                                    self._rotation_y[idx],
+                                                                    self._rotation_z[idx]))
+                    bpy.ops.object.shade_smooth()
+                    self.marker_mesh.append(bpy.context.object)
+            if self.marker == 'monkey':
+                for idx in range(self._x.shape[0]):
+                    bpy.ops.mesh.primitive_monkey_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                    size=self._radius[idx],
+                                                    rotation=(self._rotation_x[idx],
+                                                                self._rotation_y[idx],
+                                                                self._rotation_z[idx]))
+                    self.marker_mesh.append(bpy.context.object)
+            if self.marker == 'torus':
+                for idx in range(self._x.shape[0]):
+                    bpy.ops.mesh.primitive_torus_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                    major_radius=self._radius[idx],
+                                                    minor_radius=0.25*self._radius[idx],
+                                                    abso_major_rad=1.25*self._radius[idx],
+                                                    abso_minor_rad=0.75*self._radius[idx],
+                                                    rotation=(self._rotation_x[idx],
+                                                            self._rotation_y[idx],
+                                                            self._rotation_z[idx]))
+                    self.marker_mesh.append(bpy.context.object)
+            if self.marker == 'uv_sphere':
+                for idx in range(self._x.shape[0]):
+                    bpy.ops.mesh.primitive_uv_sphere_add(location=(self._x[idx], self._y[idx], self._z[idx]),
+                                                        radius=self._radius[idx],
+                                                        rotation=(self._rotation_x[idx],
+                                                                self._rotation_y[idx],
+                                                                self._rotation_z[idx]))
+                    bpy.ops.object.shade_smooth()
+                    self.marker_mesh.append(bpy.context.object)
+            if isinstance(self.marker, bpy.types.Object):
+                if self.marker.type == 'MESH':
+                    bpy.context.object.select_set(False)
+                    self.marker.select_set(True)
+                    for idx in range(self._x.shape[0]):
+                        bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'})
+                        bpy.context.object.location = (self._x[idx], self._y[idx], self._z[idx])
+                        bpy.context.object.rotation_euler = (self._rotation_x[idx], self._rotation_y[idx], self._rotation_z[idx])
+                        self.marker.select_set(False)
+                        self.marker_mesh.append(bpy.context.object)
 
-                    if color_is_array:
-                        self.mesh_material[idx].diffuse_color = tuple(color_rgba[idx])
-                    else:
-                        self.mesh_material[idx].diffuse_color = color_rgba
+            # Set the material and color.
+            if not self.marker is None:
+                color_is_array = False
+                print(color_rgba)
+                if isinstance(color_rgba, np.ndarray):
+                    if color_rgba.ndim == 2:
+                        color_is_array = True
 
-                    if isinstance(self.roughness, np.ndarray):
-                        self.mesh_material[idx].roughness = self.roughness[idx]
-                    else:
-                        self.mesh_material[idx].roughness = self.roughness
+                if any([color_is_array,
+                        isinstance(self.roughness, np.ndarray),
+                        isinstance(self.emission, np.ndarray)]):
+                    self.mesh_material = []
 
-                    if isinstance(self.emission, np.ndarray):
-                        self.mesh_material[idx].use_nodes = True
-                        node_tree = self.mesh_material[idx].node_tree
+                    for idx in range(self._x.shape[0]):
+                        self.mesh_material.append(bpy.data.materials.new('material'))
+
+                        if color_is_array:
+                            self.mesh_material[idx].diffuse_color = tuple(color_rgba[idx])
+                        else:
+                            self.mesh_material[idx].diffuse_color = color_rgba
+
+                        if isinstance(self.roughness, np.ndarray):
+                            self.mesh_material[idx].roughness = self.roughness[idx]
+                        else:
+                            self.mesh_material[idx].roughness = self.roughness
+
+                        if isinstance(self.emission, np.ndarray):
+                            self.mesh_material[idx].use_nodes = True
+                            node_tree = self.mesh_material[idx].node_tree
+                            nodes = node_tree.nodes
+
+                            # Find the material output node
+                            output_node = None
+                            for node in nodes:
+                                if node.type == 'OUTPUT_MATERIAL':
+                                    output_node = node
+                                    break
+
+                            # Remove any Diffusive BSDF node.
+                            for node in list(nodes):
+                                if node != output_node:
+                                    nodes.remove(node)
+
+                            # Create the emission node.
+                            node_emission = nodes.new(type='ShaderNodeEmission')
+
+                            # Change the input of the ouput node to emission.
+                            node_tree.links.new(node_emission.outputs['Emission'],
+                                                output_node.inputs['Surface'])
+
+                            # Adapt emission and color.
+                            if color_is_array:
+                                node_emission.inputs['Color'].default_value = tuple(color_rgba[idx])
+                            else:
+                                node_emission.inputs['Color'].default_value = color_rgba
+                            node_emission.inputs['Strength'].default_value = self.emission[idx]
+
+                        self.marker_mesh[idx].active_material = self.mesh_material[idx]
+                else:
+                    self.mesh_material = bpy.data.materials.new('material')
+                    self.mesh_material.diffuse_color = color_rgba
+                    self.mesh_material.roughness = self.roughness
+
+                    if not self.emission is None:
+                        self.mesh_material.use_nodes = True
+                        node_tree = self.mesh_material.node_tree
                         nodes = node_tree.nodes
-
-                        # Find the material output node
-                        output_node = None
-                        for node in nodes:
-                            if node.type == 'OUTPUT_MATERIAL':
-                                output_node = node
-                                break
-
-                        # Remove any Diffusive BSDF node.
-                        for node in list(nodes):
-                            if node != output_node:
-                                nodes.remove(node)
-
-                        # Create the emission node.
+                        # Remove and Diffusive BSDF node.
+                        nodes.remove(nodes[1])
                         node_emission = nodes.new(type='ShaderNodeEmission')
-
                         # Change the input of the ouput node to emission.
                         node_tree.links.new(node_emission.outputs['Emission'],
-                                            output_node.inputs['Surface'])
-
+                                            nodes[0].inputs['Surface'])
                         # Adapt emission and color.
-                        if color_is_array:
-                            node_emission.inputs['Color'].default_value = tuple(color_rgba[idx])
-                        else:
-                            node_emission.inputs['Color'].default_value = color_rgba
-                        node_emission.inputs['Strength'].default_value = self.emission[idx]
+                        node_emission.inputs['Color'].default_value = color_rgba
+                        node_emission.inputs['Strength'].default_value = self.emission
 
-                    self.marker_mesh[idx].active_material = self.mesh_material[idx]
-            else:
-                self.mesh_material = bpy.data.materials.new('material')
-                self.mesh_material.diffuse_color = color_rgba
-                self.mesh_material.roughness = self.roughness
+                    for idx, mesh in enumerate(self.marker_mesh):
+                        mesh.active_material = self.mesh_material
 
-                if not self.emission is None:
-                    self.mesh_material.use_nodes = True
-                    node_tree = self.mesh_material.node_tree
-                    nodes = node_tree.nodes
-                    # Remove and Diffusive BSDF node.
-                    nodes.remove(nodes[1])
-                    node_emission = nodes.new(type='ShaderNodeEmission')
-                    # Change the input of the ouput node to emission.
-                    node_tree.links.new(node_emission.outputs['Emission'],
-                                        nodes[0].inputs['Surface'])
-                    # Adapt emission and color.
-                    node_emission.inputs['Color'].default_value = color_rgba
-                    node_emission.inputs['Strength'].default_value = self.emission
-
-                for idx, mesh in enumerate(self.marker_mesh):
-                    mesh.active_material = self.mesh_material
-
-        # Group the meshes together.
-        if not self.marker is None:
-            for mesh in self.marker_mesh[::-1]:
-                mesh.select_set(state=True)
-            bpy.ops.object.join()
-            self.marker_mesh = bpy.context.object
-            self.marker_mesh.select_set(state=False)
-            # Make the grouped meshes the deletable object.
-            self.deletable_object = self.marker_mesh
+            # Group the meshes together.
+            if not self.marker is None:
+                for mesh in self.marker_mesh[::-1]:
+                    mesh.select_set(state=True)
+                bpy.ops.object.join()
+                self.marker_mesh = bpy.context.object
+                self.marker_mesh.select_set(state=False)
+                # Make the grouped meshes the deletable object.
+                self.deletable_object = self.marker_mesh
 
         self.update_globals()
 
