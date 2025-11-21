@@ -48,7 +48,10 @@ class Plot1d(unittest.TestCase):
         pl.plot()
         self.assertIsNotNone(pl, "blt.plot() returned None")
 
-        # Test different markers.
+        # Test different markers and change in range.
+        pl.x = 2*pl.x
+        pl.y = 2*pl.y
+        pl.z = 2*pl.z
         pl.marker = 'cone'
         pl.plot()
         self.assertIsNotNone(pl, "blt.plot() returned None")
