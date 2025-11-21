@@ -19,65 +19,63 @@ class Plot1d(unittest.TestCase):
         x = 2*np.cos(y/2)
         z = 2*np.sin(y/2)
 
-        # # Line plot.
-        # pl = blt.plot(x, y, z, radius=0.1, color='red')
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        #
-        # # Line plot with variable color.
-        # pl.color = np.random.random([n, 4])
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        #
-        # # Line plot with emission.
-        # pl.color = 'r'
-        # pl.emission = 10
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        # pl.marker = 'cube'
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        # pl.emission = 10 + np.linspace(0, 10, n)
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        # pl.emission = None
-        #
-        # # Marker plot.
-        # pl.marker = 'cube'
-        # pl.radius = 0.7
-        # pl.color = 'b'
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        #
-        # # Test different markers.
-        # pl.marker = 'cone'
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        # pl.marker = 'cylinder'
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        # pl.marker = 'ico_sphere'
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        # pl.marker = 'monkey'
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        # pl.marker = 'torus'
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
-        # pl.marker = 'uv_sphere'
-        # pl.plot()
-        # self.assertIsNotNone(pl, "blt.plot() returned None")
+        # Line plot.
+        pl = blt.plot(x, y, z, radius=0.1, color='red')
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+
+        # Line plot with variable color.
+        pl.color = np.random.random([n, 4])
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+
+        # Line plot with emission.
+        pl.color = 'r'
+        pl.emission = 10
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = 'cube'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.emission = 10 + np.linspace(0, 10, n)
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.emission = None
+
+        # Marker plot.
+        pl.marker = 'cube'
+        pl.radius = 0.7
+        pl.color = 'b'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+
+        # Test different markers.
+        pl.marker = 'cone'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = 'cylinder'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = 'ico_sphere'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = 'monkey'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = 'torus'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
+        pl.marker = 'uv_sphere'
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
 
         # Test custom marker.
         cube = bpy.ops.mesh.primitive_cube_add()
-        # pl.marker = bpy.context.object
         pl = blt.plot(x, y, z, radius=0.1, color='red', marker=bpy.ops.mesh.primitive_cube_add())
         self.assertIsNotNone(pl, "blt.plot() returned None")
-        # bpy.ops.object.delete()
 
-        # # Make sure no additional Blender objects were created.
-        # objects = list(bpy.data.objects)
-        # self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
+        # Make sure no additional Blender objects were created.
+        objects = list(bpy.data.objects)
+        self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
 
 
 def run_tests():

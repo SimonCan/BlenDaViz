@@ -245,7 +245,7 @@ class PathLine(GenericPlot):
                 links.new(self.mesh_texture.outputs[0],
                           self.mesh_material.node_tree.nodes.get("Principled BSDF").inputs[0])
             else:
-                self.mesh_material.diffuse_color = color_rgba[0]
+                self.mesh_material.diffuse_color = color_rgba
             self.mesh_material.roughness = self.roughness
             self.curve_object.active_material = self.mesh_material
 
@@ -275,7 +275,7 @@ class PathLine(GenericPlot):
                                     output_node.inputs['Surface'])
 
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = color_rgba[0]
+                node_emission.inputs['Color'].default_value = color_rgba
                 node_emission.inputs['Strength'].default_value = self.emission
 
             # Link the curve object with the scene.
@@ -367,7 +367,6 @@ class PathLine(GenericPlot):
             # Set the material and color.
             if not self.marker is None:
                 color_is_array = False
-                print(color_rgba)
                 if isinstance(color_rgba, np.ndarray):
                     if color_rgba.ndim == 2:
                         color_is_array = True
@@ -431,14 +430,28 @@ class PathLine(GenericPlot):
                         self.mesh_material.use_nodes = True
                         node_tree = self.mesh_material.node_tree
                         nodes = node_tree.nodes
-                        # Remove and Diffusive BSDF node.
-                        nodes.remove(nodes[1])
+
+                        # Find the material output node
+                        output_node = None
+                        for node in nodes:
+                            if node.type == 'OUTPUT_MATERIAL':
+                                output_node = node
+                                break
+
+                        # Remove any Diffusive BSDF node.
+                        for node in list(nodes):
+                            if node != output_node:
+                                nodes.remove(node)
+
+                        # Create the emission node.
                         node_emission = nodes.new(type='ShaderNodeEmission')
+
                         # Change the input of the ouput node to emission.
                         node_tree.links.new(node_emission.outputs['Emission'],
-                                            nodes[0].inputs['Surface'])
+                                            output_node.inputs['Surface'])
+
                         # Adapt emission and color.
-                        node_emission.inputs['Color'].default_value = color_rgba
+                        node_emission.inputs['Color'].default_value = tuple(color_rgba)
                         node_emission.inputs['Strength'].default_value = self.emission
 
                     for idx, mesh in enumerate(self.marker_mesh):
