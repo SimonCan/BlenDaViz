@@ -71,14 +71,14 @@ class Plot1d(unittest.TestCase):
         pl.plot()
         self.assertIsNotNone(pl, "blt.plot() returned None")
 
+        # Test list of markers.
+        pl.marker = ['cube', 'cone']*n//2
+        pl.plot()
+
         # Test custom marker.
         cube = bpy.ops.mesh.primitive_cube_add()
         pl = blt.plot(x, y, z, radius=0.1, color='red', marker=bpy.context.object)
         self.assertIsNotNone(pl, "blt.plot() returned None")
-
-        # Test list of markers.
-        pl.marker = ['cube', 'cone']*n//2
-        pl.plot()
 
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
