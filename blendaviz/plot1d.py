@@ -53,7 +53,6 @@ def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
         String with standard Blender 3d shapes: 'cube', 'uv_sphere', 'ico_sphere',
         'cylinder', 'cone', 'torus', 'monkey'.
         Custom shape or blender object.
-        1d array of length n of one of the above.
 
     time:  Float array with the time information of the data.
         Has length nt.
@@ -482,16 +481,9 @@ class PathLine(GenericPlot):
         if not self.marker_mesh is None:
             bpy.ops.object.select_all(action='DESELECT')
             if self.object_reference_valid(self.marker_mesh):
-                if isinstance(self.marker_mesh, list):
-                    for marker_mesh in self.marker_mesh:
-                        if self.object_reference_valid(marker_mesh):
-                            marker_mesh.select_set(True)
-                            bpy.context.view_layer.objects.active = marker_mesh
-                            bpy.ops.object.delete()
-                else:
-                    self.marker_mesh.select_set(True)
-                    bpy.context.view_layer.objects.active = self.marker_mesh
-                    bpy.ops.object.delete()
+                self.marker_mesh.select_set(True)
+                bpy.context.view_layer.objects.active = self.marker_mesh
+                bpy.ops.object.delete()
             self.marker_mesh = None
 
 
