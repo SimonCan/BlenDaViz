@@ -72,7 +72,7 @@ class Plot1d(unittest.TestCase):
         self.assertIsNotNone(pl, "blt.plot() returned None")
 
         # Test list of markers.
-        pl.marker = ['cube', 'cone']*n//2
+        pl.marker = ['cube', 'cone']*(n//2)
         pl.plot()
 
         # Test custom marker.
@@ -85,14 +85,28 @@ class Plot1d(unittest.TestCase):
         self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
 
 
+class Plot2d(unittest.TestCase):
+    def test_plot2d(self):
+        # Generate the data.
+        x0 = np.linspace(-3, 3, 51)
+        y0 = np.linspace(-3, 3, 51)
+        x, y = np.meshgrid(x0, y0, indexing='ij')
+        z = (1 - x**2-y**2)*np.exp(-(x**2+y**2)/5)
+
+        # Generate the mesh plot.
+        mesh = blt.mesh(x, y, z)
+
+
 def run_tests():
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(Plot1d)  # ✅ fixed class name
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
+    suite.addTests(loader.loadTestsFromTestCase(Plot1d))
+    suite.addTests(loader.loadTestsFromTestCase(Plot2d))
+
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     sys.stdout.flush()
     sys.stderr.flush()
     bpy.ops.wm.quit_blender()
-
     return result
-
 
 run_tests()
