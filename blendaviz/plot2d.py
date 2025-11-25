@@ -326,7 +326,7 @@ class Surface(GenericPlot):
         # Make the mesh the deletable object.
         self.deletable_object = self.mesh_object
 
-        #self.update_globals()
+        self.update_globals()
 
         return 0
 

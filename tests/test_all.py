@@ -104,6 +104,13 @@ class Plot2d(unittest.TestCase):
         mesh.plot()
         self.assertIsNotNone(mesh, "blt.plot() returned None")
 
+        # Change the range to test global updates.
+        mesh.x = 2*x
+        mesh.y = 2*y
+        mesh.z = z - 1
+        mesh.plot()
+        self.assertIsNotNone(mesh, "blt.plot() returned None")
+
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
         self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
