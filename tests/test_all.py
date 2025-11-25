@@ -100,6 +100,9 @@ class Plot2d(unittest.TestCase):
         mesh.c = x
         mesh.plot()
         self.assertIsNotNone(mesh, "blt.plot() returned None")
+        mesh.alpha = x/(x.max() - x.min())
+        mesh.plot()
+        self.assertIsNotNone(mesh, "blt.plot() returned None")
 
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
