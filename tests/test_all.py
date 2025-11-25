@@ -91,15 +91,15 @@ class Plot2d(unittest.TestCase):
 
         # Generate the mesh plot.
         mesh = blt.mesh(x, y, z)
-        self.assertIsNotNone(pl, "blt.plot() returned None")
+        self.assertIsNotNone(mesh, "blt.plot() returned None")
 
         # Change the colors.
         mesh.c = 'red'
         mesh.plot()
-        self.assertIsNotNone(pl, "blt.plot() returned None")
+        self.assertIsNotNone(mesh, "blt.plot() returned None")
         mesh.c = x
         mesh.plot()
-        self.assertIsNotNone(pl, "blt.plot() returned None")
+        self.assertIsNotNone(mesh, "blt.plot() returned None")
 
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
