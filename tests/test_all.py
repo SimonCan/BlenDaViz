@@ -116,11 +116,46 @@ class Plot2d(unittest.TestCase):
         self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
 
 
+class Plot3d(unittest.TestCase):
+    def test_plot3d(self):
+        # Generate the data.
+        x = np.linspace(-2, 2, 5)
+        y = np.linspace(-2, 2, 5)
+        z = np.linspace(-2, 2, 5)
+        u = np.array([1, 0, 0, 1, 0])
+        v = np.array([0, 1, 0, 1, 1])
+        w = np.array([0, 0, 1, 0, 1])
+
+        # Generate the quiver plot.
+        qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='magnitude')
+        self.assertIsNotNone(qu, "blt.plot() returned None")
+
+        # Change length and pivot.
+        qu.length = 'magnitude'
+        qu.pivot = 'tip'
+        qu.plot()
+        self.assertIsNotNone(qu, "blt.plot() returned None")
+
+        # Change pivot and color to fixed for all arrows.
+        qu.pivot = 'tail'
+        qu.color = 'blue'
+        qu.plot()
+        self.assertIsNotNone(qu, "blt.plot() returned None")
+
+        # Test emission.
+        qu.emission = x / (x.max() - x.min())
+        qu.plot()
+        self.assertIsNotNone(qu, "blt.plot() returned None")
+        qu.emission = 10.0
+        qu.plot()
+        self.assertIsNotNone(qu, "blt.plot() returned None")
+
 def run_tests():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTests(loader.loadTestsFromTestCase(Plot1d))
     suite.addTests(loader.loadTestsFromTestCase(Plot2d))
+    suite.addTests(loader.loadTestsFromTestCase(Plot3d))
 
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     sys.stdout.flush()
