@@ -269,7 +269,7 @@ class PathLine(GenericPlot):
                 # Create the emission node.
                 node_emission = nodes.new(type='ShaderNodeEmission')
 
-                # Change the input of the ouput node to emission.
+                # Change the input of the output node to emission.
                 node_tree.links.new(node_emission.outputs['Emission'],
                                     output_node.inputs['Surface'])
 
@@ -408,7 +408,7 @@ class PathLine(GenericPlot):
                             # Create the emission node.
                             node_emission = nodes.new(type='ShaderNodeEmission')
 
-                            # Change the input of the ouput node to emission.
+                            # Change the input of the output node to emission.
                             node_tree.links.new(node_emission.outputs['Emission'],
                                                 output_node.inputs['Surface'])
 
