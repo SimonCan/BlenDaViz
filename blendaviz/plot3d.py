@@ -328,7 +328,7 @@ class Quiver3d(GenericPlot):
                 self.roughness = np.ones(self._x.shape[0])*self.roughness
             if not self.emission is None:
                 if not isinstance(self.emission, np.ndarray):
-                    self.emission = np.ones(self.emission[0])*self.emission
+                    self.emission = np.ones(self._x.shape[0])*self.emission
 
         # Set the material.
         if list_material:
