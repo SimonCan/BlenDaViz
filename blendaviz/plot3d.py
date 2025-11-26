@@ -214,6 +214,8 @@ class Quiver3d(GenericPlot):
         if isinstance(self.color, str):
             if self.color == 'magnitude':
                 self.color = np.sqrt(self._u**2 + self._v**2 + self._w**2)
+            else:
+                self.color = colors.make_rgba_array(self.color, self._x.shape[0])
         if isinstance(self.color, np.ndarray):
             if self.vmin == self.vmax:
                 self.vmax = 2*self.color.min()
