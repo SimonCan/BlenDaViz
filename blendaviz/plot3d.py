@@ -363,12 +363,26 @@ class Quiver3d(GenericPlot):
                 self.mesh_material[idx].use_nodes = True
                 node_tree = self.mesh_material[idx].node_tree
                 nodes = node_tree.nodes
-                # Remove Diffusive BSDF node.
-                nodes.remove(nodes[1])
+
+                # Find the material output node
+                output_node = None
+                for node in nodes:
+                    if node.type == 'OUTPUT_MATERIAL':
+                        output_node = node
+                        break
+
+                # Remove any Diffusive BSDF node.
+                for node in list(nodes):
+                    if node != output_node:
+                        nodes.remove(node)
+
+                # Create the emission node.
                 node_emission = nodes.new(type='ShaderNodeEmission')
+
                 # Change the input of the ouput node to emission.
                 node_tree.links.new(node_emission.outputs['Emission'],
-                                    nodes[0].inputs['Surface'])
+                                    output_node.inputs['Surface'])
+
                 # Adapt emission and color.
                 node_emission.inputs['Color'].default_value = tuple(color_rgba[idx])
                 if isinstance(self.emission, np.ndarray):
@@ -379,12 +393,26 @@ class Quiver3d(GenericPlot):
                 self.mesh_material[0].use_nodes = True
                 node_tree = self.mesh_material[0].node_tree
                 nodes = node_tree.nodes
-                # Remove Diffusive BSDF node.
-                nodes.remove(nodes[1])
+
+                # Find the material output node
+                output_node = None
+                for node in nodes:
+                    if node.type == 'OUTPUT_MATERIAL':
+                        output_node = node
+                        break
+
+                # Remove any Diffusive BSDF node.
+                for node in list(nodes):
+                    if node != output_node:
+                        nodes.remove(node)
+
+                # Create the emission node.
                 node_emission = nodes.new(type='ShaderNodeEmission')
+
                 # Change the input of the ouput node to emission.
                 node_tree.links.new(node_emission.outputs['Emission'],
-                                    nodes[0].inputs['Surface'])
+                                    output_node.inputs['Surface'])
+
                 # Adapt emission and color.
                 node_emission.inputs['Color'].default_value = color_rgba[idx]
                 if isinstance(self.emission, np.ndarray):
