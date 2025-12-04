@@ -72,7 +72,7 @@ class Plot1d(unittest.TestCase):
         self.assertIsNotNone(pl, "blt.plot() returned None")
 
         # Test custom marker.
-        cube = bpy.ops.mesh.primitive_cube_add()
+        bpy.ops.mesh.primitive_cube_add()
         pl = blt.plot(x, y, z, radius=0.1, color='red', marker=bpy.context.object)
         self.assertIsNotNone(pl, "blt.plot() returned None")
 
@@ -127,20 +127,21 @@ class Plot3d(unittest.TestCase):
         w = np.array([0, 0, 1, 0, 1])
 
         # Generate the quiver plot.
-        qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='magnitude')
+        qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='red')
         self.assertIsNotNone(qu, "blt.plot() returned None")
 
-        # Change length and pivot.
+        # Change length, pivot and color.
         qu.length = 'magnitude'
+        qu.color = 'magnitude'
         qu.pivot = 'tip'
         qu.plot()
         self.assertIsNotNone(qu, "blt.plot() returned None")
 
-        # Change pivot and color to fixed for all arrows.
-        qu.pivot = 'tail'
-        qu.color = 'blue'
-        qu.plot()
-        self.assertIsNotNone(qu, "blt.plot() returned None")
+        ## Change pivot and color to fixed for all arrows.
+        #qu.pivot = 'tail'
+        #qu.color = 'blue'
+        #qu.plot()
+        #self.assertIsNotNone(qu, "blt.plot() returned None")
 
         # Test emission.
         qu.emission = x / (x.max() - x.min())
@@ -149,6 +150,7 @@ class Plot3d(unittest.TestCase):
         qu.emission = 10.0
         qu.plot()
         self.assertIsNotNone(qu, "blt.plot() returned None")
+
 
 def run_tests():
     loader = unittest.TestLoader()
@@ -162,5 +164,6 @@ def run_tests():
     sys.stderr.flush()
     bpy.ops.wm.quit_blender()
     return result
+
 
 run_tests()

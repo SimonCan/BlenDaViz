@@ -178,7 +178,7 @@ class Quiver3d(GenericPlot):
            or not isinstance(self.w, np.ndarray):
             print("Error: u OR v OR w array invalid.")
             return -1
-        if not (self.x.shape == self.y.shape == self.z.shape == \
+        if not (self.x.shape == self.y.shape == self.z.shape ==
                 self.u.shape == self.v.shape == self.w.shape):
             print("Error: input array shapes invalid.")
             return -1
@@ -193,7 +193,7 @@ class Quiver3d(GenericPlot):
                 setattr(self, '_' + array_with_time, array_value[..., self.time_index].ravel())
 
         # Delete existing meshes.
-        if not self.arrow_mesh is None:
+        if self.arrow_mesh is not None:
             bpy.ops.object.select_all(action='DESELECT')
             if self.object_reference_valid(self.arrow_mesh):
                 self.arrow_mesh.select_set(True)
@@ -203,7 +203,7 @@ class Quiver3d(GenericPlot):
         self.arrow_mesh = []
 
         # Delete existing materials.
-        if not self.mesh_material is None:
+        if self.mesh_material is not None:
             if isinstance(self.mesh_material, list):
                 for mesh_material in self.mesh_material:
                     bpy.data.materials.remove(mesh_material)
@@ -214,8 +214,9 @@ class Quiver3d(GenericPlot):
         if isinstance(self.color, str):
             if self.color == 'magnitude':
                 self.color = np.sqrt(self._u**2 + self._v**2 + self._w**2)
+                color_rgba = colors.make_rgba_array(self.color, self._x.shape[0])
             else:
-                self.color = colors.make_rgba_array(self.color, self._x.shape[0])
+                color_rgba = colors.make_rgba_array(self.color, 1)
         if isinstance(self.color, np.ndarray):
             if self.vmin == self.vmax:
                 self.vmax = 2*self.color.min()
@@ -326,7 +327,7 @@ class Quiver3d(GenericPlot):
                 color_rgba = np.repeat(color_rgba, self._x.shape[0], axis=0)
             if not isinstance(self.roughness, np.ndarray):
                 self.roughness = np.ones(self._x.shape[0])*self.roughness
-            if not self.emission is None:
+            if self.emission is not None:
                 if not isinstance(self.emission, np.ndarray):
                     self.emission = np.ones(self._x.shape[0])*self.emission
 
@@ -338,7 +339,7 @@ class Quiver3d(GenericPlot):
         else:
             if idx == 0:
                 self.mesh_material.append(bpy.data.materials.new('material'))
-                self.mesh_material[0].diffuse_color = color_rgba[idx]
+                self.mesh_material[0].diffuse_color = color_rgba
             self.arrow_mesh[2*idx].active_material = self.mesh_material[0]
             self.arrow_mesh[2*idx+1].active_material = self.mesh_material[0]
 
@@ -346,7 +347,7 @@ class Quiver3d(GenericPlot):
         if list_material:
             self.mesh_material[idx].diffuse_color = color_rgba[idx]
         else:
-            self.mesh_material[0].diffuse_color = color_rgba[0]
+            self.mesh_material[0].diffuse_color = color_rgba
 
         # Set the material roughness.
         if list_material:
