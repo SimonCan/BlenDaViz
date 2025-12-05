@@ -137,11 +137,11 @@ class Plot3d(unittest.TestCase):
         qu.plot()
         self.assertIsNotNone(qu, "blt.plot() returned None")
 
-        ## Change pivot and color to fixed for all arrows.
-        #qu.pivot = 'tail'
-        #qu.color = 'blue'
-        #qu.plot()
-        #self.assertIsNotNone(qu, "blt.plot() returned None")
+        # Change pivot and color to fixed for all arrows.
+        qu.pivot = 'tail'
+        qu.color = 'blue'
+        qu.plot()
+        self.assertIsNotNone(qu, "blt.plot() returned None")
 
         # Test emission.
         qu.emission = x / (x.max() - x.min())

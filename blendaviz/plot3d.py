@@ -213,10 +213,11 @@ class Quiver3d(GenericPlot):
         # Prepare the material colors.
         if isinstance(self.color, str):
             if self.color == 'magnitude':
-                self.color = np.sqrt(self._u**2 + self._v**2 + self._w**2)
-                color_rgba = colors.make_rgba_array(self.color, self._x.shape[0])
+                #self.color = np.sqrt(self._u**2 + self._v**2 + self._w**2)
+                color_rgba = colors.make_rgba_array(np.sqrt(self._u**2 + self._v**2 + self._w**2),
+                                                    self._x.shape[0])
             else:
-                color_rgba = colors.make_rgba_array(self.color, 1)
+                color_rgba = np.array([colors.make_rgba_array(self.color, 1), ])
         if isinstance(self.color, np.ndarray):
             if self.vmin == self.vmax:
                 self.vmax = 2*self.color.min()
@@ -339,7 +340,7 @@ class Quiver3d(GenericPlot):
         else:
             if idx == 0:
                 self.mesh_material.append(bpy.data.materials.new('material'))
-                self.mesh_material[0].diffuse_color = color_rgba
+                self.mesh_material[0].diffuse_color = color_rgba[0]
             self.arrow_mesh[2*idx].active_material = self.mesh_material[0]
             self.arrow_mesh[2*idx+1].active_material = self.mesh_material[0]
 
@@ -347,7 +348,7 @@ class Quiver3d(GenericPlot):
         if list_material:
             self.mesh_material[idx].diffuse_color = color_rgba[idx]
         else:
-            self.mesh_material[0].diffuse_color = color_rgba
+            self.mesh_material[0].diffuse_color = color_rgba[0]
 
         # Set the material roughness.
         if list_material:
