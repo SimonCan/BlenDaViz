@@ -143,6 +143,14 @@ class Plot3d(unittest.TestCase):
         qu.plot()
         self.assertIsNotNone(qu, "blt.plot() returned None")
 
+        # Test color arrays and lists.
+        qu.color = np.random.random([5, 4])
+        qu.plot()
+        self.assertIsNotNone(qu, "blt.plot() returned None")
+        qu.color = ['r', 'blue', (1, 1, 0, 1), 'k', 'green']
+        qu.plot()
+        self.assertIsNotNone(qu, "blt.plot() returned None")
+
         # Test emission.
         qu.emission = x / (x.max() - x.min())
         qu.plot()
@@ -150,7 +158,21 @@ class Plot3d(unittest.TestCase):
         qu.emission = 10.0
         qu.plot()
         self.assertIsNotNone(qu, "blt.plot() returned None")
+        qu.color = 'r'
+        qu.roughness = 1
+        qu.emission = 10.0
+        qu.plot()
+        self.assertIsNotNone(qu, "blt.plot() returned None")
 
+        # Contour plots.
+        x = np.linspace(-2, 2, 21)
+        y = np.linspace(-2, 2, 21)
+        z = np.linspace(-2, 2, 21)
+        xx, yy, zz = np.meshgrid(x, y, z)
+        phi = xx**2 + yy**2 + zz**2
+        iso = blt.contour(phi, xx, yy, zz, contours=[0.3, 0.6],
+                          color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
+        self.assertIsNotNone(iso, "blt.plot() returned None")
 
 def run_tests():
     loader = unittest.TestLoader()
@@ -159,7 +181,7 @@ def run_tests():
     suite.addTests(loader.loadTestsFromTestCase(Plot2d))
     suite.addTests(loader.loadTestsFromTestCase(Plot3d))
 
-    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    result = unittest.TextTestRunner(verbosity=1).run(suite)
     sys.stdout.flush()
     sys.stderr.flush()
     bpy.ops.wm.quit_blender()

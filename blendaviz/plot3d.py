@@ -416,7 +416,7 @@ class Quiver3d(GenericPlot):
                                     output_node.inputs['Surface'])
 
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = color_rgba[idx]
+                node_emission.inputs['Color'].default_value = color_rgba[0]
                 if isinstance(self.emission, np.ndarray):
                     node_emission.inputs['Strength'].default_value = self.emission
                 else:
