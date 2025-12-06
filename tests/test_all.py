@@ -174,6 +174,11 @@ class Plot3d(unittest.TestCase):
                           color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
         self.assertIsNotNone(iso, "blt.plot() returned None")
 
+        # Test different contours.
+        iso.contours = 4
+        iso.plot()
+        self.assertIsNotNone(iso, "blt.plot() returned None")
+
 def run_tests():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()

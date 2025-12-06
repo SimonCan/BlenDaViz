@@ -654,7 +654,7 @@ class Contour3d(GenericPlot):
             self._phi = self.phi[:, :, :, self.time_index]
         else:
             self._phi = self.phi
-        if not self.psi is None:
+        if self.psi is not None:
             if self.psi.ndim == 4:
                 self._psi = self.psi[:, :, :, self.time_index]
             else:
@@ -666,7 +666,8 @@ class Contour3d(GenericPlot):
         if isinstance(self.contours, int):
             level_list = np.linspace(self._phi.min(),
                                      self._phi.max(),
-                                     self.contours+2)[1:-1]
+                                     self.contours + 2)[1:-1]
+            print('level_list = {0}'.format(level_list))
         elif isinstance(self.contours, list):
             level_list = np.array(self.contours)
         elif isinstance(self.contours, np.ndarray):
@@ -689,7 +690,7 @@ class Contour3d(GenericPlot):
              self._z.min()
 
         # Delete existing meshes.
-        if not self.mesh_object is None:
+        if self.mesh_object is not None:
             bpy.ops.object.select_all(action='DESELECT')
             if self.object_reference_valid(self.mesh_object):
                 self.mesh_object.select_set(state=True)
@@ -698,7 +699,7 @@ class Contour3d(GenericPlot):
             self.mesh_object = None
 
         # Delete existing materials.
-        if not self.mesh_material is None:
+        if self.mesh_material is not None:
             for mesh_material in self.mesh_material:
                 bpy.data.materials.remove(mesh_material)
 
@@ -783,8 +784,10 @@ class Contour3d(GenericPlot):
             if color_rgba.shape[0] != n_levels:
                 color_rgba = np.repeat(color_rgba, n_levels, axis=0)
             if not isinstance(self.roughness, np.ndarray):
+                print('adjusting roughness')
+                print('n_levels = {0}'.format(n_levels))
                 self.roughness = np.ones(n_levels)*self.roughness
-            if not self.emission is None:
+            if self.emission is not None:
                 if not isinstance(self.emission, np.ndarray):
                     self.emission = np.ones(n_levels)*self.emission
 
@@ -812,7 +815,7 @@ class Contour3d(GenericPlot):
             self.mesh_material[0].roughness = self.roughness
 
         # Set the material emission.
-        if not self.emission is None:
+        if self.emission is not None:
             if list_material:
                 self.mesh_material[idx].use_nodes = True
                 node_tree = self.mesh_material[idx].node_tree
