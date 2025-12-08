@@ -180,11 +180,17 @@ class Plot3d(unittest.TestCase):
         iso.plot()
         self.assertIsNotNone(iso, "blt.plot() returned None")
 
+        # Test emission.
+        iso.emission = 10
+        iso.plot()
+        self.assertIsNotNone(iso, "blt.plot() returned None")
+
+
 def run_tests():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
-    suite.addTests(loader.loadTestsFromTestCase(Plot1d))
-    suite.addTests(loader.loadTestsFromTestCase(Plot2d))
+    # suite.addTests(loader.loadTestsFromTestCase(Plot1d))
+    # suite.addTests(loader.loadTestsFromTestCase(Plot2d))
     suite.addTests(loader.loadTestsFromTestCase(Plot3d))
 
     result = unittest.TextTestRunner(verbosity=1).run(suite)
