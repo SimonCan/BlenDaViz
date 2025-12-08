@@ -176,6 +176,7 @@ class Plot3d(unittest.TestCase):
 
         # Test different contours.
         iso.contours = 4
+        iso.roughness = 1.0
         iso.plot()
         self.assertIsNotNone(iso, "blt.plot() returned None")
 

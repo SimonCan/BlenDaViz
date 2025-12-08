@@ -667,7 +667,6 @@ class Contour3d(GenericPlot):
             level_list = np.linspace(self._phi.min(),
                                      self._phi.max(),
                                      self.contours + 2)[1:-1]
-            print('level_list = {0}'.format(level_list))
         elif isinstance(self.contours, list):
             level_list = np.array(self.contours)
         elif isinstance(self.contours, np.ndarray):
@@ -784,8 +783,6 @@ class Contour3d(GenericPlot):
             if color_rgba.shape[0] != n_levels:
                 color_rgba = np.repeat(color_rgba, n_levels, axis=0)
             if not isinstance(self.roughness, np.ndarray):
-                print('adjusting roughness')
-                print('n_levels = {0}'.format(n_levels))
                 self.roughness = np.ones(n_levels)*self.roughness
             if self.emission is not None:
                 if not isinstance(self.emission, np.ndarray):
