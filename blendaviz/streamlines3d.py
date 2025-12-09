@@ -583,8 +583,7 @@ class Streamline3d(GenericPlot):
         import numpy as np
 
         # Deterimne if we need a list of materials, i.e. for every streamline one.
-        if any([color_rgba.ndim == 2,
-                isinstance(self.emission, np.ndarray),
+        if any([isinstance(self.emission, np.ndarray),
                 isinstance(self.roughness, np.ndarray)]):
             list_material = True
         else:
@@ -607,14 +606,14 @@ class Streamline3d(GenericPlot):
         else:
             if idx == 0:
                 self.mesh_material.append(bpy.data.materials.new('material'))
-                self.mesh_material[0].diffuse_color = color_rgba[idx]
+                self.mesh_material[0].diffuse_color = color_rgba
             self.curve_object[idx].active_material = self.mesh_material[0]
 
         # Set the diffusive color.
         if list_material:
             self.mesh_material[idx].diffuse_color = color_rgba[idx]
         else:
-            self.mesh_material[0].diffuse_color = color_rgba[0]
+            self.mesh_material[0].diffuse_color = color_rgba
 
         # Set the material roughness.
         if list_material:

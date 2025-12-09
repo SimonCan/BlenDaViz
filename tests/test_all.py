@@ -186,12 +186,24 @@ class Plot3d(unittest.TestCase):
         self.assertIsNotNone(iso, "blt.plot() returned None")
 
 
+class Streamlines3d(unittest.TestCase):
+    def test_plot3d(self):
+        # Generate the data.
+        def irrational_hopf(t, x):
+            return 1/(1+np.sum(x[0]**2+x[1]**2+x[2]**2))**3 * \
+            np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),\
+            -2*(np.sqrt(2)*x[0] + x[1]*x[2]),\
+            (-1 + x[0]**2 +x[1]**2 -x[2]**2)])
+        stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500)
+
+
 def run_tests():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     # suite.addTests(loader.loadTestsFromTestCase(Plot1d))
     # suite.addTests(loader.loadTestsFromTestCase(Plot2d))
-    suite.addTests(loader.loadTestsFromTestCase(Plot3d))
+    # suite.addTests(loader.loadTestsFromTestCase(Plot3d))
+    suite.addTests(loader.loadTestsFromTestCase(Streamlines3d))
 
     result = unittest.TextTestRunner(verbosity=1).run(suite)
     sys.stdout.flush()
