@@ -194,7 +194,15 @@ class Streamlines3d(unittest.TestCase):
             np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),\
             -2*(np.sqrt(2)*x[0] + x[1]*x[2]),\
             (-1 + x[0]**2 +x[1]**2 -x[2]**2)])
+
+        # Generate a streamline plot.
         stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500)
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+
+        # Test multiprocessing.
+        stream.n_proc = 2
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
 
 
 def run_tests():
