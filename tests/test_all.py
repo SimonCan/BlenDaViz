@@ -185,6 +185,9 @@ class Plot3d(unittest.TestCase):
         iso.plot()
         self.assertIsNotNone(iso, "blt.plot() returned None")
 
+        # Make sure no additional Blender objects were created.
+        objects = list(bpy.data.objects)
+        self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
 
 class Streamlines3d(unittest.TestCase):
     def test_plot3d(self):
@@ -204,13 +207,25 @@ class Streamlines3d(unittest.TestCase):
         stream.plot()
         self.assertIsNotNone(stream, "blt.plot() returned None")
 
+        # Test emissions.
+        stream.emission = 10
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+        stream.n_seeds = 10
+        stream.emission = np.linspace(10, 20, 10)
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+
+        # Make sure no additional Blender objects were created.
+        objects = list(bpy.data.objects)
+        self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
 
 def run_tests():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
-    # suite.addTests(loader.loadTestsFromTestCase(Plot1d))
-    # suite.addTests(loader.loadTestsFromTestCase(Plot2d))
-    # suite.addTests(loader.loadTestsFromTestCase(Plot3d))
+    suite.addTests(loader.loadTestsFromTestCase(Plot1d))
+    suite.addTests(loader.loadTestsFromTestCase(Plot2d))
+    suite.addTests(loader.loadTestsFromTestCase(Plot3d))
     suite.addTests(loader.loadTestsFromTestCase(Streamlines3d))
 
     result = unittest.TextTestRunner(verbosity=1).run(suite)

@@ -586,13 +586,14 @@ class Streamline3d(GenericPlot):
         if any([isinstance(self.emission, np.ndarray),
                 isinstance(self.roughness, np.ndarray)]):
             list_material = True
+            # Make sure the color is also an array.
+            if not isinstance(color_rgba, np.ndarray):
+                color_rgba = np.repeat([color_rgba, ], self.n_seeds, axis=0)
         else:
             list_material = False
 
         # Transform single values to arrays.
         if list_material:
-            if color_rgba.shape[0] != self.n_seeds:
-                color_rgba = np.repeat(color_rgba, self.n_seeds, axis=0)
             if not isinstance(self.roughness, np.ndarray):
                 self.roughness = np.ones(self.n_seeds)*self.roughness
             if not self.emission is None:
@@ -630,14 +631,28 @@ class Streamline3d(GenericPlot):
                 self.mesh_material[idx].use_nodes = True
                 node_tree = self.mesh_material[idx].node_tree
                 nodes = node_tree.nodes
-                # Remove Diffusive BSDF node.
-                nodes.remove(nodes[1])
+
+                # Find the material output node
+                output_node = None
+                for node in nodes:
+                    if node.type == 'OUTPUT_MATERIAL':
+                        output_node = node
+                        break
+
+                # Remove any Diffusive BSDF node.
+                for node in list(nodes):
+                    if node != output_node:
+                        nodes.remove(node)
+
+                # Create the emission node.
                 node_emission = nodes.new(type='ShaderNodeEmission')
+
                 # Change the input of the ouput node to emission.
                 node_tree.links.new(node_emission.outputs['Emission'],
-                                    nodes[0].inputs['Surface'])
+                                    output_node.inputs['Surface'])
+
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = tuple(color_rgba[idx]) + (1, )
+                node_emission.inputs['Color'].default_value = tuple(color_rgba[idx])
                 if isinstance(self.emission, np.ndarray):
                     node_emission.inputs['Strength'].default_value = self.emission[idx]
                 else:
@@ -646,14 +661,28 @@ class Streamline3d(GenericPlot):
                 self.mesh_material[0].use_nodes = True
                 node_tree = self.mesh_material[0].node_tree
                 nodes = node_tree.nodes
-                # Remove Diffusive BSDF node.
-                nodes.remove(nodes[1])
+
+                # Find the material output node
+                output_node = None
+                for node in nodes:
+                    if node.type == 'OUTPUT_MATERIAL':
+                        output_node = node
+                        break
+
+                # Remove any Diffusive BSDF node.
+                for node in list(nodes):
+                    if node != output_node:
+                        nodes.remove(node)
+
+                # Create the emission node.
                 node_emission = nodes.new(type='ShaderNodeEmission')
+
                 # Change the input of the ouput node to emission.
                 node_tree.links.new(node_emission.outputs['Emission'],
-                                    nodes[0].inputs['Surface'])
+                                    output_node.inputs['Surface'])
+
                 # Adapt emission and color.
-                node_emission.inputs['Color'].default_value = color_rgba[idx] + (1, )
+                node_emission.inputs['Color'].default_value = color_rgba
                 if isinstance(self.emission, np.ndarray):
                     node_emission.inputs['Strength'].default_value = self.emission
                 else:
