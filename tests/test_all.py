@@ -216,6 +216,23 @@ class Streamlines3d(unittest.TestCase):
         stream.plot()
         self.assertIsNotNone(stream, "blt.plot() returned None")
 
+        # Streamline plot using data warray.
+        x = np.linspace(-4, 4, 100)
+        y = np.linspace(-4, 4, 100)
+        z = np.linspace(-4, 4, 100)
+        xx, yy, zz = np.meshgrid(x, y, z, indexing='ij')
+        u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
+        v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
+        w = np.ones_like(u)*0.1
+        stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=2, integration_time=2,
+                                       color_scalar='magnitude', seed_radius=3)
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+
+        # Make the field periodic.
+        stream.periodic = (True, True, True)
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
         self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
