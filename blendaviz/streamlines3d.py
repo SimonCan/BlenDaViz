@@ -1032,6 +1032,25 @@ class Streamline3dArray(Streamline3d):
 
         import numpy as np
 
+        def surrounding_indices(x, origin, d, n, periodic):
+            '''
+            Find the surrounding indices for a position vector.
+            '''
+
+            i = (x - origin) / d
+
+            i0 = int(np.floor(i))
+            i1 = i0 + 1
+
+            if periodic:
+                i0 %= n
+                i1 %= n
+            else:
+                i0 = np.clip(i0, 0, n-1)
+                i1 = np.clip(i1, 0, n-1)
+
+            return i, np.array([i0, i1])
+
         # Determine some parameters.
         Ox = self._x.min()
         Oy = self._y.min()
@@ -1049,109 +1068,88 @@ class Streamline3dArray(Streamline3d):
             v = self._v
             w = self._w
 
-            # Find the adjacent indices and roll the arrays for periodic domains.
-            i = (xx[0]-Ox)/dx
-            ii = np.array([int(np.floor(i)), int(np.ceil(i))])
-            if not self.periodic[0]:
-                if i < 0:
-                    i = 0
-                if i > nx-1:
-                    i = nx-1
-                ii = np.array([int(np.floor(i)), int(np.ceil(i))])
-            else:
-                if i < 0:
-                    u = np.roll(u, int(np.ceil(-i)), axis=0)
-                    v = np.roll(v, int(np.ceil(-i)), axis=0)
-                    w = np.roll(w, int(np.ceil(-i)), axis=0)
-                    i += np.ceil(-i)
-                    ii = np.array([int(np.floor(i)), int(np.ceil(i))])
-                if i > nx-1:
-                    u = np.roll(u, int(-np.ceil(i - nx-1)), axis=0)
-                    v = np.roll(v, int(-np.ceil(i - nx-1)), axis=0)
-                    w = np.roll(w, int(-np.ceil(i - nx-1)), axis=0)
-                    i -= np.ceil(i - nx - 1)
-                    ii = np.array([int(np.floor(i)), int(np.ceil(i))])
-
-            j = (xx[1]-Oy)/dy
-            jj = np.array([int(np.floor(j)), int(np.ceil(j))])
-            if not self.periodic[1]:
-                if j < 0:
-                    j = 0
-                if j > ny-1:
-                    j = ny-1
-                jj = np.array([int(np.floor(j)), int(np.ceil(j))])
-            else:
-                if j < 0:
-                    u = np.roll(u, int(np.ceil(-j)), axis=1)
-                    v = np.roll(v, int(np.ceil(-j)), axis=1)
-                    w = np.roll(w, int(np.ceil(-j)), axis=1)
-                    j += np.ceil(-j)
-                    jj = np.array([int(np.floor(j)), int(np.ceil(j))])
-                if j > ny-1:
-                    u = np.roll(u, int(-np.ceil(j - ny-1)), axis=1)
-                    v = np.roll(v, int(-np.ceil(j - ny-1)), axis=1)
-                    w = np.roll(w, int(-np.ceil(j - ny-1)), axis=1)
-                    j -= np.ceil(j - ny - 1)
-                    jj = np.array([int(np.floor(j)), int(np.ceil(j))])
-
-            k = (xx[2]-Oz)/dz
-            kk = np.array([int(np.floor(k)), int(np.ceil(k))])
-            if not self.periodic[2]:
-                if k < 0:
-                    k = 0
-                if k > nz-1:
-                    k = nz-1
-                kk = np.array([int(np.floor(k)), int(np.ceil(k))])
-            else:
-                if k < 0:
-                    u = np.roll(u, int(np.ceil(-k)), axis=2)
-                    v = np.roll(v, int(np.ceil(-k)), axis=2)
-                    w = np.roll(w, int(np.ceil(-k)), axis=2)
-                    k += np.ceil(-k)
-                    kk = np.array([int(np.floor(k)), int(np.ceil(k))])
-                if k > nz-1:
-                    u = np.roll(u, int(-np.ceil(k - nz-1)), axis=2)
-                    v = np.roll(v, int(-np.ceil(k - nz-1)), axis=2)
-                    w = np.roll(w, int(-np.ceil(k - nz-1)), axis=2)
-                    k -= np.ceil(k - nz - 1)
-                    kk = np.array([int(np.floor(k)), int(np.ceil(k))])
+            i, ii = surrounding_indices(xx[0], Ox, dx, nx, self.periodic[0])
+            j, jj = surrounding_indices(xx[1], Oy, dy, ny, self.periodic[1])
+            k, kk = surrounding_indices(xx[2], Oz, dz, nz, self.periodic[2])
 
         # Interpolate the field.
         if self.interpolation == 'mean':
-            sub_field = [u[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
-                         v[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1],
-                         w[ii[0]:ii[1]+1, jj[0]:jj[1]+1, kk[0]:kk[1]+1]]
+            sub_field = np.array([
+                [
+                    [
+                        [u[ii[0], jj[0], kk[0]], u[ii[0], jj[0], kk[1]]],
+                        [u[ii[0], jj[1], kk[0]], u[ii[0], jj[1], kk[1]]],
+                    ],
+                    [
+                        [u[ii[1], jj[0], kk[0]], u[ii[1], jj[0], kk[1]]],
+                        [u[ii[1], jj[1], kk[0]], u[ii[1], jj[1], kk[1]]],
+                    ],
+                ],
+                [
+                    [
+                        [v[ii[0], jj[0], kk[0]], v[ii[0], jj[0], kk[1]]],
+                        [v[ii[0], jj[1], kk[0]], v[ii[0], jj[1], kk[1]]],
+                    ],
+                    [
+                        [v[ii[1], jj[0], kk[0]], v[ii[1], jj[0], kk[1]]],
+                        [v[ii[1], jj[1], kk[0]], v[ii[1], jj[1], kk[1]]],
+                    ],
+                ],
+                [
+                    [
+                        [w[ii[0], jj[0], kk[0]], w[ii[0], jj[0], kk[1]]],
+                        [w[ii[0], jj[1], kk[0]], w[ii[0], jj[1], kk[1]]],
+                    ],
+                    [
+                        [w[ii[1], jj[0], kk[0]], w[ii[1], jj[0], kk[1]]],
+                        [w[ii[1], jj[1], kk[0]], w[ii[1], jj[1], kk[1]]],
+                    ],
+                ],
+            ])
             return np.mean(np.array(sub_field), axis=(1, 2, 3))
 
         if self.interpolation == 'trilinear':
-            if ii[0] == ii[1]:
-                w1 = np.array([1, 1])
-            else:
-                if (i > nx-1) and (self.periodic[0]):
-                    w1 = np.array([nx-i, i-ii[0]])
-                else:
-                    w1 = (i-ii[::-1])
+            fx = i - np.floor(i)
+            fy = j - np.floor(j)
+            fz = k - np.floor(k)
 
-            if jj[0] == jj[1]:
-                w2 = np.array([1, 1])
-            else:
-                if (j > ny-1) and (self.periodic[1]):
-                    w2 = np.array([ny-j, j-jj[0]])
-                else:
-                    w2 = (j-jj[::-1])
+            wx = np.array([1 - fx, fx])
+            wy = np.array([1 - fy, fy])
+            wz = np.array([1 - fz, fz])
 
-            if kk[0] == kk[1]:
-                w3 = np.array([1, 1])
-            else:
-                if (k > nz-1) and (self.periodic[2]):
-                    w3 = np.array([nz-k, k-kk[0]])
-                else:
-                    w3 = (k-kk[::-1])
-
-            weight = abs(w1.reshape((2, 1, 1))*w2.reshape((1, 2, 1))*w3.reshape((1, 1, 2)))
-            sub_field = [u[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
-                         v[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1],
-                         w[ii[0]:ii[1]+1][:, jj[0]:jj[1]+1][:, :, kk[0]:kk[1]+1]]
+            weight = wx[:, None, None] * wy[None, :, None] * wz[None, None, :]
+            sub_field = np.array([
+                [
+                    [
+                        [u[ii[0], jj[0], kk[0]], u[ii[0], jj[0], kk[1]]],
+                        [u[ii[0], jj[1], kk[0]], u[ii[0], jj[1], kk[1]]],
+                    ],
+                    [
+                        [u[ii[1], jj[0], kk[0]], u[ii[1], jj[0], kk[1]]],
+                        [u[ii[1], jj[1], kk[0]], u[ii[1], jj[1], kk[1]]],
+                    ],
+                ],
+                [
+                    [
+                        [v[ii[0], jj[0], kk[0]], v[ii[0], jj[0], kk[1]]],
+                        [v[ii[0], jj[1], kk[0]], v[ii[0], jj[1], kk[1]]],
+                    ],
+                    [
+                        [v[ii[1], jj[0], kk[0]], v[ii[1], jj[0], kk[1]]],
+                        [v[ii[1], jj[1], kk[0]], v[ii[1], jj[1], kk[1]]],
+                    ],
+                ],
+                [
+                    [
+                        [w[ii[0], jj[0], kk[0]], w[ii[0], jj[0], kk[1]]],
+                        [w[ii[0], jj[1], kk[0]], w[ii[0], jj[1], kk[1]]],
+                    ],
+                    [
+                        [w[ii[1], jj[0], kk[0]], w[ii[1], jj[0], kk[1]]],
+                        [w[ii[1], jj[1], kk[0]], w[ii[1], jj[1], kk[1]]],
+                    ],
+                ],
+            ])
             return np.sum(np.array(sub_field)*weight, axis=(1, 2, 3))/np.sum(weight)
 
         # If the point lies outside the domain, return 0.
