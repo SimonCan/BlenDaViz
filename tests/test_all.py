@@ -6,7 +6,6 @@ import unittest
 import numpy as np
 import blendaviz as blt
 import bpy
-import sys
 
 
 class Plot1d(unittest.TestCase):
@@ -73,7 +72,8 @@ class Plot1d(unittest.TestCase):
 
         # Test custom marker.
         bpy.ops.mesh.primitive_cube_add()
-        pl = blt.plot(x, y, z, radius=0.1, color='red', marker=bpy.context.object)
+        pl = blt.plot(x, y, z, radius=0.1, color='red',
+                      marker=bpy.context.object)
         self.assertIsNotNone(pl, "blt.plot() returned None")
 
         # Make sure no additional Blender objects were created.
@@ -189,22 +189,20 @@ class Plot3d(unittest.TestCase):
         objects = list(bpy.data.objects)
         self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
 
+
 class Streamlines3d(unittest.TestCase):
     def test_plot3d(self):
         # Generate the data.
         def irrational_hopf(t, x):
             return 1/(1+np.sum(x[0]**2+x[1]**2+x[2]**2))**3 * \
-            np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),\
-            -2*(np.sqrt(2)*x[0] + x[1]*x[2]),\
-            (-1 + x[0]**2 +x[1]**2 -x[2]**2)])
+                   np.array([2*(np.sqrt(2)*x[1] - x[0]*x[2]),
+                            -2*(np.sqrt(2)*x[0] + x[1]*x[2]),
+                            (-1 + x[0]**2 + x[1]**2 - x[2]**2)])
 
         # Generate a streamline plot.
-        stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500)
-        self.assertIsNotNone(stream, "blt.plot() returned None")
-
-        # Test multiprocessing.
-        stream.n_proc = 2
-        stream.plot()
+        stream = blt.streamlines_function(irrational_hopf, n_seeds=5,
+                                          integration_time=1000,
+                                          integration_steps=500)
         self.assertIsNotNone(stream, "blt.plot() returned None")
 
         # Test emissions.
@@ -216,7 +214,7 @@ class Streamlines3d(unittest.TestCase):
         stream.plot()
         self.assertIsNotNone(stream, "blt.plot() returned None")
 
-        # Streamline plot using data warray.
+        # Streamline plot using data array.
         x = np.linspace(-4, 4, 100)
         y = np.linspace(-4, 4, 100)
         z = np.linspace(-4, 4, 100)
@@ -224,12 +222,34 @@ class Streamlines3d(unittest.TestCase):
         u = -yy*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
         v = xx*np.exp(-np.sqrt(xx**2+yy**2) - zz**2)
         w = np.ones_like(u)*0.1
-        stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=2, integration_time=2,
+        stream = blt.streamlines_array(x, y, z, u, v, w,
+                                       n_seeds=2, integration_time=2,
                                        color_scalar='magnitude', seed_radius=3)
         self.assertIsNotNone(stream, "blt.plot() returned None")
 
-        # Make the field periodic.
+        # Test what happens near the boundary.
+        u = xx
+        v = yy
+        w = zz
+        stream.interpolation = 'trilinear'
+        stream.seeds = np.array([[3.9, 3.9, 3.9], [-3.9, -3.9, -3.9]])
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
         stream.periodic = (True, True, True)
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+        u = -xx
+        v = -yy
+        w = -zz
+        stream.interpolation = 'mean'
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+        stream.periodic = (False, False, False)
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+
+        # Test multiprocessing.
+        stream.n_proc = 2
         stream.plot()
         self.assertIsNotNone(stream, "blt.plot() returned None")
 
@@ -237,19 +257,4 @@ class Streamlines3d(unittest.TestCase):
         objects = list(bpy.data.objects)
         self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
 
-def run_tests():
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-    suite.addTests(loader.loadTestsFromTestCase(Plot1d))
-    suite.addTests(loader.loadTestsFromTestCase(Plot2d))
-    suite.addTests(loader.loadTestsFromTestCase(Plot3d))
-    suite.addTests(loader.loadTestsFromTestCase(Streamlines3d))
 
-    result = unittest.TextTestRunner(verbosity=1).run(suite)
-    sys.stdout.flush()
-    sys.stderr.flush()
-    bpy.ops.wm.quit_blender()
-    return result
-
-
-run_tests()
