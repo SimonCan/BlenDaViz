@@ -6,6 +6,7 @@ import unittest
 import numpy as np
 import blendaviz as blt
 import bpy
+import matplotlib.pyplot as plt
 
 
 class Plot1d(unittest.TestCase):
@@ -191,7 +192,7 @@ class Plot3d(unittest.TestCase):
 
 
 class Streamlines3d(unittest.TestCase):
-    def test_plot3d(self):
+    def test_streamlines3d(self):
         # Generate the data.
         def irrational_hopf(t, x):
             return 1/(1+np.sum(x[0]**2+x[1]**2+x[2]**2))**3 * \
@@ -258,3 +259,15 @@ class Streamlines3d(unittest.TestCase):
         self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
 
 
+class MPLEmbedding(unittest.TestCase):
+    def test_mpl(self):
+        # Create some data.
+        x = np.linspace(0, 5, 1000)
+
+        # Create the Matplotlib plot.
+        fig = plt.figure()
+        plt.plot(x, np.sin(x), color='g')
+        plt.title("test")
+
+        # Plot in Blender.
+        mpl = blt.mpl_figure_to_blender(fig)
