@@ -24,6 +24,9 @@ class Plot1d(unittest.TestCase):
         self.assertIsNotNone(pl, "blt.plot() returned None")
 
         # Line plot with variable color.
+        pl.color = np.random.random([n, 3])
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() returned None")
         pl.color = np.random.random([n, 4])
         pl.plot()
         self.assertIsNotNone(pl, "blt.plot() returned None")
@@ -271,3 +274,9 @@ class MPLEmbedding(unittest.TestCase):
 
         # Plot in Blender.
         mpl = blt.mpl_figure_to_blender(fig)
+        self.assertIsNotNone(mpl, "mpl.plot() returned None")
+
+        # Test replotting routine.
+        mpl.position = [-1, -1, -1]
+        mpl.plot()
+        self.assertIsNotNone(mpl, "mpl.plot() returned None")
