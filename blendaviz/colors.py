@@ -35,39 +35,7 @@ def string_to_rgba(color_string):
         'white':   (1, 1, 1, 1),
     }
 
-    # if color_string == 'b':
-    #     rgba = (0, 0, 1, 1)
-    # if color_string == 'g':
-    #     rgba = (0, 1, 0, 1)
-    # if color_string == 'r':
-    #     rgba = (1, 0, 0, 1)
-    # if color_string == 'c':
-    #     rgba = (0, 1, 1, 1)
-    # if color_string == 'm':
-    #     rgba = (1, 0, 1, 1)
-    # if color_string == 'y':
-    #     rgba = (1, 1, 0, 1)
-    # if color_string == 'k':
-    #     rgba = (0, 0, 0, 1)
-    # if color_string == 'w':
-    #     rgba = (1, 1, 1, 1)
-    #
-    # if color_string == 'blue':
-    #     rgba = (0, 0, 1, 1)
-    # if color_string == 'green':
-    #     rgba = (0, 1, 0, 1)
-    # if color_string == 'red':
-    #     rgba = (1, 0, 0, 1)
-    # if color_string == 'cyan':
-    #     rgba = (0, 1, 1, 1)
-    # if color_string == 'magenta':
-    #     rgba = (1, 0, 1, 1)
-    # if color_string == 'yellow':
-    #     rgba = (1, 1, 0, 1)
-    # if color_string == 'black':
-    #     rgba = (0, 0, 0, 1)
-    # if color_string == 'white':
-    #     rgba = (1, 1, 1, 1)
+    rgba = color_to_rgba[color_string]
 
     return rgba
 
