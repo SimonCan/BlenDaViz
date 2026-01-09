@@ -350,23 +350,8 @@ class Surface(GenericPlot):
 
         import blendaviz as blt
 
-        if blt.house_keeping.x_min is None:
-            blt.house_keeping.x_min = self.x.min()
-        elif self.x.min() < blt.house_keeping.x_min:
-            blt.house_keeping.x_min = self.x.min()
-        if blt.house_keeping.x_max is None:
-            blt.house_keeping.x_max = self.x.max()
-        elif self.x.max() > blt.house_keeping.x_max:
-            blt.house_keeping.x_max = self.x.max()
-
-        if blt.house_keeping.y_min is None:
-            blt.house_keeping.y_min = self.y.min()
-        elif self.y.min() < blt.house_keeping.y_min:
-            blt.house_keeping.y_min = self.y.min()
-        if blt.house_keeping.y_max is None:
-            blt.house_keeping.y_max = self.y.max()
-        elif self.y.max() > blt.house_keeping.y_max:
-            blt.house_keeping.y_max = self.y.max()
+        self.update_extrema_x()
+        self.update_extrema_y()
 
         if not self.z is None:
             if blt.house_keeping.z_min is None:

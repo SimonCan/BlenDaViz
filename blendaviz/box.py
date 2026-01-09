@@ -179,17 +179,6 @@ class BoundingBox():
                                            self.extrema[2] - self.extrema[2],
                                            self.extrema[4] - self.extrema[5], 0)
 
-#        # Add 3d structure.
-#        self.curve_data.splines.data.bevel_depth = self._radius[0]
-#        self.curve_data.splines.data.bevel_resolution = self.resolution
-#        self.curve_data.splines.data.fill_mode = 'FULL'
-#
-#        # Set the material/color.
-#        self.mesh_material = bpy.data.materials.new('material')
-#        self.mesh_material.diffuse_color = color_rgba[0]
-#        self.mesh_material.roughness = self.roughness
-#        self.curve_object.active_material = self.mesh_material
-
         # Link the curve object with the scene.
         for curve_object in self.curve_object:
             bpy.context.scene.collection.objects.link(curve_object)
