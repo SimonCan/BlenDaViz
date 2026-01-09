@@ -16,39 +16,58 @@ def string_to_rgba(color_string):
     color_string:  Any valid color string or character.
     """
 
-    if color_string == 'b':
-        rgba = (0, 0, 1, 1)
-    if color_string == 'g':
-        rgba = (0, 1, 0, 1)
-    if color_string == 'r':
-        rgba = (1, 0, 0, 1)
-    if color_string == 'c':
-        rgba = (0, 1, 1, 1)
-    if color_string == 'm':
-        rgba = (1, 0, 1, 1)
-    if color_string == 'y':
-        rgba = (1, 1, 0, 1)
-    if color_string == 'k':
-        rgba = (0, 0, 0, 1)
-    if color_string == 'w':
-        rgba = (1, 1, 1, 1)
+    color_to_rgba = {
+        'b': (0, 0, 1, 1),
+        'g': (0, 1, 0, 1),
+        'r': (1, 0, 0, 1),
+        'c': (0, 1, 1, 1),
+        'm': (1, 0, 1, 1),
+        'y': (1, 1, 0, 1),
+        'k': (0, 0, 0, 1),
+        'w': (1, 1, 1, 1),
+        'blue':    (0, 0, 1, 1),
+        'green':   (0, 1, 0, 1),
+        'red':     (1, 0, 0, 1),
+        'cyan':    (0, 1, 1, 1),
+        'magenta': (1, 0, 1, 1),
+        'yellow':  (1, 1, 0, 1),
+        'black':   (0, 0, 0, 1),
+        'white':   (1, 1, 1, 1),
+    }
 
-    if color_string == 'blue':
-        rgba = (0, 0, 1, 1)
-    if color_string == 'green':
-        rgba = (0, 1, 0, 1)
-    if color_string == 'red':
-        rgba = (1, 0, 0, 1)
-    if color_string == 'cyan':
-        rgba = (0, 1, 1, 1)
-    if color_string == 'magenta':
-        rgba = (1, 0, 1, 1)
-    if color_string == 'yellow':
-        rgba = (1, 1, 0, 1)
-    if color_string == 'black':
-        rgba = (0, 0, 0, 1)
-    if color_string == 'white':
-        rgba = (1, 1, 1, 1)
+    # if color_string == 'b':
+    #     rgba = (0, 0, 1, 1)
+    # if color_string == 'g':
+    #     rgba = (0, 1, 0, 1)
+    # if color_string == 'r':
+    #     rgba = (1, 0, 0, 1)
+    # if color_string == 'c':
+    #     rgba = (0, 1, 1, 1)
+    # if color_string == 'm':
+    #     rgba = (1, 0, 1, 1)
+    # if color_string == 'y':
+    #     rgba = (1, 1, 0, 1)
+    # if color_string == 'k':
+    #     rgba = (0, 0, 0, 1)
+    # if color_string == 'w':
+    #     rgba = (1, 1, 1, 1)
+    #
+    # if color_string == 'blue':
+    #     rgba = (0, 0, 1, 1)
+    # if color_string == 'green':
+    #     rgba = (0, 1, 0, 1)
+    # if color_string == 'red':
+    #     rgba = (1, 0, 0, 1)
+    # if color_string == 'cyan':
+    #     rgba = (0, 1, 1, 1)
+    # if color_string == 'magenta':
+    #     rgba = (1, 0, 1, 1)
+    # if color_string == 'yellow':
+    #     rgba = (1, 1, 0, 1)
+    # if color_string == 'black':
+    #     rgba = (0, 0, 0, 1)
+    # if color_string == 'white':
+    #     rgba = (1, 1, 1, 1)
 
     return rgba
 
