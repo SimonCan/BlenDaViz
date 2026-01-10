@@ -179,6 +179,7 @@ class MPLEmbedding():
                       -self.figure.get_size_inches()[0]/2 * self.normal[1] - self.figure.get_size_inches()[1]/2 * self.normal[0]]) + \
             self.position[2]
 
+
         if blt.house_keeping.x_min is None:
             blt.house_keeping.x_min = x.min()
         elif x.min() < blt.house_keeping.x_min:
