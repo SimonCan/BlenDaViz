@@ -159,11 +159,9 @@ class Surface(GenericPlot):
         # Check if there is any time array.
         if not self.time is None:
             if not isinstance(self.time, np.ndarray):
-                print("Error: time is not a valid array.")
-                return -1
+                raise TypeError("time must be a numpy array")
             if self.time.ndim != 1:
-                print("Error: time array must be 1d.")
-                return -1
+                raise ValueError("time array must be 1-dimensional")
             # Determine the time index.
             self.time_index = np.argmin(abs(bpy.context.scene.frame_float - self.time))
         else:
@@ -172,29 +170,24 @@ class Surface(GenericPlot):
 
         # Check the validity of the input arrays.
         if not isinstance(self.x, np.ndarray) or not isinstance(self.y, np.ndarray):
-            print("Error: x OR y array invalid.")
-            return -1
+            raise TypeError("x and y must be numpy arrays")
         if not isinstance(self.z, np.ndarray) and not isinstance(self.c, np.ndarray):
-            print("Error: either z or c or both must be arrays.")
-            return -1
+            raise ValueError("Either z or c or both must be arrays")
         if isinstance(self.z, np.ndarray):
             if not self.z.shape[:2] == self.x.shape[:2]:
-                print("Error: z array shape invalid.")
-                return -1
+                raise ValueError(f"z array shape {self.z.shape[:2]} does not match x shape {self.x.shape[:2]}")
         else:
             self.z = np.zeros_like(self.x)
         if isinstance(self.c, np.ndarray):
             if not self.c.shape[:2] == self.x.shape[:2]:
-                print("Error: c array shape invalid.")
-                return -1
+                raise ValueError(f"c array shape {self.c.shape[:2]} does not match x shape {self.x.shape[:2]}")
         if not isinstance(self.alpha, np.ndarray):
             if not self.alpha:
                 self.alpha = 1
         if isinstance(self.alpha, np.ndarray):
             if self.alpha.shape != (1, ):
                 if not self.alpha.shape[:2] == self.x.shape[:2]:
-                    print("Error: alpha array shape invalid.")
-                    return -1
+                    raise ValueError(f"alpha array shape {self.alpha.shape[:2]} does not match x shape {self.x.shape[:2]}")
         else:
             self.alpha = np.array([self.alpha])
 
@@ -215,8 +208,7 @@ class Surface(GenericPlot):
             else:
                 self._z = self.z
         if not (self.x.shape == self.y.shape == self.z.shape):
-            print("Error: x, y, z array shapes invalid.")
-            return -1
+            raise ValueError(f"x, y, z array shapes must match: x={self.x.shape}, y={self.y.shape}, z={self.z.shape}")
         if isinstance(self.vmin, np.ndarray):
             self._vmin = self.vmin[self.time_index]
         else:

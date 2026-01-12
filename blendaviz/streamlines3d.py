@@ -920,10 +920,10 @@ class Streamline3dArray(Streamline3d):
                 with warnings.catch_warnings():
                     warnings.filterwarnings("ignore", category=Warning)
                     from eqtools.trispline import Spline
-            except:
-                print('Warning: Could not import eqtools.trispline.Spline for \
-                       tricubic interpolation.\n')
-                print('Warning: Fall back to trilinear.')
+            except (ImportError, ModuleNotFoundError) as e:
+                print(f'Warning: Could not import eqtools.trispline.Spline for '
+                      f'tricubic interpolation: {e}')
+                print('Warning: Falling back to trilinear interpolation.')
                 self.interpolation = 'trilinear'
 
         # Set up the splines for the tricubic interpolation.

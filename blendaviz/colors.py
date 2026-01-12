@@ -95,7 +95,7 @@ def make_rgba_array(
     # Transform list of color string into rgba.
     if isinstance(color, list):
         if len(color) != length:
-            return -1
+            raise ValueError(f"Color list length ({len(color)}) does not match data length ({length})")
         color_rgba = np.ones([len(color), 4])
         for color_index, color_string in enumerate(color):
             if isinstance(color_string, str):

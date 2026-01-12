@@ -190,11 +190,9 @@ class PathLine(GenericPlot):
         # Check if there is any time array.
         if not self.time is None:
             if not isinstance(self.time, np.ndarray):
-                print("Error: time is not a valid array.")
-                return -1
+                raise TypeError("time must be a numpy array")
             if self.time.ndim != 1:
-                print("Error: time array must be 1d.")
-                return -1
+                raise ValueError("time array must be 1-dimensional")
             # Determine the time index.
             self.time_index = np.argmin(abs(bpy.context.scene.frame_float - self.time))
         else:

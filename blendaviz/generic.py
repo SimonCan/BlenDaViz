@@ -106,12 +106,18 @@ class GenericPlot:
         Verify that the reference to the object obj is valid.
         This is useful after the user manually deletes objects
         and we try to refer to it.
+
+        Returns
+        -------
+        bool
+            True if the object reference is valid, False otherwise.
         """
 
         try:
             dir(obj)
-            valid = True
-        except:
-            valid = False
-
-        return valid
+            return True
+        except (AttributeError, ReferenceError, RuntimeError):
+            # AttributeError: Object has no valid attributes
+            # ReferenceError: Weak reference to object no longer exists
+            # RuntimeError: Blender object has been deleted
+            return False
