@@ -2,8 +2,11 @@
 Contains routines to generate the bounding box.
 """
 
+from typing import Optional, List, Any, Tuple
+import numpy.typing as npt
 
-def bounding_box(extrema=None):
+
+def bounding_box(extrema: Optional[Tuple[float, float, float, float, float, float]] = None) -> 'BoundingBox':
     """
     Plot a bounding box with a given size.
 
@@ -42,12 +45,18 @@ def bounding_box(extrema=None):
 
 
 
-class BoundingBox():
+class BoundingBox:
     """
     Bounding box class including the splinces, parameters and plotting function.
     """
 
-    def __init__(self):
+    extrema: Optional[Tuple[float, float, float, float, float, float]]
+    curve_data: Optional[List[Any]]  # List of bpy.types.Curve
+    curve_object: Optional[Any]  # bpy.types.Object or List of them
+    poly_line: Optional[List[Any]]  # List of bpy.types.Spline
+    deletable_object: Optional[Any]  # bpy.types.Object
+
+    def __init__(self) -> None:
         """
         Fill members with default values.
         """
@@ -65,7 +74,7 @@ class BoundingBox():
         blt.plot_stack.append(self)
 
 
-    def plot(self):
+    def plot(self) -> int:
         """
         Plot the bounding box.
         """
@@ -195,7 +204,7 @@ class BoundingBox():
         return 0
 
 
-    def get_extrema(self):
+    def get_extrema(self) -> None:
         """
         Get the extrema from the global structure.
         """

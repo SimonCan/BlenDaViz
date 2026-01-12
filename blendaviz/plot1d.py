@@ -3,13 +3,28 @@
 Contains routines to one-dimensional plots.
 """
 
+from typing import Optional, Union, Tuple, List, Any
+import numpy as np
+import numpy.typing as npt
 
 from blendaviz.generic import GenericPlot
 
 
-def plot(x, y, z, radius=0.1, resolution=8, color=(0, 1, 0, 1),
-         emission=None, roughness=1, rotation_x=0, rotation_y=0, rotation_z=0,
-         marker=None, time=None):
+def plot(
+    x: Union[npt.NDArray[np.floating], List[float]],
+    y: Union[npt.NDArray[np.floating], List[float]],
+    z: Union[npt.NDArray[np.floating], List[float]],
+    radius: Union[float, npt.NDArray[np.floating]] = 0.1,
+    resolution: int = 8,
+    color: Union[Tuple, str, List, npt.NDArray[np.floating]] = (0, 1, 0, 1),
+    emission: Optional[Union[float, npt.NDArray[np.floating]]] = None,
+    roughness: Union[float, npt.NDArray[np.floating]] = 1,
+    rotation_x: Union[float, npt.NDArray[np.floating]] = 0,
+    rotation_y: Union[float, npt.NDArray[np.floating]] = 0,
+    rotation_z: Union[float, npt.NDArray[np.floating]] = 0,
+    marker: Optional[Union[str, Any]] = None,
+    time: Optional[npt.NDArray[np.floating]] = None
+) -> 'PathLine':
     """
     Line plot in 3 dimensions as a line, tube or shapes.
 
@@ -93,7 +108,29 @@ class PathLine(GenericPlot):
     Path line class including the vertices, parameters and plotting function.
     """
 
-    def __init__(self):
+    # Type hints for main attributes
+    x: Union[float, npt.NDArray[np.floating]]
+    y: Union[float, npt.NDArray[np.floating]]
+    z: Union[float, npt.NDArray[np.floating]]
+    radius: Union[float, npt.NDArray[np.floating]]
+    resolution: int
+    color: Union[Tuple, str, List, npt.NDArray[np.floating]]
+    emission: Optional[Union[float, npt.NDArray[np.floating]]]
+    roughness: Union[float, npt.NDArray[np.floating]]
+    rotation_x: Union[float, npt.NDArray[np.floating]]
+    rotation_y: Union[float, npt.NDArray[np.floating]]
+    rotation_z: Union[float, npt.NDArray[np.floating]]
+    marker: Optional[Union[str, Any]]
+    time_index: int
+    curve_data: Optional[Any]  # bpy.types.Curve
+    curve_object: Optional[Any]  # bpy.types.Object
+    marker_mesh: Optional[List[Any]]  # List of bpy.types.Mesh
+    mesh_material: Optional[Any]  # bpy.types.Material
+    mesh_texture: Optional[Any]  # bpy.types.ShaderNodeTexImage
+    poly_line: Optional[Any]  # bpy.types.Spline
+    deletable_object: Optional[Any]  # bpy.types.Object
+
+    def __init__(self) -> None:
         """
         Fill members with default values.
         """
@@ -141,7 +178,7 @@ class PathLine(GenericPlot):
         blt.plot_stack.append(self)
 
 
-    def plot(self):
+    def plot(self) -> None:
         """
         Plot a as a line, tube or shapes.
         """
@@ -471,7 +508,7 @@ class PathLine(GenericPlot):
         return 0
 
 
-    def __delete_meshes__(self):
+    def __delete_meshes__(self) -> None:
         """
         Delete all existing meshes that are part of this plot.
         """
@@ -487,7 +524,7 @@ class PathLine(GenericPlot):
             self.marker_mesh = None
 
 
-    def __delete_materials__(self):
+    def __delete_materials__(self) -> None:
         """
         Delete all existing meshes that are part of this plot.
         """
@@ -505,7 +542,7 @@ class PathLine(GenericPlot):
             self.mesh_material = None
 
 
-    def update_globals(self):
+    def update_globals(self) -> None:
         """
         Update the extrema, camera and lights.
         """

@@ -3,14 +3,33 @@
 Contains routines to three-dimensional plots.
 """
 
+from typing import Optional, Union, Tuple, List, Any
+import numpy as np
+import numpy.typing as npt
 
 from blendaviz.generic import GenericPlot
 
 
-def quiver(x, y, z, u, v, w, pivot='middle', length=1,
-           radius_shaft=0.25, radius_tip=0.5, scale=1,
-           color=(0, 1, 0, 1), emission=None, roughness=1,
-           vmin=None, vmax=None, color_map=None, time=None):
+def quiver(
+    x: Union[npt.NDArray[np.floating], List],
+    y: Union[npt.NDArray[np.floating], List],
+    z: Union[npt.NDArray[np.floating], List],
+    u: Union[npt.NDArray[np.floating], List],
+    v: Union[npt.NDArray[np.floating], List],
+    w: Union[npt.NDArray[np.floating], List],
+    pivot: str = 'middle',
+    length: Union[float, str] = 1,
+    radius_shaft: Union[float, str] = 0.25,
+    radius_tip: Union[float, str] = 0.5,
+    scale: Union[float, npt.NDArray[np.floating]] = 1,
+    color: Union[Tuple, str, List, npt.NDArray[np.floating]] = (0, 1, 0, 1),
+    emission: Optional[Union[float, str, npt.NDArray[np.floating]]] = None,
+    roughness: float = 1,
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None,
+    color_map: Optional[Any] = None,
+    time: Optional[npt.NDArray[np.floating]] = None
+) -> 'Quiver3d':
     """
     Plot arrows for a given vector field.
 
@@ -96,7 +115,7 @@ class Quiver3d(GenericPlot):
     Quiver class containing geometry, parameters and plotting function.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Fill members with default values.
         """
@@ -145,7 +164,7 @@ class Quiver3d(GenericPlot):
         blt.plot_stack.append(self)
 
 
-    def plot(self):
+    def plot(self) -> None:
         """
         Plot the arrows.
         """
@@ -423,7 +442,7 @@ class Quiver3d(GenericPlot):
                     node_emission.inputs['Strength'].default_value = self.emission
 
 
-    def time_handler(self, scene, depsgraph):
+    def time_handler(self, scene: Any, depsgraph: Any) -> None:
         """
         Function to be called whenever any Blender animation functions are used.
         Updates the plot according to the function specified.
@@ -435,7 +454,7 @@ class Quiver3d(GenericPlot):
             pass
 
 
-    def update_globals(self):
+    def update_globals(self) -> None:
         """
         Update the extrema and lights.
         """
@@ -458,9 +477,21 @@ class Quiver3d(GenericPlot):
 
 
 
-def contour(phi, x, y, z, contours=1, psi=None,
-            color=(0, 1, 0, 1), emission=None, roughness=1,
-            vmin=None, vmax=None, color_map=None, time=None):
+def contour(
+    phi: Union[npt.NDArray[np.floating], List],
+    x: Union[npt.NDArray[np.floating], List],
+    y: Union[npt.NDArray[np.floating], List],
+    z: Union[npt.NDArray[np.floating], List],
+    contours: Union[int, npt.NDArray[np.floating], List] = 1,
+    psi: Optional[Union[npt.NDArray[np.floating], List]] = None,
+    color: Union[Tuple, str, List, npt.NDArray[np.floating]] = (0, 1, 0, 1),
+    emission: Optional[Union[float, npt.NDArray[np.floating]]] = None,
+    roughness: float = 1,
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None,
+    color_map: Optional[Any] = None,
+    time: Optional[npt.NDArray[np.floating]] = None
+) -> 'Contour3d':
     """
     Plot contours to a given scalar field.
 
@@ -532,7 +563,7 @@ class Contour3d(GenericPlot):
     Contour class containing geometry, parameters and plotting function.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Fill members with default values.
         """
@@ -576,7 +607,7 @@ class Contour3d(GenericPlot):
         blt.plot_stack.append(self)
 
 
-    def plot(self):
+    def plot(self) -> None:
         """
         Plot the contours.
         """
@@ -920,7 +951,7 @@ class Contour3d(GenericPlot):
                 vcol_layer.data[loop_index].color = color_rgba[loop_vert_index]
 
 
-    def time_handler(self, scene, depsgraph):
+    def time_handler(self, scene: Any, depsgraph: Any) -> None:
         """
         Function to be called whenever any Blender animation functions are used.
         Updates the plot according to the function specified.
@@ -932,7 +963,7 @@ class Contour3d(GenericPlot):
             pass
 
 
-    def update_globals(self):
+    def update_globals(self) -> None:
         """
         Update the extrema and lights.
         """

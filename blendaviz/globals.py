@@ -3,13 +3,25 @@
 Contains some global variables for control.
 """
 
+from typing import Optional, List, Any
 
-class HouseKeeping():
+
+class HouseKeeping:
     """
     Contains some global house keeping variables.
     """
 
-    def __init__(self):
+    x_min: Optional[float]
+    x_max: Optional[float]
+    y_min: Optional[float]
+    y_max: Optional[float]
+    z_min: Optional[float]
+    z_max: Optional[float]
+    box: Optional[Any]  # blt.BoundingBox
+    lights: List[Optional[Any]]  # List of bpy.types.Object
+    camera: Optional[Any]  # bpy.types.Object
+
+    def __init__(self) -> None:
         """
         Fill members with default values.
         """

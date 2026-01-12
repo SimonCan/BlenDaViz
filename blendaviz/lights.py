@@ -4,7 +4,7 @@ Contains routines to add and handle lights.
 """
 
 
-def adjust_lights():
+def adjust_lights() -> None:
     """
     Add lights or change their parameters.
 

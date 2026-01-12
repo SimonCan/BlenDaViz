@@ -3,7 +3,12 @@
 Contains routines to handle colors.
 """
 
-def string_to_rgba(color_string):
+from typing import Tuple, Union, List, Optional
+import numpy as np
+import numpy.typing as npt
+
+
+def string_to_rgba(color_string: str) -> Tuple[float, float, float, float]:
     """
     Converts a color string or character into an rgb value.
 
@@ -40,7 +45,13 @@ def string_to_rgba(color_string):
     return rgba
 
 
-def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
+def make_rgba_array(
+    color: Union[str, Tuple, List, npt.NDArray[np.floating]],
+    length: int,
+    color_map: Optional[object] = None,  # matplotlib colormap
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None
+) -> Union[npt.NDArray[np.floating], int]:
     """
     Creates an rgb array for the given color, which can be rgb, scalar array
     or string (array).
@@ -62,7 +73,6 @@ def make_rgba_array(color, length, color_map=None, vmin=None, vmax=None):
         determine from the input arrays.
     """
 
-    import numpy as np
     from matplotlib import cm
 
     # Assign the colormap to the rgb values.

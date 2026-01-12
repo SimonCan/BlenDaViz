@@ -3,12 +3,24 @@
 Contains routines to two-dimensional plots.
 """
 
+from typing import Optional, Union, List, Any
+import numpy as np
+import numpy.typing as npt
 
 from blendaviz.generic import GenericPlot
 
 
-def mesh(x, y, z=None, c=None, alpha=None, vmax=None, vmin=None, color_map=None,
-         time=None):
+def mesh(
+    x: Union[npt.NDArray[np.floating], List],
+    y: Union[npt.NDArray[np.floating], List],
+    z: Optional[Union[npt.NDArray[np.floating], List]] = None,
+    c: Optional[Union[str, npt.NDArray[np.floating], List]] = None,
+    alpha: Optional[Union[float, npt.NDArray[np.floating]]] = None,
+    vmax: Optional[Union[float, npt.NDArray[np.floating]]] = None,
+    vmin: Optional[Union[float, npt.NDArray[np.floating]]] = None,
+    color_map: Optional[Any] = None,
+    time: Optional[npt.NDArray[np.floating]] = None
+) -> 'Surface':
     """
     Plot a 2d surface with optional color.
 
@@ -78,7 +90,23 @@ class Surface(GenericPlot):
     Surface class including the vertices, surfaces, parameters and plotting function.
     """
 
-    def __init__(self):
+    # Type hints for main attributes
+    x: Union[float, npt.NDArray[np.floating]]
+    y: Union[float, npt.NDArray[np.floating]]
+    z: Optional[Union[npt.NDArray[np.floating], List]]
+    c: Optional[Union[str, npt.NDArray[np.floating], List]]
+    alpha: Optional[Union[float, npt.NDArray[np.floating]]]
+    vmin: Optional[Union[float, npt.NDArray[np.floating]]]
+    vmax: Optional[Union[float, npt.NDArray[np.floating]]]
+    time_index: int
+    color_map: Optional[Any]
+    mesh_data: Optional[Any]  # bpy.types.Mesh
+    mesh_object: Optional[Any]  # bpy.types.Object
+    mesh_material: Optional[Any]  # bpy.types.Material
+    mesh_texture: Optional[Any]  # bpy.types.ShaderNodeTexImage
+    deletable_object: Optional[Any]  # bpy.types.Object
+
+    def __init__(self) -> None:
         """
         Fill members with default values.
         """
@@ -119,7 +147,7 @@ class Surface(GenericPlot):
         blt.plot_stack.append(self)
 
 
-    def plot(self):
+    def plot(self) -> None:
         """
         Plot the 2d mesh.
         """
@@ -331,7 +359,7 @@ class Surface(GenericPlot):
         return 0
 
 
-    def time_handler(self, scene, depsgraph):
+    def time_handler(self, scene: Any, depsgraph: Any) -> None:
         """
         Function to be called whenever any Blender animation functions are used.
         Updates the plot according to the function specified.
@@ -343,7 +371,7 @@ class Surface(GenericPlot):
             pass
 
 
-    def update_globals(self):
+    def update_globals(self) -> None:
         """
         Update the extrema and lights.
         """

@@ -3,17 +3,37 @@
 Contains routines to generate and plot streamlines.
 """
 
+from typing import Optional, Union, Tuple, List, Callable, Any
+import numpy as np
+import numpy.typing as npt
 
 from blendaviz.generic import GenericPlot
 
 
-def streamlines_function(field_function, n_seeds=100, seeds=None, seed_center=None,
-                         seed_radius=1, method='DOP853', atol=1e-4, rtol=1e-4,
-                         metric=None, integration_time=1, integration_steps=10,
-                         integration_direction='both', color=(0, 1, 0, 1),
-                         color_scalar=None, emission=None, roughness=1,
-                         radius=0.1, resolution=8, vmin=None, vmax=None,
-                         color_map=None, n_proc=1):
+def streamlines_function(
+    field_function: Callable,
+    n_seeds: int = 100,
+    seeds: Optional[npt.NDArray[np.floating]] = None,
+    seed_center: Optional[Union[Tuple[float, float, float], npt.NDArray[np.floating]]] = None,
+    seed_radius: float = 1,
+    method: str = 'DOP853',
+    atol: float = 1e-4,
+    rtol: float = 1e-4,
+    metric: Optional[Callable] = None,
+    integration_time: float = 1,
+    integration_steps: int = 10,
+    integration_direction: str = 'both',
+    color: Union[Tuple, str, List, npt.NDArray[np.floating]] = (0, 1, 0, 1),
+    color_scalar: Optional[Union[str, Callable]] = None,
+    emission: Optional[Union[float, npt.NDArray[np.floating]]] = None,
+    roughness: float = 1,
+    radius: float = 0.1,
+    resolution: int = 8,
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None,
+    color_map: Optional[Any] = None,
+    n_proc: int = 1
+) -> 'Streamlines3d':
     """
     Plot streamlines of a given vector field.
 
@@ -252,7 +272,7 @@ class Streamline3d(GenericPlot):
     Streamline class containing geometry, parameters and plotting function.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Fill members with default values.
         """
@@ -303,7 +323,7 @@ class Streamline3d(GenericPlot):
         blt.plot_stack.append(self)
 
 
-    def plot(self):
+    def plot(self) -> None:
         """
         Plot the streamlines.
         """
@@ -820,7 +840,7 @@ class Streamline3dArray(Streamline3d):
     Derived streamline class for field function given as data array.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Fill members with default values.
         """
@@ -1239,7 +1259,7 @@ class Streamline3dArray(Streamline3d):
             pass
 
 
-    def update_globals(self):
+    def update_globals(self) -> None:
         """
         Update the extrema and lights.
         """

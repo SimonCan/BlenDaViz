@@ -3,12 +3,18 @@
 The generic plotting routine from which all others inherit.
 """
 
-class GenericPlot():
+from typing import Optional, Any
+import numpy.typing as npt
+
+
+class GenericPlot:
     """
     Generic plotting class with minimal functionality.
     """
 
-    def __init__(self):
+    time: Optional[Any]
+
+    def __init__(self) -> None:
         """
         Fill members with default values.
         """
@@ -22,13 +28,13 @@ class GenericPlot():
         #bpy.app.handlers.frame_change_pre.append(self.time_handler)
 
 
-    def plot(self):
+    def plot(self) -> None:
         """
         Plot nothing.
         """
 
 
-    def time_handler(self, scene, depsgraph):
+    def time_handler(self, scene: Any, depsgraph: Any) -> None:
         """
         Function to be called whenever any Blender animation functions are used.
         Updates the plot according to the function specified.
@@ -38,13 +44,13 @@ class GenericPlot():
             self.plot()
 
 
-    def update_globals(self):
+    def update_globals(self) -> None:
         """
         Update the global variables.
         """
 
 
-    def update_extrema_x(self):
+    def update_extrema_x(self) -> None:
         """
         Update the domain in the x-direction.
         """
@@ -61,9 +67,9 @@ class GenericPlot():
             blt.house_keeping.x_max = self.x.max()
 
 
-    def update_extrema_y(self):
+    def update_extrema_y(self) -> None:
         """
-        Update the domain in the x-direction.
+        Update the domain in the y-direction.
         """
 
         import blendaviz as blt
@@ -78,9 +84,9 @@ class GenericPlot():
             blt.house_keeping.y_max = self.y.max()
 
 
-    def update_extrema_z(self):
+    def update_extrema_z(self) -> None:
         """
-        Update the domain in the x-direction.
+        Update the domain in the z-direction.
         """
 
         import blendaviz as blt
@@ -95,7 +101,7 @@ class GenericPlot():
             blt.house_keeping.z_max = self.z.max()
 
 
-    def object_reference_valid(self, obj):
+    def object_reference_valid(self, obj: Any) -> bool:
         """
         Verify that the reference to the object obj is valid.
         This is useful after the user manually deletes objects

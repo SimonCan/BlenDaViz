@@ -3,14 +3,23 @@
 Contains classes for the embedding of matplotlib plots in BlenDaViz.
 """
 
+from typing import Optional, Union, Sequence
+import numpy as np
+import numpy.typing as npt
 
-def mpl_figure_to_blender(figure, dpi=300, position=None, normal=None):
+
+def mpl_figure_to_blender(
+    figure,  # matplotlib.figure.Figure - avoiding import for optional dependency
+    dpi: int = 300,
+    position: Optional[Union[Sequence[float], npt.NDArray[np.floating]]] = None,
+    normal: Optional[Union[Sequence[float], npt.NDArray[np.floating]]] = None
+) -> 'MPLEmbedding':
     """
     Plot a Matplotlib figure into blender.
 
     Signature:
 
-    mesh(figure, dpi=300, corners=None)
+    mpl_figure_to_blender(figure, dpi=300, position=None, normal=None)
 
     Parameters
     ----------
@@ -51,12 +60,23 @@ def mpl_figure_to_blender(figure, dpi=300, position=None, normal=None):
     return mpl_embedding_return
 
 
-class MPLEmbedding():
+class MPLEmbedding:
     """
     Surface class including the vertices, surfaces, parameters and plotting function.
     """
 
-    def __init__(self):
+    # Type hints for instance attributes
+    figure: Optional[object]  # matplotlib.figure.Figure
+    dpi: int
+    position: Optional[npt.NDArray[np.floating]]
+    normal: Optional[npt.NDArray[np.floating]]
+    mesh_data: Optional[object]  # bpy.types.Mesh
+    mesh_object: Optional[object]  # bpy.types.Object
+    mesh_material: Optional[object]  # bpy.types.Material
+    mesh_texture: Optional[object]  # bpy.types.ShaderNodeTexImage
+    deletable_object: Optional[object]  # bpy.types.Object
+
+    def __init__(self) -> None:
         """
         Fill members with default values.
         """
@@ -79,7 +99,7 @@ class MPLEmbedding():
         blt.plot_stack.append(self)
 
 
-    def plot(self):
+    def plot(self) -> None:
         """
         Plot the Matplotlib figure.
         """
@@ -187,7 +207,7 @@ class MPLEmbedding():
         self.update_globals()
 
 
-    def update_globals(self):
+    def update_globals(self) -> None:
         """
         Update the extrema, camera and lights.
         """
