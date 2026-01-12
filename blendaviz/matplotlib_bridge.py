@@ -120,11 +120,40 @@ class MPLEmbedding():
                                  mirror=True)
 
         # Orient the plane following the normal vector.
-        rotation = np.zeros(3)
-        rotation[0] = np.arcsin(self.normal[1]/np.sqrt(np.sum(self.normal**2)))
-        rotation[1] = np.arcsin(self.normal[0]/np.sqrt(np.sum(self.normal**2)))
-        bpy.ops.transform.rotate(value=rotation[0], orient_axis='X')
-        bpy.ops.transform.rotate(value=rotation[1], orient_axis='Y')
+        # Normalize the normal vector.
+        normal_normalized = self.normal / np.linalg.norm(self.normal)
+
+        # The default plane normal is (0, 0, 1).
+        # Calculate rotation to align (0, 0, 1) with the target normal.
+        default_normal = np.array([0, 0, 1])
+
+        # Handle the special case where normal is parallel or anti-parallel to z-axis.
+        if np.allclose(np.abs(normal_normalized[2]), 1.0):
+            # If pointing up (+z), no rotation needed.
+            if normal_normalized[2] > 0:
+                pass
+            # If pointing down (-z), rotate 180 degrees around x-axis.
+            else:
+                bpy.ops.transform.rotate(value=np.pi, orient_axis='X')
+        else:
+            # Calculate rotation axis (perpendicular to both normals).
+            rotation_axis = np.cross(default_normal, normal_normalized)
+            rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
+
+            # Calculate rotation angle.
+            rotation_angle = np.arccos(np.clip(np.dot(default_normal, normal_normalized), -1.0, 1.0))
+
+            # Apply rotation using axis-angle representation.
+            bpy.ops.transform.rotate(value=rotation_angle, orient_axis='X',
+                                     orient_type='GLOBAL',
+                                     constraint_axis=(False, False, False))
+            # Set the rotation axis by using the Euler rotation.
+            # For arbitrary axis rotation, we need to use the object's rotation.
+            self.mesh_object.rotation_mode = 'QUATERNION'
+            # Create quaternion from axis-angle.
+            quat_w = np.cos(rotation_angle / 2)
+            quat_xyz = rotation_axis * np.sin(rotation_angle / 2)
+            self.mesh_object.rotation_quaternion = (quat_w, quat_xyz[0], quat_xyz[1], quat_xyz[2])
 
         # Create the png image from the figure.
         buffer = io.BytesIO()
