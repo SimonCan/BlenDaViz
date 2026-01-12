@@ -19,6 +19,10 @@ from .box import bounding_box, BoundingBox
 from .lights import adjust_lights
 from .camera import adjust_camera
 
+# Load utility modules (for internal use and advanced users)
+from . import markers
+from . import materials
+
 
 # Initialize our plot stack and global housekeeping object.
 plot_stack = []
