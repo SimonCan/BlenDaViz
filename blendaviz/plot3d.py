@@ -787,10 +787,15 @@ class Contour3d(GenericPlot):
         else:
             list_material = False
 
+        # Ensure color_rgba is always 2D for consistent indexing.
+        if color_rgba.ndim == 1:
+            color_rgba = color_rgba.reshape(1, -1)
+
         # Transform single values to arrays.
         if list_material:
             if color_rgba.shape[0] != n_levels:
-                color_rgba = np.repeat(color_rgba, n_levels, axis=0)
+                # Tile the single color to match n_levels
+                color_rgba = np.tile(color_rgba, (n_levels, 1))
             if not isinstance(self.roughness, np.ndarray):
                 self.roughness = np.ones(n_levels)*self.roughness
             if self.emission is not None:
@@ -803,7 +808,6 @@ class Contour3d(GenericPlot):
         else:
             if idx == 0:
                 self.mesh_material.append(bpy.data.materials.new('material'))
-                self.mesh_material[0].diffuse_color = color_rgba[idx]
 
         # Set the diffusive color.
         if list_material:
@@ -903,23 +907,38 @@ class Contour3d(GenericPlot):
         import numpy as np
         from blendaviz import colors
 
+        # Extract 1D coordinate arrays if meshgrid was provided.
+        if self._x.ndim == 3:
+            # If x is a meshgrid, extract the 1D coordinates
+            x_coords = self._x[:, 0, 0]
+            y_coords = self._y[0, :, 0]
+            z_coords = self._z[0, 0, :]
+        elif self._x.ndim == 1:
+            # Already 1D coordinates
+            x_coords = self._x
+            y_coords = self._y
+            z_coords = self._z
+        else:
+            raise ValueError(f"Unexpected x array dimensions: {self._x.ndim}. Expected 1D or 3D.")
+
         # Find interpolated values for Psi on the vertex location.
         psi_vertices = np.zeros(vertices.shape[0])
         for vertex_idx in range(vertices.shape[0]):
             vertex = vertices[vertex_idx]
-            # Find the xyz indices for the interpolation.
-            ix1 = sum(self._x <= vertex[0]) - 1
-            iy1 = sum(self._y <= vertex[1]) - 1
-            iz1 = sum(self._z <= vertex[2]) - 1
+            # Find the xyz indices for the interpolation using searchsorted for efficiency.
+            ix1 = np.searchsorted(x_coords, vertex[0], side='right') - 1
+            iy1 = np.searchsorted(y_coords, vertex[1], side='right') - 1
+            iz1 = np.searchsorted(z_coords, vertex[2], side='right') - 1
+
+            # Ensure indices are within bounds
+            ix1 = max(0, min(ix1, self._phi.shape[0] - 2))
+            iy1 = max(0, min(iy1, self._phi.shape[1] - 2))
+            iz1 = max(0, min(iz1, self._phi.shape[2] - 2))
+
             ix2 = ix1 + 1
             iy2 = iy1 + 1
             iz2 = iz1 + 1
-            if ix2 >= self._phi.shape[0]:
-                ix2 = self._phi.shape[0]
-            if iy2 >= self._phi.shape[1]:
-                iy2 = self._phi.shape[1]
-            if iz2 >= self._phi.shape[2]:
-                iz2 = self._phi.shape[2]
+
             # Perform a trilinear interpolation.
             psi_vertices[vertex_idx] = np.mean(self._psi[ix1:ix2+1,
                                                          iy1:iy2+1,
@@ -937,9 +956,20 @@ class Contour3d(GenericPlot):
         self.mesh_material[-1].use_nodes = True
         node_tree = self.mesh_material[-1].node_tree
         nodes = node_tree.nodes
-        nodes.remove(nodes[1])
+
+        # Remove the default Principled BSDF node
+        principled_bsdf = nodes.get("Principled BSDF")
+        if principled_bsdf:
+            nodes.remove(principled_bsdf)
+
+        # Get the Material Output node
+        output_node = nodes.get("Material Output")
+        if not output_node:
+            # Find it by type if name doesn't work
+            output_node = next((node for node in nodes if node.type == 'OUTPUT_MATERIAL'), None)
+
         node_diffuse = nodes.new(type='ShaderNodeBsdfDiffuse')
-        node_tree.links.new(node_diffuse.outputs['BSDF'], nodes[0].inputs['Surface'])
+        node_tree.links.new(node_diffuse.outputs['BSDF'], output_node.inputs['Surface'])
         node_vertex_shader = nodes.new(type='ShaderNodeVertexColor')
         node_tree.links.new(node_vertex_shader.outputs['Color'], node_diffuse.inputs['Color'])
         node_vertex_shader.layer_name = 'Col'

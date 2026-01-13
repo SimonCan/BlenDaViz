@@ -188,6 +188,22 @@ class Plot3d(unittest.TestCase):
         iso.emission = 10
         iso.plot()
         self.assertIsNotNone(iso, "blt.plot() returned None")
+        iso.color = 'red'
+        iso.plot()
+        self.assertIsNotNone(iso, "blt.plot() returned None")
+
+        # Test emission with single contour (list_material = False path).
+        iso.contours = [0.5]
+        iso.color = 'blue'
+        iso.emission = 5.0
+        iso.roughness = 0.5
+        iso.plot()
+        self.assertIsNotNone(iso, "blt.plot() returned None")
+
+        # Test coloring using a different scalar field.
+        iso.psi = xx + yy
+        iso.plot()
+        self.assertIsNotNone(iso, "blt.plot() returned None")
 
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
