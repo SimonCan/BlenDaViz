@@ -780,6 +780,12 @@ class Streamline3d(GenericPlot):
             for idx in range(self.tracers[tracer_idx].shape[0]):
                 scalar_values[idx] = np.sqrt(np.sum(self.color_scalar(self.tracers[tracer_idx][idx, :])**2))
 
+        # Set vmin and vmax from scalar values if not already set.
+        if not isinstance(self.vmin, (int, float)):
+            self.vmin = scalar_values.min()
+        if not isinstance(self.vmax, (int, float)):
+            self.vmax = scalar_values.max()
+
         return scalar_values
 
 
@@ -1017,16 +1023,17 @@ class Streamline3dArray(Streamline3d):
         Ly = self._y.max()
         Lz = self._z.max()
 
-        if (xx[0] < Ox) + (xx[0] > Ox + Lx) + \
-           (xx[1] < Oy) + (xx[1] > Oy + Ly) + \
-           (xx[2] < Oz) + (xx[2] > Oz + Lz):
+        out_of_bounds = np.any([xx[0] < Ox, xx[0] > Lx,
+                                 xx[1] < Oy, xx[1] > Ly,
+                                 xx[2] < Oz, xx[2] > Lz])
+        if out_of_bounds:
             field = np.zeros(3)
             if self.periodic[0]:
-                field[0] = (xx[0] - Ox)%Lx + Ox
+                field[0] = (xx[0] - Ox) % (Lx - Ox) + Ox
             if self.periodic[1]:
-                field[1] = (xx[1] - Oy)%Ly + Oy
+                field[1] = (xx[1] - Oy) % (Ly - Oy) + Oy
             if self.periodic[2]:
-                field[2] = (xx[2] - Oz)%Lz + Oz
+                field[2] = (xx[2] - Oz) % (Lz - Oz) + Oz
             return field
 
         return np.array([field_x.ev(xx[2], xx[1], xx[0]),

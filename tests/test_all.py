@@ -234,6 +234,16 @@ class Streamlines3d(unittest.TestCase):
         stream.plot()
         self.assertIsNotNone(stream, "blt.plot() returned None")
 
+        # Test textured streamlines for function-based streamlines.
+        stream.emission = None
+        stream.color_scalar = 'magnitude'
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+        # Test with a custom scalar function.
+        stream.color_scalar = lambda x: np.array([x[0], x[1], x[2]])
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+
         # Streamline plot using data array.
         x = np.linspace(-4, 4, 100)
         y = np.linspace(-4, 4, 100)
@@ -268,10 +278,46 @@ class Streamlines3d(unittest.TestCase):
         stream.plot()
         self.assertIsNotNone(stream, "blt.plot() returned None")
 
+        # Test textured streamlines.
+        stream.color_scalar = 'magnitude'
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+        stream.color_scalar = stream.u
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+
         # Test multiprocessing.
         stream.n_proc = 2
         stream.plot()
         self.assertIsNotNone(stream, "blt.plot() returned None")
+
+        # Test tricubic interpolation with mocked eqtools.
+        import sys
+        from unittest.mock import MagicMock
+
+        # Create a mock Spline class that mimics eqtools.trispline.Spline
+        class MockSpline:
+            def __init__(self, z, y, x, data):
+                from scipy.interpolate import RegularGridInterpolator
+                # Swap axes back to match expected order
+                self._interp = RegularGridInterpolator((x, y, z), np.swapaxes(data, 0, 2))
+            def ev(self, z, y, x):
+                # Return shape (1,) to match expected eqtools.trispline.Spline behavior
+                return np.array([self._interp((x, y, z))])
+
+        mock_eqtools = MagicMock()
+        mock_eqtools.trispline.Spline = MockSpline
+        sys.modules['eqtools'] = mock_eqtools
+        sys.modules['eqtools.trispline'] = mock_eqtools.trispline
+
+        stream.interpolation = 'tricubic'
+        stream.n_proc = 1
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.plot() returned None")
+
+        # Clean up mock
+        del sys.modules['eqtools']
+        del sys.modules['eqtools.trispline']
 
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
