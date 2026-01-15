@@ -80,6 +80,24 @@ class Plot1d(unittest.TestCase):
                       marker=bpy.context.object)
         self.assertIsNotNone(pl, "blt.plot() returned None")
 
+        # Test time-dependent data.
+        n_time = 5
+        x_t = np.zeros([n, n_time])
+        y_t = np.zeros([n, n_time])
+        z_t = np.zeros([n, n_time])
+        for t_idx in range(n_time):
+            phase = t_idx * np.pi / n_time
+            y_t[:, t_idx] = np.linspace(-3*np.pi, 3*np.pi, n)
+            x_t[:, t_idx] = 2*np.cos(y_t[:, t_idx]/2 + phase)
+            z_t[:, t_idx] = 2*np.sin(y_t[:, t_idx]/2 + phase)
+        time = np.linspace(0, n_time-1, n_time)
+        pl = blt.plot(x_t, y_t, z_t, radius=0.1, color='green', time=time)
+        self.assertIsNotNone(pl, "blt.plot() with time returned None")
+        # Simulate frame change to test time_handler.
+        bpy.context.scene.frame_set(2)
+        pl.plot()
+        self.assertIsNotNone(pl, "blt.plot() after frame change returned None")
+
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
         self.assertGreater(len(objects), 0, "No Blender objects were created by plot().")
@@ -114,6 +132,36 @@ class Plot2d(unittest.TestCase):
         mesh.z = z - 1
         mesh.plot()
         self.assertIsNotNone(mesh, "blt.plot() returned None")
+
+        # Test time-dependent data.
+        n_time = 5
+        nx, ny = x.shape
+        x_t = np.zeros([nx, ny, n_time])
+        y_t = np.zeros([nx, ny, n_time])
+        z_t = np.zeros([nx, ny, n_time])
+        c_t = np.zeros([nx, ny, n_time])
+        for t_idx in range(n_time):
+            phase = t_idx * np.pi / n_time
+            x_t[:, :, t_idx] = x
+            y_t[:, :, t_idx] = y
+            z_t[:, :, t_idx] = (1 - x**2 - y**2) * np.exp(-(x**2 + y**2)/5) * np.cos(phase)
+            c_t[:, :, t_idx] = x * np.sin(phase)
+        time = np.linspace(0, n_time-1, n_time)
+        mesh = blt.mesh(x_t, y_t, z_t, time=time)
+        self.assertIsNotNone(mesh, "blt.mesh() with time returned None")
+        # Test with time-dependent color.
+        mesh.c = c_t
+        mesh.plot()
+        self.assertIsNotNone(mesh, "blt.mesh() with time-dependent color returned None")
+        # Simulate frame change to test time_handler.
+        bpy.context.scene.frame_set(2)
+        mesh.plot()
+        self.assertIsNotNone(mesh, "blt.mesh() after frame change returned None")
+        # Test with time-dependent vmin/vmax.
+        mesh.vmin = np.linspace(-1, -0.5, n_time)
+        mesh.vmax = np.linspace(0.5, 1, n_time)
+        mesh.plot()
+        self.assertIsNotNone(mesh, "blt.mesh() with time-dependent vmin/vmax returned None")
 
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
@@ -204,6 +252,44 @@ class Plot3d(unittest.TestCase):
         iso.psi = xx + yy
         iso.plot()
         self.assertIsNotNone(iso, "blt.plot() returned None")
+
+        # Test time-dependent quiver data.
+        n_time = 3
+        x_q = np.linspace(-2, 2, 5)
+        y_q = np.linspace(-2, 2, 5)
+        z_q = np.linspace(-2, 2, 5)
+        u_t = np.zeros([5, n_time])
+        v_t = np.zeros([5, n_time])
+        w_t = np.zeros([5, n_time])
+        for t_idx in range(n_time):
+            phase = t_idx * 2 * np.pi / n_time
+            u_t[:, t_idx] = np.cos(phase)
+            v_t[:, t_idx] = np.sin(phase)
+            w_t[:, t_idx] = 0.5
+        time = np.linspace(0, n_time-1, n_time)
+        qu = blt.quiver(x_q, y_q, z_q, u_t, v_t, w_t, time=time, color='cyan')
+        self.assertIsNotNone(qu, "blt.quiver() with time returned None")
+        # Simulate frame change.
+        bpy.context.scene.frame_set(1)
+        qu.plot()
+        self.assertIsNotNone(qu, "blt.quiver() after frame change returned None")
+
+        # Test time-dependent contour data.
+        nx, ny, nz = 11, 11, 11
+        x_c = np.linspace(-2, 2, nx)
+        y_c = np.linspace(-2, 2, ny)
+        z_c = np.linspace(-2, 2, nz)
+        xx_c, yy_c, zz_c = np.meshgrid(x_c, y_c, z_c, indexing='ij')
+        phi_t = np.zeros([nx, ny, nz, n_time])
+        for t_idx in range(n_time):
+            scale = 1 + 0.5 * t_idx
+            phi_t[:, :, :, t_idx] = xx_c**2 + yy_c**2 + zz_c**2 / scale
+        iso = blt.contour(phi_t, xx_c, yy_c, zz_c, contours=[1.0], time=time, color='yellow')
+        self.assertIsNotNone(iso, "blt.contour() with time returned None")
+        # Simulate frame change.
+        bpy.context.scene.frame_set(2)
+        iso.plot()
+        self.assertIsNotNone(iso, "blt.contour() after frame change returned None")
 
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
@@ -318,6 +404,31 @@ class Streamlines3d(unittest.TestCase):
         # Clean up mock
         del sys.modules['eqtools']
         del sys.modules['eqtools.trispline']
+
+        # Test time-dependent streamlines.
+        n_time = 3
+        n_grid = 20
+        x_s = np.linspace(-4, 4, n_grid)
+        y_s = np.linspace(-4, 4, n_grid)
+        z_s = np.linspace(-4, 4, n_grid)
+        xx_s, yy_s, zz_s = np.meshgrid(x_s, y_s, z_s, indexing='ij')
+        u_t = np.zeros([n_grid, n_grid, n_grid, n_time])
+        v_t = np.zeros([n_grid, n_grid, n_grid, n_time])
+        w_t = np.zeros([n_grid, n_grid, n_grid, n_time])
+        for t_idx in range(n_time):
+            phase = t_idx * np.pi / n_time
+            u_t[:, :, :, t_idx] = -yy_s * np.cos(phase)
+            v_t[:, :, :, t_idx] = xx_s * np.cos(phase)
+            w_t[:, :, :, t_idx] = 0.1 * np.sin(phase)
+        time = np.linspace(0, n_time-1, n_time)
+        stream = blt.streamlines_array(x_s, y_s, z_s, u_t, v_t, w_t,
+                                       n_seeds=2, integration_time=1,
+                                       time=time, seed_radius=2)
+        self.assertIsNotNone(stream, "blt.streamlines_array() with time returned None")
+        # Simulate frame change.
+        bpy.context.scene.frame_set(1)
+        stream.plot()
+        self.assertIsNotNone(stream, "blt.streamlines_array() after frame change returned None")
 
         # Make sure no additional Blender objects were created.
         objects = list(bpy.data.objects)
