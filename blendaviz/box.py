@@ -196,7 +196,9 @@ class BoundingBox:
         for curve_object in self.curve_object[::-1]:
             curve_object.select_set(state=True)
             bpy.context.view_layer.objects.active = curve_object
-        bpy.ops.object.join()
+        # Only join if there are multiple objects selected.
+        if len(bpy.context.selected_objects) > 1:
+            bpy.ops.object.join()
         self.curve_object = self.curve_object[0]
         # Make this box the object to be deleted.
         self.deletable_object = self.curve_object

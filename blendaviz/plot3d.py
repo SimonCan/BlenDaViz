@@ -300,7 +300,9 @@ class Quiver3d(GenericPlot):
         # Group the meshes together.
         for mesh in self.arrow_mesh[::-1]:
             mesh.select_set(state=True)
-        bpy.ops.object.join()
+        # Only join if there are multiple objects selected.
+        if len(bpy.context.selected_objects) > 1:
+            bpy.ops.object.join()
         self.arrow_mesh = bpy.context.object
         self.arrow_mesh.select_set(state=False)
 
@@ -747,7 +749,9 @@ class Contour3d(GenericPlot):
         for mesh in self.mesh_object[::-1]:
             mesh.select_set(state=True)
             bpy.context.view_layer.objects.active = mesh
-        bpy.ops.object.join()
+        # Only join if there are multiple objects selected.
+        if len(bpy.context.selected_objects) > 1:
+            bpy.ops.object.join()
         self.mesh_object = bpy.context.object
         self.mesh_object.select_set(state=False)
 

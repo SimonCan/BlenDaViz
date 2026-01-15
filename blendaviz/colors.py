@@ -84,7 +84,11 @@ def make_rgba_array(
                 vmin = color.min()
             if vmax is None:
                 vmax = color.max()
-            color_rgba = color_map((color - vmin)/(vmax - vmin))[:, :]
+            # Handle case where all values are the same (vmax == vmin).
+            if vmax == vmin:
+                color_rgba = color_map(np.zeros_like(color) + 0.5)[:, :]
+            else:
+                color_rgba = color_map((color - vmin)/(vmax - vmin))[:, :]
         if color.ndim == 2:
             if color.shape[1] == 3:
                 color_rgba = np.ones([color.shape[0], 4])

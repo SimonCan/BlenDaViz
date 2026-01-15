@@ -450,7 +450,9 @@ class Streamline3d(GenericPlot):
             bpy.context.view_layer.objects.active = curve_object
         # Need to convert to a mesh to retain materials after join.
         bpy.ops.object.convert(target='MESH')
-        bpy.ops.object.join()
+        # Only join if there are multiple objects selected.
+        if len(bpy.context.selected_objects) > 1:
+            bpy.ops.object.join()
         self.mesh = bpy.context.selected_objects[0]
         self.mesh.select_set(False)
 

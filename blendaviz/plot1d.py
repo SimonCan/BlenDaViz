@@ -403,7 +403,9 @@ class PathLine(GenericPlot):
             if not self.marker is None:
                 for mesh in self.marker_mesh[::-1]:
                     mesh.select_set(state=True)
-                bpy.ops.object.join()
+                # Only join if there are multiple objects selected.
+                if len(bpy.context.selected_objects) > 1:
+                    bpy.ops.object.join()
                 self.marker_mesh = bpy.context.object
                 self.marker_mesh.select_set(state=False)
                 # Make the grouped meshes the deletable object.

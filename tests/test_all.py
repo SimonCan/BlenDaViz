@@ -255,19 +255,26 @@ class Plot3d(unittest.TestCase):
 
         # Test time-dependent quiver data.
         n_time = 3
-        x_q = np.linspace(-2, 2, 5)
-        y_q = np.linspace(-2, 2, 5)
-        z_q = np.linspace(-2, 2, 5)
-        u_t = np.zeros([5, n_time])
-        v_t = np.zeros([5, n_time])
-        w_t = np.zeros([5, n_time])
+        n_pts = 5
+        x_q0 = np.linspace(-2, 2, n_pts)
+        y_q0 = np.linspace(-2, 2, n_pts)
+        z_q0 = np.linspace(-2, 2, n_pts)
+        x_qt = np.zeros([n_pts, n_time])
+        y_qt = np.zeros([n_pts, n_time])
+        z_qt = np.zeros([n_pts, n_time])
+        u_t = np.zeros([n_pts, n_time])
+        v_t = np.zeros([n_pts, n_time])
+        w_t = np.zeros([n_pts, n_time])
         for t_idx in range(n_time):
             phase = t_idx * 2 * np.pi / n_time
+            x_qt[:, t_idx] = x_q0
+            y_qt[:, t_idx] = y_q0
+            z_qt[:, t_idx] = z_q0
             u_t[:, t_idx] = np.cos(phase)
             v_t[:, t_idx] = np.sin(phase)
             w_t[:, t_idx] = 0.5
         time = np.linspace(0, n_time-1, n_time)
-        qu = blt.quiver(x_q, y_q, z_q, u_t, v_t, w_t, time=time, color='cyan')
+        qu = blt.quiver(x_qt, y_qt, z_qt, u_t, v_t, w_t, time=time, color='cyan')
         self.assertIsNotNone(qu, "blt.quiver() with time returned None")
         # Simulate frame change.
         bpy.context.scene.frame_set(1)
@@ -284,7 +291,8 @@ class Plot3d(unittest.TestCase):
         for t_idx in range(n_time):
             scale = 1 + 0.5 * t_idx
             phi_t[:, :, :, t_idx] = xx_c**2 + yy_c**2 + zz_c**2 / scale
-        iso = blt.contour(phi_t, xx_c, yy_c, zz_c, contours=[1.0], time=time, color='yellow')
+        # Note: contour expects 1D x, y, z arrays, not meshgrid
+        iso = blt.contour(phi_t, x_c, y_c, z_c, contours=[1.0], time=time, color='yellow')
         self.assertIsNotNone(iso, "blt.contour() with time returned None")
         # Simulate frame change.
         bpy.context.scene.frame_set(2)
@@ -453,3 +461,22 @@ class MPLEmbedding(unittest.TestCase):
         mpl.position = [-1, -1, -1]
         mpl.plot()
         self.assertIsNotNone(mpl, "mpl.plot() returned None")
+
+
+class Materials(unittest.TestCase):
+    def test_materials(self):
+        from blendaviz import materials
+
+        # Test create_textured_material with emission.
+        image = bpy.data.images.new('TestImage', 16, 16)
+        mat = materials.create_textured_material('test_emission_mat', image, emission=5.0)
+        self.assertIsNotNone(mat, "create_textured_material() with emission returned None")
+        bpy.data.materials.remove(mat)
+
+        # Test create_textured_material without emission (principled BSDF path).
+        mat = materials.create_textured_material('test_bsdf_mat', image, roughness=0.5)
+        self.assertIsNotNone(mat, "create_textured_material() without emission returned None")
+        bpy.data.materials.remove(mat)
+
+        # Clean up test image.
+        bpy.data.images.remove(image)
