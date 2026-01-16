@@ -99,13 +99,13 @@ def quiver(
     >>> qu = blt.quiver(x, y, z, u, v, w, pivot='mid', color='magnitude')
     """
 
-    import inspect
+    # Capture arguments before creating any local variables.
+    arguments = dict(locals())
 
     # Assign parameters to the arrow objects.
     quiver_return = Quiver3d()
-    argument_dict = inspect.getargvalues(inspect.currentframe()).locals
-    for argument in argument_dict:
-        setattr(quiver_return, argument, argument_dict[argument])
+    for key, value in arguments.items():
+        setattr(quiver_return, key, value)
     quiver_return.plot()
     return quiver_return
 
@@ -549,13 +549,13 @@ def contour(
     >>> iso = blt.contour(phi, xx, yy, zz, contours=[0.3, 0.6], color=np.array([(1, 0, 0, 1), (0, 1, 0, 0.5)]))
     """
 
-    import inspect
+    # Capture arguments before creating any local variables.
+    arguments = dict(locals())
 
     # Assign parameters to the arrow objects.
     contour_return = Contour3d()
-    argument_dict = inspect.getargvalues(inspect.currentframe()).locals
-    for argument in argument_dict:
-        setattr(contour_return, argument, argument_dict[argument])
+    for key, value in arguments.items():
+        setattr(contour_return, key, value)
     contour_return.plot()
     return contour_return
 

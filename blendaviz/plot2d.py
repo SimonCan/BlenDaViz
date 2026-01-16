@@ -74,13 +74,13 @@ def mesh(
     >>> m.plot()
     """
 
-    import inspect
+    # Capture arguments before creating any local variables.
+    arguments = dict(locals())
 
     # Assign parameters to the Mesh objects.
     surface_return = Surface()
-    argument_dict = inspect.getargvalues(inspect.currentframe()).locals
-    for argument in argument_dict:
-        setattr(surface_return, argument, argument_dict[argument])
+    for key, value in arguments.items():
+        setattr(surface_return, key, value)
     surface_return.plot()
     return surface_return
 

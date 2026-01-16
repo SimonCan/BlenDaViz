@@ -89,13 +89,13 @@ def plot(
     >>> pl.plot()
     """
 
-    import inspect
+    # Capture arguments before creating any local variables.
+    arguments = dict(locals())
 
     # Assign parameters to the PathLine objects.
     path_line_return = PathLine()
-    argument_dict = inspect.getargvalues(inspect.currentframe()).locals
-    for argument in argument_dict:
-        setattr(path_line_return, argument, argument_dict[argument])
+    for key, value in arguments.items():
+        setattr(path_line_return, key, value)
 
     # Plot the data.
     path_line_return.plot()

@@ -47,13 +47,13 @@ def mpl_figure_to_blender(
     >>> mpl = blt.mpl_figure_to_blender(fig)
     """
 
-    import inspect
+    # Capture arguments before creating any local variables.
+    arguments = dict(locals())
 
     # Assign parameters to the Mesh objects.
     mpl_embedding_return = MPLEmbedding()
-    argument_dict = inspect.getargvalues(inspect.currentframe()).locals
-    for argument in argument_dict:
-        setattr(mpl_embedding_return, argument, argument_dict[argument])
+    for key, value in arguments.items():
+        setattr(mpl_embedding_return, key, value)
 
     # Plot the matplotlib figure into Blender.
     mpl_embedding_return.plot()

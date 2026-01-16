@@ -31,13 +31,13 @@ def bounding_box(extrema: Optional[Tuple[float, float, float, float, float, floa
     >>> blt.bounding_box(extrema)
     """
 
-    import inspect
+    # Capture arguments before creating any local variables.
+    arguments = dict(locals())
 
     # Assign parameters to the PathLine objects.
     bounding_box_return = BoundingBox()
-    argument_dict = inspect.getargvalues(inspect.currentframe()).locals
-    for argument in argument_dict:
-        setattr(bounding_box_return, argument, argument_dict[argument])
+    for key, value in arguments.items():
+        setattr(bounding_box_return, key, value)
 
     # Plot the bounding box.
     bounding_box_return.plot()

@@ -129,13 +129,13 @@ def streamlines_function(
     >>> stream = blt.streamlines_function(irrational_hopf, n_seeds=5, integration_time=1000, integration_steps=500)
     """
 
-    import inspect
+    # Capture arguments before creating any local variables.
+    arguments = dict(locals())
 
     # Assign parameters to the streamline objects.
     streamlines_return = Streamline3d()
-    argument_dict = inspect.getargvalues(inspect.currentframe()).locals
-    for argument in argument_dict:
-        setattr(streamlines_return, argument, argument_dict[argument])
+    for key, value in arguments.items():
+        setattr(streamlines_return, key, value)
     streamlines_return.plot()
     return streamlines_return
 
@@ -252,16 +252,16 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
     >>> stream = blt.streamlines_array(x, y, z, u, v, w, n_seeds=20, integration_time=20, seed_radius=3)
     """
 
-    import inspect
-
     if not periodic:
         periodic = [False, False, False]
 
+    # Capture arguments before creating any local variables.
+    arguments = dict(locals())
+
     # Assign parameters to the streamline objects.
     streamlines_return = Streamline3dArray()
-    argument_dict = inspect.getargvalues(inspect.currentframe()).locals
-    for argument in argument_dict:
-        setattr(streamlines_return, argument, argument_dict[argument])
+    for key, value in arguments.items():
+        setattr(streamlines_return, key, value)
     streamlines_return.plot()
     return streamlines_return
 
