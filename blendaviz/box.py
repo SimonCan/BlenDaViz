@@ -100,19 +100,22 @@ class BoundingBox:
         self.curve_data.append(bpy.data.curves.new('DataCurve', type='CURVE'))
         self.curve_data[-1].dimensions = '3D'
         self.curve_object.append(bpy.data.objects.new('ObjCurve', self.curve_data[-1]))
-        # Set the origin.
+        # Set the origin at (x_min, y_min, z_min).
         self.curve_object[-1].location = tuple((self.extrema[0], self.extrema[2], self.extrema[4]))
         # Add the rest of the curve.
+        # Edge to (x_max, y_min, z_min)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
         self.poly_line[-1].points[0].co = (self.extrema[1] - self.extrema[0],
                                            self.extrema[2] - self.extrema[2],
                                            self.extrema[4] - self.extrema[4], 0)
+        # Edge to (x_min, y_max, z_min)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
         self.poly_line[-1].points[0].co = (self.extrema[0] - self.extrema[0],
                                            self.extrema[3] - self.extrema[2],
                                            self.extrema[4] - self.extrema[4], 0)
+        # Edge to (x_min, y_min, z_max)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
         self.poly_line[-1].points[0].co = (self.extrema[0] - self.extrema[0],
@@ -123,19 +126,22 @@ class BoundingBox:
         self.curve_data.append(bpy.data.curves.new('DataCurve', type='CURVE'))
         self.curve_data[-1].dimensions = '3D'
         self.curve_object.append(bpy.data.objects.new('ObjCurve', self.curve_data[-1]))
-        # Set the origin.
+        # Set the origin at (x_max, y_max, z_min).
         self.curve_object[-1].location = tuple((self.extrema[1], self.extrema[3], self.extrema[4]))
         # Add the rest of the curve.
+        # Edge to (x_min, y_max, z_min)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
-        self.poly_line[-1].points[0].co = (self.extrema[2] - self.extrema[1],
+        self.poly_line[-1].points[0].co = (self.extrema[0] - self.extrema[1],
                                            self.extrema[3] - self.extrema[3],
                                            self.extrema[4] - self.extrema[4], 0)
+        # Edge to (x_max, y_min, z_min)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
         self.poly_line[-1].points[0].co = (self.extrema[1] - self.extrema[1],
                                            self.extrema[2] - self.extrema[3],
                                            self.extrema[4] - self.extrema[4], 0)
+        # Edge to (x_max, y_max, z_max)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
         self.poly_line[-1].points[0].co = (self.extrema[1] - self.extrema[1],
@@ -146,19 +152,22 @@ class BoundingBox:
         self.curve_data.append(bpy.data.curves.new('DataCurve', type='CURVE'))
         self.curve_data[-1].dimensions = '3D'
         self.curve_object.append(bpy.data.objects.new('ObjCurve', self.curve_data[-1]))
-        # Set the origin.
+        # Set the origin at (x_min, y_max, z_max).
         self.curve_object[-1].location = tuple((self.extrema[0], self.extrema[3], self.extrema[5]))
         # Add the rest of the curve.
+        # Edge to (x_max, y_max, z_max)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
         self.poly_line[-1].points[0].co = (self.extrema[1] - self.extrema[0],
                                            self.extrema[3] - self.extrema[3],
                                            self.extrema[5] - self.extrema[5], 0)
+        # Edge to (x_min, y_min, z_max)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
         self.poly_line[-1].points[0].co = (self.extrema[0] - self.extrema[0],
                                            self.extrema[2] - self.extrema[3],
                                            self.extrema[5] - self.extrema[5], 0)
+        # Edge to (x_min, y_max, z_min)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
         self.poly_line[-1].points[0].co = (self.extrema[0] - self.extrema[0],
@@ -169,19 +178,22 @@ class BoundingBox:
         self.curve_data.append(bpy.data.curves.new('DataCurve', type='CURVE'))
         self.curve_data[-1].dimensions = '3D'
         self.curve_object.append(bpy.data.objects.new('ObjCurve', self.curve_data[-1]))
-        # Set the origin.
+        # Set the origin at (x_max, y_min, z_max).
         self.curve_object[-1].location = tuple((self.extrema[1], self.extrema[2], self.extrema[5]))
         # Add the rest of the curve.
+        # Edge to (x_min, y_min, z_max)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
         self.poly_line[-1].points[0].co = (self.extrema[0] - self.extrema[1],
                                            self.extrema[2] - self.extrema[2],
                                            self.extrema[5] - self.extrema[5], 0)
+        # Edge to (x_max, y_max, z_max)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
         self.poly_line[-1].points[0].co = (self.extrema[1] - self.extrema[1],
                                            self.extrema[3] - self.extrema[2],
                                            self.extrema[5] - self.extrema[5], 0)
+        # Edge to (x_max, y_min, z_min)
         self.poly_line.append(self.curve_data[-1].splines.new('POLY'))
         self.poly_line[-1].points.add(1)
         self.poly_line[-1].points[0].co = (self.extrema[1] - self.extrema[1],
