@@ -359,8 +359,6 @@ class Surface(GenericPlot):
 
         if self.time is not None:
             self.plot()
-        else:
-            pass
 
 
     def update_globals(self) -> None:

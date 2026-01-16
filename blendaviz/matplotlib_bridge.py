@@ -149,11 +149,9 @@ class MPLEmbedding:
 
         # Handle the special case where normal is parallel or anti-parallel to z-axis.
         if np.allclose(np.abs(normal_normalized[2]), 1.0):
-            # If pointing up (+z), no rotation needed.
-            if normal_normalized[2] > 0:
-                pass
             # If pointing down (-z), rotate 180 degrees around x-axis.
-            else:
+            # If pointing up (+z), no rotation needed.
+            if normal_normalized[2] < 0:
                 bpy.ops.transform.rotate(value=np.pi, orient_axis='X')
         else:
             # Calculate rotation axis (perpendicular to both normals).

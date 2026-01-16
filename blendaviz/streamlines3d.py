@@ -836,8 +836,6 @@ class Streamline3d(GenericPlot):
         numargs = len(inspect.signature(self.field_function).parameters)
         if numargs == 2:
             self.plot()
-        else:
-            pass
 
 
 
@@ -1262,8 +1260,6 @@ class Streamline3dArray(Streamline3d):
 
         if self.time is not None:
             self.plot()
-        else:
-            pass
 
 
     def update_globals(self) -> None:

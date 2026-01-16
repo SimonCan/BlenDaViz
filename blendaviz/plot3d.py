@@ -452,8 +452,6 @@ class Quiver3d(GenericPlot):
 
         if self.time is not None:
             self.plot()
-        else:
-            pass
 
 
     def update_globals(self) -> None:
@@ -993,8 +991,6 @@ class Contour3d(GenericPlot):
 
         if self.time is not None:
             self.plot()
-        else:
-            pass
 
 
     def update_globals(self) -> None:
