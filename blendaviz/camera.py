@@ -24,8 +24,8 @@ def adjust_camera() -> None:
 
     # Find the size of the plot.
     x_size = (blt.house_keeping.x_max - blt.house_keeping.x_min)
-    y_size = (blt.house_keeping.z_max - blt.house_keeping.y_min)
-    z_size = (blt.house_keeping.y_max - blt.house_keeping.z_min)
+    y_size = (blt.house_keeping.y_max - blt.house_keeping.y_min)
+    z_size = (blt.house_keeping.z_max - blt.house_keeping.z_min)
 
     # Find where to position the camera.
     x_pos = x_center + np.max([x_size, y_size, z_size])

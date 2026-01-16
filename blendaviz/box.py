@@ -87,7 +87,7 @@ class BoundingBox:
             self.get_extrema()
 
         # Delete existing curve.
-        if not self.curve_data is None:
+        if self.curve_data is not None:
             for curve_data in self.curve_data:
                 bpy.data.curves.remove(curve_data)
 

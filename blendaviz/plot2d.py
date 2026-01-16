@@ -157,7 +157,7 @@ class Surface(GenericPlot):
         from matplotlib import cm
 
         # Check if there is any time array.
-        if not self.time is None:
+        if self.time is not None:
             if not isinstance(self.time, np.ndarray):
                 raise TypeError("time must be a numpy array")
             if self.time.ndim != 1:
@@ -357,7 +357,7 @@ class Surface(GenericPlot):
         Updates the plot according to the function specified.
         """
 
-        if not self.time is None:
+        if self.time is not None:
             self.plot()
         else:
             pass

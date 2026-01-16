@@ -175,7 +175,7 @@ class Quiver3d(GenericPlot):
         from blendaviz import colors
 
         # Check if there is any time array.
-        if not self.time is None:
+        if self.time is not None:
             if not isinstance(self.time, np.ndarray):
                 print("Error: time is not a valid array.")
                 return -1
@@ -381,7 +381,7 @@ class Quiver3d(GenericPlot):
             self.mesh_material[0].roughness = self.roughness
 
         # Set the material emission.
-        if not self.emission is None:
+        if self.emission is not None:
             if list_material:
                 self.mesh_material[idx].use_nodes = True
                 node_tree = self.mesh_material[idx].node_tree
@@ -450,7 +450,7 @@ class Quiver3d(GenericPlot):
         Updates the plot according to the function specified.
         """
 
-        if not self.time is None:
+        if self.time is not None:
             self.plot()
         else:
             pass
@@ -620,7 +620,7 @@ class Contour3d(GenericPlot):
         from blendaviz import colors
 
         # Check if there is any time array.
-        if not self.time is None:
+        if self.time is not None:
             if not isinstance(self.time, np.ndarray):
                 print("Error: time is not a valid array.")
                 return -1
@@ -641,7 +641,7 @@ class Contour3d(GenericPlot):
         if not ((self.x.shape[0], self.y.shape[0], self.z.shape[0]) == self.phi.shape[:3]):
             print("Error: input array shapes invalid.")
             return -1
-        if not self.psi is None:
+        if self.psi is not None:
             if not isinstance(self.psi, np.ndarray):
                 print("Error: psi is not a numpy array.")
                 return -1
@@ -991,7 +991,7 @@ class Contour3d(GenericPlot):
         Updates the plot according to the function specified.
         """
 
-        if not self.time is None:
+        if self.time is not None:
             self.plot()
         else:
             pass

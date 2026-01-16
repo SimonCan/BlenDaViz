@@ -188,7 +188,7 @@ class PathLine(GenericPlot):
         from blendaviz import colors, markers, materials
 
         # Check if there is any time array.
-        if not self.time is None:
+        if self.time is not None:
             if not isinstance(self.time, np.ndarray):
                 raise TypeError("time must be a numpy array")
             if self.time.ndim != 1:
@@ -216,7 +216,7 @@ class PathLine(GenericPlot):
                 setattr(self, '_' + array_with_time, array_value[:, self.time_index])
 
         # Delete existing curve.
-        if not self.curve_data is None:
+        if self.curve_data is not None:
             bpy.data.curves.remove(self.curve_data)
             self.curve_data = None
 
@@ -322,7 +322,7 @@ class PathLine(GenericPlot):
         color_rgba = colors.make_rgba_array(self.color, self._x.shape[0])
 
         # Plot the markers.
-        if not self.marker is None:
+        if self.marker is not None:
             self.marker_mesh = []
 
             # Use marker factory for standard marker types
@@ -353,7 +353,7 @@ class PathLine(GenericPlot):
                         self.marker_mesh.append(bpy.context.object)
 
             # Set the material and color.
-            if not self.marker is None:
+            if self.marker is not None:
                 color_is_array = False
                 if isinstance(color_rgba, np.ndarray):
                     if color_rgba.ndim == 2:
@@ -400,7 +400,7 @@ class PathLine(GenericPlot):
                         mesh.active_material = self.mesh_material
 
             # Group the meshes together.
-            if not self.marker is None:
+            if self.marker is not None:
                 for mesh in self.marker_mesh[::-1]:
                     mesh.select_set(state=True)
                 # Only join if there are multiple objects selected.
@@ -423,7 +423,7 @@ class PathLine(GenericPlot):
 
         import bpy
 
-        if not self.marker_mesh is None:
+        if self.marker_mesh is not None:
             bpy.ops.object.select_all(action='DESELECT')
             if self.object_reference_valid(self.marker_mesh):
                 self.marker_mesh.select_set(True)
@@ -439,7 +439,7 @@ class PathLine(GenericPlot):
 
         import bpy
 
-        if not self.mesh_material is None:
+        if self.mesh_material is not None:
             if isinstance(self.mesh_material, list):
                 for mesh_material in self.mesh_material:
                     if self.object_reference_valid(mesh_material):

@@ -40,7 +40,10 @@ def string_to_rgba(color_string: str) -> Tuple[float, float, float, float]:
         'white':   (1, 1, 1, 1),
     }
 
-    rgba = color_to_rgba[color_string]
+    color_key = color_string.lower()
+    if color_key not in color_to_rgba:
+        raise ValueError(f"Unknown color: '{color_string}'. Valid colors: {list(color_to_rgba.keys())}")
+    rgba = color_to_rgba[color_key]
 
     return rgba
 

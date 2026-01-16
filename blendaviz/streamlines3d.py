@@ -481,16 +481,14 @@ class Streamline3d(GenericPlot):
             position_function = self.field_function
             self._field_function = lambda t, xx: position_function(xx)
         elif numargs > 3:
-            print("Error: function call signature takes too many arguments.")
-            raise TypeError
+            raise TypeError("Function call signature takes too many arguments (max 3: t, x, optional context)")
         else:
             self._field_function = lambda t, xx: self.field_function(bpy.context.scene.frame_float, xx)
 
         # Evaluate the function.
         testvalue = self._field_function(np.pi, np.random.random(3))
         if (not isinstance(testvalue, np.ndarray)) or (testvalue.size != 3):
-            print("Error: function return incorrect.")
-            raise TypeError
+            raise TypeError("Function must return a 3-element numpy array")
         return 0
 
 
@@ -618,7 +616,7 @@ class Streamline3d(GenericPlot):
         if list_material:
             if not isinstance(self.roughness, np.ndarray):
                 self.roughness = np.ones(self.n_seeds)*self.roughness
-            if not self.emission is None:
+            if self.emission is not None:
                 if not isinstance(self.emission, np.ndarray):
                     self.emission = np.ones(self.n_seeds)*self.emission
 
@@ -648,7 +646,7 @@ class Streamline3d(GenericPlot):
             self.mesh_material[0].roughness = self.roughness
 
         # Set the material emission.
-        if not self.emission is None:
+        if self.emission is not None:
             if list_material:
                 self.mesh_material[idx].use_nodes = True
                 node_tree = self.mesh_material[idx].node_tree
@@ -890,7 +888,7 @@ class Streamline3dArray(Streamline3d):
         import bpy
 
         # Check if there is any time array.
-        if not self.time is None:
+        if self.time is not None:
             if not isinstance(self.time, np.ndarray):
                 print("Error: time is not a valid array.")
                 return -1
@@ -1262,7 +1260,7 @@ class Streamline3dArray(Streamline3d):
         Updates the plot according to the function specified.
         """
 
-        if not self.time is None:
+        if self.time is not None:
             self.plot()
         else:
             pass

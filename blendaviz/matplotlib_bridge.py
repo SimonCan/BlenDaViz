@@ -119,14 +119,14 @@ class MPLEmbedding:
         self.normal = np.array(self.normal)
 
         # Delete existing meshes.
-        if not self.mesh_object is None:
+        if self.mesh_object is not None:
             bpy.ops.object.select_all(action='DESELECT')
             self.mesh_object.select_set(state=True)
             bpy.ops.object.delete()
             self.mesh_object = None
 
         # Delete existing materials.
-        if not self.mesh_material is None:
+        if self.mesh_material is not None:
             bpy.data.materials.remove(self.mesh_material)
 
         # Create plane.

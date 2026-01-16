@@ -40,7 +40,7 @@ class GenericPlot:
         Updates the plot according to the function specified.
         """
 
-        if not self.time is None:
+        if self.time is not None:
             self.plot()
 
 
