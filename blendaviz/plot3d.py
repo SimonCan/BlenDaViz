@@ -232,7 +232,6 @@ class Quiver3d(GenericPlot):
         # Prepare the material colors.
         if isinstance(self.color, str):
             if self.color == 'magnitude':
-                #self.color = np.sqrt(self._u**2 + self._v**2 + self._w**2)
                 color_rgba = colors.make_rgba_array(np.sqrt(self._u**2 + self._v**2 + self._w**2),
                                                     self._x.shape[0])
             else:

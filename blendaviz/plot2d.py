@@ -335,8 +335,6 @@ class Surface(GenericPlot):
             # Link the mesh object with the scene.
             bpy.context.scene.collection.objects.link(self.mesh_object)
 
-        #bpy.context.scene.collection.objects.link(self.mesh_object)
-
         # Render surface as smooth.
         self.mesh_object.select_set(True)
         if bpy.ops.object.mode_set.poll():

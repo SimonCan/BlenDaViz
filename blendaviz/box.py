@@ -80,7 +80,6 @@ class BoundingBox:
         """
 
         import bpy
-        # from blendaviz import colors
 
         # Check if extrema are given.
         if self.extrema is None:

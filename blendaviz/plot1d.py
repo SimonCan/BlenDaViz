@@ -171,9 +171,6 @@ class PathLine(GenericPlot):
         self._rotation_y = 0
         self._rotation_z = 0
 
-        # Set the handler function for frame changes (time).
-        #bpy.app.handlers.frame_change_pre.append(self.time_handler)
-
         # Add the plot to the stack.
         blt.plot_stack.append(self)
 
