@@ -1,0 +1,42 @@
+cff-version: 1.2.0
+title: BlenDaViz
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Simon
+    family-names: Candelaresi
+    email: simon.candelaresi@uni-a.de
+    affiliation: University of Augsburg
+    orcid: 'https://orcid.org/0000-0002-7666-8504'
+  - given-names: Christopher Berg
+    family-names: Smiet
+    email: christopher.smiet@epfl.ch
+    affiliation: >-
+      Swiss Plasma Center, École Polytechnique Fédérale de
+      Lausanne (EPFL)
+    orcid: 'https://orcid.org/0000-0002-7803-7685'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.15988189
+    description: Zenodo archive
+repository-code: 'https://github.com/SimonCan/BlenDaViz'
+url: 'https://blendaviz.readthedocs.io/'
+abstract: >-
+  BlenDaViz is a 3D plotting library for the visualization
+  tool Blender, written in Python. It is able to visualize
+  line plots, scatter plots, surfaces, iso-surfaces, glyphs
+  (arrows) and streamlines from NumPy arrays. Compared to
+  other 3D visualization software, it achieves higher image
+  quality thanks to Blender's ray tracing capabilities.
+keywords:
+  - Python
+  - data visualization
+  - scientific visualization
+  - Blender
+  - ray tracing
+  - 3D plotting
+license: LGPL-3.0
+version: 0.1.0
+date-released: '2025-09-20'
