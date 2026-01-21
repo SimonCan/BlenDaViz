@@ -71,7 +71,7 @@ High quality plots by the Oak [Ridge National Laboratory](https://www.olcf.ornl.
 shows that to achieve high quality a collaboration between Blender experts and
 scientists is sometimes required.
 
-Attempts to libraries we made with
+Attempts to libraries were made with
 [AstroBlend](https://www.astroblend.com) [@NAIMAN201650]
 and [BlenderSciViz](https://github.com/zeffii/BlenderSciViz),
 but their applications are relatively limited and they have not been maintained in years.
