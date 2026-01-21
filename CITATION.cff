@@ -7,7 +7,7 @@ type: software
 authors:
   - given-names: Simon
     family-names: Candelaresi
-    email: simon.candelaresi@uni-a.de
+    email: simon.candelaresi@gmail.com
     affiliation: University of Augsburg
     orcid: 'https://orcid.org/0000-0002-7666-8504'
   - given-names: Christopher Berg
