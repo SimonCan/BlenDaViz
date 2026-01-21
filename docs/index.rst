@@ -10,32 +10,58 @@ BlenDaViz
 Set Up
 ======
 
-BlenDaViz requires Blender version 4.4 or above. It also requires the Python libraries numpy, scipy and matplotlib.
+BlenDaViz requires Blender version 4.4 or above. It also requires the Python libraries numpy, scipy, matplotlib and scikit-image.
 
-Blender can be installed via a package manager or downloaded as binary files. After that you need to download the BlenDaViz library and can store it wherever on your PC, say :code:`~/libs/blendaviz`.
+Blender can be installed via a package manager or downloaded as binary files from https://www.blender.org/download/.
 
-To install the required Python libraries change to your `~libs/blendaviz` directory and execute
+Finding Blender's Python Executable
+-----------------------------------
 
-.. code:: bash
-
-   /path/to/blenders/python -m pip install -U pyproject.toml
-
-Where `/path/to/blenders/python` is where you installed Blender.
-If you installed Blender through a package manager you can find the path to its Python executable by opening Blender an in a Python console (`shift + F4`) type:
+You need to use Blender's bundled Python interpreter to install dependencies and run BlenDaViz. To find the path to Blender's Python executable, open Blender, switch to a Python console (Shift + F4) and type:
 
 .. code:: python
 
    import sys
    print(sys.executable)
 
+This will print a path like :code:`/usr/share/blender/4.4/python/bin/python3.11` or similar.
 
-Once you start Blender, open a Python console and type
+Installing BlenDaViz
+--------------------
+
+1. Clone or download the BlenDaViz repository:
+
+.. code:: bash
+
+   git clone https://github.com/SimonCan/BlenDaViz.git
+   cd BlenDaViz
+
+2. Install BlenDaViz and its dependencies using Blender's Python:
+
+.. code:: bash
+
+   /path/to/blenders/python -m pip install .
+
+Replace :code:`/path/to/blenders/python` with the actual path you found above.
+
+Alternatively, you can install the dependencies separately:
+
+.. code:: bash
+
+   /path/to/blenders/python -m pip install numpy scipy matplotlib scikit-image
+
+And then add the BlenDaViz directory to your Python path within Blender.
+
+Verifying the Installation
+--------------------------
+
+Once you start Blender, open a Python console and type:
 
 .. code:: python
 
    import blendaviz as blt
 
-and you are good to go.
+If no errors appear, you are ready to go.
 
 
 
