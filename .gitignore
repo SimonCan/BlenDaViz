@@ -1,1 +1,30 @@
 *.pyc
+__pycache__/
+
+# Coverage files
+.coverage
+.coverage.*
+.coveragerc
+coverage.xml
+htmlcov/
+
+# IDE and editor files
+.spyproject/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build artifacts
+docs/_build/
+docs/build/
+*.egg-info/
+dist/
+build/
+
+# Backup files
+*.backup
+
+# Paper build outputs
+paper/jats/
+paper/paper.pdf
