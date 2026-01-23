@@ -923,9 +923,9 @@ class Streamline3dArray(Streamline3d):
 
                 with warnings.catch_warnings():
                     warnings.filterwarnings("ignore", category=Warning)
-                    from eqtools.trispline import Spline
+                    from scipy.interpolate import RegularGridInterpolator
             except (ImportError, ModuleNotFoundError) as e:
-                print(f'Warning: Could not import eqtools.trispline.Spline for '
+                print(f'Warning: Could not import scipy.interpolate.RegularGridInterpolator for '
                       f'tricubic interpolation: {e}')
                 print('Warning: Falling back to trilinear interpolation.')
                 self.interpolation = 'trilinear'
@@ -933,9 +933,21 @@ class Streamline3dArray(Streamline3d):
         # Set up the splines for the tricubic interpolation.
         if self.interpolation == 'tricubic':
             splines = []
-            splines.append(Spline(self._z, self._y, self._x, np.swapaxes(self._u, 0, 2)))
-            splines.append(Spline(self._z, self._y, self._x, np.swapaxes(self._v, 0, 2)))
-            splines.append(Spline(self._z, self._y, self._x, np.swapaxes(self._w, 0, 2)))
+            splines.append(RegularGridInterpolator(
+                (self._x, self._y, self._z),
+                np.swapaxes(self._u, 0, 2),
+                method="cubic"
+            ))
+            splines.append(RegularGridInterpolator(
+                (self._x, self._y, self._z),
+                np.swapaxes(self._v, 0, 2),
+                method="cubic"
+            ))
+            splines.append(RegularGridInterpolator(
+                (self._x, self._y, self._z),
+                np.swapaxes(self._w, 0, 2),
+                method="cubic"
+            ))
         else:
             splines = None
 
@@ -946,7 +958,7 @@ class Streamline3dArray(Streamline3d):
             field_x = splines[0]
             field_y = splines[1]
             field_z = splines[2]
-            self._field_function = lambda t, xx: self.__trilinear_func(xx, field_x, field_y, field_z)
+            self._field_function = lambda t, xx: self.__tricubic_func(xx, field_x, field_y, field_z)
 
         return 0
 
@@ -995,14 +1007,14 @@ class Streamline3dArray(Streamline3d):
         return scalar_values
 
 
-    def __trilinear_func(self, xx, field_x, field_y, field_z,):
+    def __tricubic_func(self, xx, field_x, field_y, field_z,):
         """
-        Trilinear spline interpolation like eqtools.trispline.Spline
+        Tricubic spline interpolation like scipy.interpolate.RegularGridInterpolator
         but return 0 if the point lies outside the box.
 
         Signature:
 
-        trilinear_func(xx, field_x, field_y, field_z,)
+        tricubic_func(xx, field_x, field_y, field_z,)
 
         Parameters
         ----------
@@ -1034,9 +1046,9 @@ class Streamline3dArray(Streamline3d):
                 field[2] = (xx[2] - Oz) % (Lz - Oz) + Oz
             return field
 
-        return np.array([field_x.ev(xx[2], xx[1], xx[0]),
-                         field_y.ev(xx[2], xx[1], xx[0]),
-                         field_z.ev(xx[2], xx[1], xx[0])])[:, 0]
+        return np.array([field_x([xx[0], xx[1], xx[2]]),
+                         field_y([xx[0], xx[1], xx[2]]),
+                         field_z([xx[0], xx[1], xx[2]])])[:, 0]
 
 
     def __vec_int(self, xx):
