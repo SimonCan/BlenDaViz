@@ -186,7 +186,7 @@ def streamlines_array(x, y, z, u, v, w, n_seeds=100, seeds=None, seed_center=Non
     interpolation:  Interpolation of the vector field.
         'mean': Take the mean of the adjacent grid point.
         'trilinear': Weigh the adjacent grid points according to their distance.
-        'tricubic': Use a tricubic spline intnerpolation.
+        'tricubic': Use a tricubic spline interpolation.
 
     method:  Integration method for the scipy.integrate.solve_ivp method:
         'RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA'.
@@ -935,17 +935,17 @@ class Streamline3dArray(Streamline3d):
             splines = []
             splines.append(RegularGridInterpolator(
                 (self._x, self._y, self._z),
-                np.swapaxes(self._u, 0, 2),
+                self._u,
                 method="cubic"
             ))
             splines.append(RegularGridInterpolator(
                 (self._x, self._y, self._z),
-                np.swapaxes(self._v, 0, 2),
+                self._v,
                 method="cubic"
             ))
             splines.append(RegularGridInterpolator(
                 (self._x, self._y, self._z),
-                np.swapaxes(self._w, 0, 2),
+                self._w,
                 method="cubic"
             ))
         else:
@@ -1033,18 +1033,28 @@ class Streamline3dArray(Streamline3d):
         Ly = self._y.max()
         Lz = self._z.max()
 
-        out_of_bounds = np.any([xx[0] < Ox, xx[0] > Lx,
-                                 xx[1] < Oy, xx[1] > Ly,
-                                 xx[2] < Oz, xx[2] > Lz])
-        if out_of_bounds:
-            field = np.zeros(3)
-            if self.periodic[0]:
-                field[0] = (xx[0] - Ox) % (Lx - Ox) + Ox
-            if self.periodic[1]:
-                field[1] = (xx[1] - Oy) % (Ly - Oy) + Oy
-            if self.periodic[2]:
-                field[2] = (xx[2] - Oz) % (Lz - Oz) + Oz
-            return field
+        # Check if each coordinate is out of bounds.
+        out_x = xx[0] < Ox or xx[0] > Lx
+        out_y = xx[1] < Oy or xx[1] > Ly
+        out_z = xx[2] < Oz or xx[2] > Lz
+
+        # Handle out of bounds: wrap if periodic, otherwise return zeros.
+        if out_x or out_y or out_z:
+            # If any non-periodic dimension is out of bounds, return zeros.
+            if (out_x and not self.periodic[0]) or \
+               (out_y and not self.periodic[1]) or \
+               (out_z and not self.periodic[2]):
+                return np.zeros(3)
+
+            # Wrap coordinates for periodic dimensions.
+            wrapped_xx = np.array([
+                (xx[0] - Ox) % (Lx - Ox) + Ox if self.periodic[0] else xx[0],
+                (xx[1] - Oy) % (Ly - Oy) + Oy if self.periodic[1] else xx[1],
+                (xx[2] - Oz) % (Lz - Oz) + Oz if self.periodic[2] else xx[2]
+            ])
+            return np.array([field_x(wrapped_xx),
+                             field_y(wrapped_xx),
+                             field_z(wrapped_xx)])[:, 0]
 
         return np.array([field_x([xx[0], xx[1], xx[2]]),
                          field_y([xx[0], xx[1], xx[2]]),
