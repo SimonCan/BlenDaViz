@@ -19,7 +19,7 @@ jobs:
 
       - name: Download Blender
         run: |
-          wget https://mirror.clarkson.edu/blender/release/Blender4.4/blender-4.4.3-linux-x64.tar.xz
+          curl -kO https://mirror.clarkson.edu/blender/release/Blender4.4/blender-4.4.3-linux-x64.tar.xz
           tar -xJf blender-4.4.3-linux-x64.tar.xz
           mv blender-4.4.3-linux-x64 ~/blender
 
