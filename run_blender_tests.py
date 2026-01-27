@@ -10,15 +10,32 @@ import bpy
 from pathlib import Path
 import subprocess
 
-# Ensure 'coverage' is available inside Blender's Python environment.
-try:
-    import coverage
-except ImportError:
-    print("Installing 'coverage' inside Blender's Python environment...")
-    subprocess.check_call([sys.executable, "-m", "ensurepip"])
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "coverage"])
-    import coverage
+# Ensure required packages are available inside Blender's Python environment.
+def ensure_packages(packages):
+    """Install packages if not already available."""
+    missing = []
+    for package_name, import_name in packages:
+        try:
+            __import__(import_name)
+        except ImportError:
+            missing.append(package_name)
+
+    if missing:
+        print(f"Installing missing packages: {missing}")
+        subprocess.check_call([sys.executable, "-m", "ensurepip"])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
+        subprocess.check_call([sys.executable, "-m", "pip", "install"] + missing)
+
+# Install all required dependencies.
+ensure_packages([
+    ("numpy", "numpy"),
+    ("scipy", "scipy"),
+    ("matplotlib", "matplotlib"),
+    ("scikit-image", "skimage"),
+    ("coverage", "coverage"),
+])
+
+import coverage
 
 # Ensure project root is on sys.path (so "import blendaviz" works).
 ROOT = Path(__file__).resolve().parent
