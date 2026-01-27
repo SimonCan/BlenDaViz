@@ -10,7 +10,7 @@ BlenDaViz
 Set Up
 ======
 
-BlenDaViz requires Blender version 4.4 or above. It also requires the Python libraries numpy, scipy, matplotlib and scikit-image.
+BlenDaViz requires Blender version 4.4 or above (including Blender 5.0). It also requires the Python libraries numpy, scipy, matplotlib and scikit-image.
 
 Blender can be installed via a package manager or downloaded as binary files from https://www.blender.org/download/.
 

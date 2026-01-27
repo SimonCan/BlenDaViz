@@ -8,7 +8,7 @@ BlenDaViz is a Python library for Blender made for scientific data visualization
 
 ## Requirements
 
-- Blender 4.4 or above
+- Blender 4.4 or above (including Blender 5.0)
 - Python libraries: numpy, scipy, matplotlib, scikit-image
 
 ## Installation
