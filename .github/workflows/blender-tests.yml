@@ -8,6 +8,10 @@ jobs:
   blender-tests:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        blender-version: ["4.3.2", "4.4.3", "5.0.1"]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -15,19 +19,24 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget xvfb
+          sudo apt-get install -y wget xvfb curl
 
       - name: Download Blender
         run: |
-          curl -kO https://mirror.clarkson.edu/blender/release/Blender4.4/blender-4.4.3-linux-x64.tar.xz
-          tar -xJf blender-4.4.3-linux-x64.tar.xz
-          mv blender-4.4.3-linux-x64 ~/blender
+          VERSION=${{ matrix.blender-version }}
+          MAJOR_MINOR=$(echo $VERSION | cut -d. -f1,2)
+
+          curl -LO https://mirror.clarkson.edu/blender/release/Blender${MAJOR_MINOR}/blender-${VERSION}-linux-x64.tar.xz
+          tar -xJf blender-${VERSION}-linux-x64.tar.xz
+          mv blender-${VERSION}-linux-x64 ~/blender
 
       - name: Install dependencies into Blender’s Python
         run: |
-          ~/blender/4.4/python/bin/python3.11 -m ensurepip
-          ~/blender/4.4/python/bin/python3.11 -m pip install --upgrade pip
-          ~/blender/4.4/python/bin/python3.11 -m pip install coverage numpy scipy matplotlib scikit-image
+          PYTHON_BIN=$(find ~/blender -path "*/python/bin/python3*" | head -n 1)
+
+          $PYTHON_BIN -m ensurepip
+          $PYTHON_BIN -m pip install --upgrade pip
+          $PYTHON_BIN -m pip install coverage numpy scipy matplotlib scikit-image
 
       - name: Run tests in Blender (with Xvfb for headless)
         run: |
@@ -38,4 +47,3 @@ jobs:
         with:
           files: coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
-
