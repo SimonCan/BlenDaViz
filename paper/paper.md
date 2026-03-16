@@ -17,7 +17,7 @@ authors:
     equal-contrib: true
     affiliation: 2
 affiliations:
- - name: High-Performance Scientific Computing, University of Augsburg, Universit\"atsstra\ss e 12a, Augsburg, 86159, Germany
+ - name: High-Performance Scientific Computing, University of Augsburg, Universitätsstra\ss e 12a, Augsburg, 86159, Germany
    index: 1
  - name: Swiss Plasma Center, École Polytechnique Fédérale de Lausanne (EPFL), Station 13, Lausanne, CH-1015, Switzerland
    index: 2
@@ -94,7 +94,8 @@ resulting plots are objects that can be freely modified.
 These objects contain members, such as the data and parameters
 (e.g.\ color), and methods, like the plotting function.
 That way, the user can modify their plots and replot them.
-An example is shown here:
+An example is shown here where we generate a simple line plot,
+change the data of the resulting plot object and replot it:
 
     import blendaviz as blt
     import numpy as np
@@ -126,7 +127,7 @@ if not already present.
 
 An example is shown in \autoref{fig: mesh_plot} where
 we plot a two-dimensional array as a surface with the values
-used as $z$-coordinates and colors.
+used as $z$-coordinates as colors.
 To highlight its geometry we added a plane with a checker board
 texture in the background and readjusted the camera.
 Such manual adjustments can be done directly in Blender
@@ -149,7 +150,7 @@ follow the same structure.
 BlenDaViz recognizes the data and input parameters as time dependent.
 It then adds the plotting method of this plot object
 to the `bpy.app.handlers.frame_change_pre` handler of Blender.
-That way, any change in the time,via e.g.\ the slider,
+That way, any change in the time via e.g.\ the slider,
 results in an update of all present plots.
 
 
@@ -165,7 +166,6 @@ Neither the European Union nor the European Commission nor SERI can be held resp
 This project has benefited from funding by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation)
 through the research unit FOR 5409 "Structure-Preserving Numerical Methods for Bulk- and Interface Coupling of
 Heterogeneous Models (SNuBIC)" (project number 463312734).
-We like to thank Dr.\ David MacTaggart for suggestions to improve the manuscript.
 
 
 # References
