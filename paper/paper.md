@@ -19,9 +19,9 @@ authors:
 affiliations:
  - name: High-Performance Scientific Computing, University of Augsburg, Universitätsstra\ss e 12a, Augsburg, 86159, Germany
    index: 1
- - name: Swiss Plasma Center, École Polytechnique Fédérale de Lausanne (EPFL), Station 13, Lausanne, CH-1015, Switzerland
+ - name: BergTop fusion, Rochussenstraat 281B, 3023DE Rotterdam, Netherlands
    index: 2
-date: 20 September 2025
+date: 20 May 2026
 bibliography: paper.bib
 ---
 
@@ -75,8 +75,9 @@ Attempts at creating libraries were made with
 [AstroBlend](https://www.astroblend.com) [@NAIMAN201650]
 and [BlenderSciViz](https://github.com/zeffii/BlenderSciViz),
 but their applications are relatively limited and they have not been maintained in years.
-Perhaps [BVtkNodes](https://github.com/simboden/BVtkNodes) stands out,
-as it is able to load VTK data and apply filters on it.
+Perhaps [BVtkNodes](https://github.com/simboden/BVtkNodes) and
+[SciBlend](https://extensions.blender.org/add-ons/sciblend/) [@SciBlend] stand out,
+as they are able to load VTK data and apply filters on it.
 
 With [BlenDaViz](https://github.com/SimonCan/BlenDaViz) [@candelaresi_2025_15988189]
 we give the users all the rendering and ray tracing
@@ -89,7 +90,7 @@ used 3d plotting methods.
 # Design
 
 With BlenDaViz we keep the design very close to Matplotlib.
-The input data is in the form of Numpy arrays and the
+The user supplies the input data in the form of Numpy arrays and the
 resulting plots are objects that can be freely modified.
 These objects contain members, such as the data and parameters
 (e.g.\ color), and methods, like the plotting function.
@@ -119,7 +120,7 @@ As the plotting function is called, the input is checked for consistency.
 Then any existing geometry or textures for this plot are deleted.
 Depending on the plotting function, different kind
 of meshes are generated (lines, surfaces, arrows, etc.).
-To finalize the plot object a texture is added.
+To finalize the plot object a texture is add.
 Geometry and texture are then part of the plotting object
 and can, in principle, be accessed.
 After the geometry generation we add lights and a camera,
