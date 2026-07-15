@@ -62,6 +62,9 @@ on the perceived color of objects, as exemplified by *The Dress* controversy [@c
 Using lighting, shadow, depth and scattering can be used to generate photorealistic images
 where the interpretation is made easier.
 
+
+# State of the field
+
 So far Blender has seen only limited use in 3d data visualization.
 [Bioblender](http://www.bioblender.org) has been developed specifically
 for biological data and requires significant Blender knowledge.
@@ -87,7 +90,7 @@ It is general purpose, thanks to the implementation of some of the most
 used 3d plotting methods.
 
 
-# Design
+# Software design
 
 With BlenDaViz we keep the design very close to Matplotlib.
 The user supplies the input data in the form of Numpy arrays and the
@@ -153,6 +156,21 @@ It then adds the plotting method of this plot object
 to the `bpy.app.handlers.frame_change_pre` handler of Blender.
 That way, any change in the time via e.g.\ the slider,
 results in an update of all present plots.
+
+
+# Research impact statement
+
+In [@vortex_braids] it was used to visualize the vortex field of
+a turbulent finite difference simulation using the Pencil Code.
+Later [@israeli2023euv] and [@TwistedFields2023] used it to
+visualize magnetic field configurations obtained from simulations.
+The former also uses BlenDaViz to present particle trajectories.
+
+
+# AI usage disclosure
+
+We used Claude Sonnet 4.6 for some code debugging and to help write the majority of tests.
+All changed by Claude were verified by hand.
 
 
 # Acknowledgements
