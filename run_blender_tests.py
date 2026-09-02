@@ -63,9 +63,11 @@ cov.save()
 cov.xml_report(outfile="coverage.xml")
 cov.html_report(directory="coverage_html")
 
-# Exit Blender cleanly.
+# Exit Blender, propagating the test result as the process exit code.
 sys.stdout.flush()
 sys.stderr.flush()
+if not result.wasSuccessful():
+    sys.exit(1)
 bpy.ops.wm.quit_blender()
 
 

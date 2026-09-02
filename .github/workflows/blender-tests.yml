@@ -40,7 +40,7 @@ jobs:
 
       - name: Run tests in Blender (with Xvfb for headless)
         run: |
-          xvfb-run --auto-servernum ~/blender/blender --background --factory-startup --python run_blender_tests.py
+          xvfb-run --auto-servernum ~/blender/blender --background --factory-startup --python-exit-code 1 --python run_blender_tests.py
 
       - name: Upload coverage results to Codecov
         uses: codecov/codecov-action@v4
