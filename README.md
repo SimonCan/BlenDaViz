@@ -30,6 +30,15 @@ import sys
 print(sys.executable)
 ```
 
+**Note for Snap installations:** Blender ignores its Python's user site-packages
+directory by default, so if `pip install` reports installing into a user site
+(common with the Snap package), `import blendaviz` will fail with
+`ModuleNotFoundError` on a normal launch. Launch Blender with the
+`--python-use-system-env` flag to make it pick up packages installed there:
+```bash
+blender --python-use-system-env
+```
+
 ## Quick Start
 
 Start Blender and open a Python console. Import the library and make a simple plot:

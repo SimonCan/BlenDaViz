@@ -52,6 +52,20 @@ Alternatively, you can install the dependencies separately:
 
 And then add the BlenDaViz directory to your Python path within Blender.
 
+.. note::
+
+   **Snap installations of Blender:** Blender ignores its Python's user
+   site-packages directory by default. If :code:`pip install` reports that it
+   installed into a user site (this happens with the Snap package, since it
+   cannot write into Blender's own :code:`site-packages`), :code:`import blendaviz`
+   will fail with :code:`ModuleNotFoundError` on a normal launch. Launch Blender
+   with the :code:`--python-use-system-env` flag so it picks up packages
+   installed there:
+
+   .. code:: bash
+
+      blender --python-use-system-env
+
 Verifying the Installation
 --------------------------
 
