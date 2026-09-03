@@ -986,7 +986,7 @@ class Streamline3dArray(Streamline3d):
             # Prepare the interpolation function.
             scalar_interpolation = RegularGridInterpolator((self._x, self._y, self._z), self.color_scalar)
             for idx in range(self.tracers[tracer_idx].shape[0]):
-                scalar_values[idx] = scalar_interpolation(self.tracers[tracer_idx][idx, :])
+                scalar_values[idx] = scalar_interpolation(self.tracers[tracer_idx][idx, :])[0]
 
         # Find the min and max values of the sclara field, if there is any.
         if self.color_scalar is None:
