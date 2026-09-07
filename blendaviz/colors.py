@@ -117,8 +117,8 @@ def make_rgba_array(
     # Transform single color tuple into color array.
     if isinstance(color, tuple):
         if len(color) == 3:
-            color_rgba = color + (1,)
+            color_rgba = np.array(color + (1,))
         else:
-            color_rgba = color
+            color_rgba = np.array(color)
 
     return color_rgba
