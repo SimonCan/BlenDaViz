@@ -343,7 +343,8 @@ class PathLine(GenericPlot):
             # Handle custom mesh objects
             elif isinstance(self.marker, bpy.types.Object):
                 if self.marker.type == 'MESH':
-                    bpy.context.object.select_set(False)
+                    bpy.ops.object.select_all(action='DESELECT')
+                    bpy.context.view_layer.objects.active = self.marker
                     self.marker.select_set(True)
                     for idx in range(self._x.shape[0]):
                         bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'})
