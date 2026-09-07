@@ -606,9 +606,11 @@ class Streamline3d(GenericPlot):
         if any([isinstance(self.emission, np.ndarray),
                 isinstance(self.roughness, np.ndarray)]):
             list_material = True
-            # Make sure the color is also an array.
+            # Make sure the color is a 2d array with one row per streamline.
             if not isinstance(color_rgba, np.ndarray):
                 color_rgba = np.repeat([color_rgba, ], self.n_seeds, axis=0)
+            elif color_rgba.ndim == 1:
+                color_rgba = np.repeat(color_rgba[np.newaxis, :], self.n_seeds, axis=0)
         else:
             list_material = False
 
