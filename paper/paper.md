@@ -118,12 +118,12 @@ change the data of the resulting plot object and replot it:
     # Replot the data.
     pl.plot()
 
-Every of our plotting functions follows a similar pipeline.
+Each of our plotting functions follows a similar pipeline.
 As the plotting function is called, the input is checked for consistency.
 Then any existing geometry or textures for this plot are deleted.
 Depending on the plotting function, different kind
 of meshes are generated (lines, surfaces, arrows, etc.).
-To finalize the plot object a texture is add.
+To finalize the plot object a texture is added.
 Geometry and texture are then part of the plotting object
 and can, in principle, be accessed.
 After the geometry generation we add lights and a camera,
