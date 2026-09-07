@@ -229,7 +229,7 @@ A three-dimensional vector field can be plotted as streamlines. For that we need
    seeds = np.array([np.random.random(10)*2-1, np.zeros(10), np.random.random(10)*2-1]).T
 
    # Generate the streamline plot.
-   streamlines = blt.streamlines(x, y, z, u, v, w, seeds=seeds, integration_time=100, integration_steps=80)
+   streamlines = blt.streamlines_array(x, y, z, u, v, w, seeds=seeds, integration_time=100, integration_steps=80)
 
 .. image:: streamlines_plot.png
 
@@ -302,7 +302,7 @@ You then need to run the script using
 
 .. code:: bash
 
-   blender -P my_script.py
+   blender --background -P my_script.py
 
 It should be evident that using a loop you can generate animations through a sequence of images. You can use ffmpeg to put the images into a video file.
 
@@ -312,7 +312,7 @@ It should be evident that using a loop you can generate animations through a seq
    '''
    Plotting example for a line plot in the background.
    Usage:
-   blender -P line_plot_background.py
+   blender --background -P line_plot_background.py
    '''
 
    import blendaviz as blt
