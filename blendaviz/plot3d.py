@@ -245,6 +245,7 @@ class Quiver3d(GenericPlot):
                                                 self.color_map, self.vmin, self.vmax)
         if isinstance(self.color, tuple) or isinstance(self.color, list):
             color_rgba = colors.make_rgba_array(self.color, self._x.shape[0])
+        color_rgba = np.atleast_2d(color_rgba)
 
         # Prepare the materials list.
         self.mesh_material = []
@@ -332,10 +333,9 @@ class Quiver3d(GenericPlot):
         import numpy as np
 
         # Deterimne if we need a list of materials, i.e. for every arrow mesh one.
-        if any([isinstance(self.color, np.ndarray),
+        if any([color_rgba.shape[0] > 1,
                 isinstance(self.emission, np.ndarray),
                 isinstance(self.roughness, np.ndarray),
-                isinstance(self.color, list),
                 isinstance(self.emission, list),
                 isinstance(self.roughness, list)]):
             list_material = True
@@ -378,6 +378,16 @@ class Quiver3d(GenericPlot):
                 self.mesh_material[idx].roughness = self.roughness
         elif idx == 0:
             self.mesh_material[0].roughness = self.roughness
+
+        # Mirror the color/roughness onto the Principled BSDF node, since
+        # 'diffuse_color'/'roughness' only drive Solid viewport shading, not
+        # Cycles/Eevee rendering (the emission branch below overrides this).
+        if self.emission is None:
+            material = self.mesh_material[idx] if list_material else self.mesh_material[0]
+            node_bsdf = material.node_tree.nodes.get('Principled BSDF')
+            if node_bsdf is not None:
+                node_bsdf.inputs['Base Color'].default_value = tuple(material.diffuse_color)
+                node_bsdf.inputs['Roughness'].default_value = material.roughness
 
         # Set the material emission.
         if self.emission is not None:
@@ -824,6 +834,16 @@ class Contour3d(GenericPlot):
                 self.mesh_material[idx].roughness = self.roughness
         elif idx == 0:
             self.mesh_material[0].roughness = self.roughness
+
+        # Mirror the color/roughness onto the Principled BSDF node, since
+        # 'diffuse_color'/'roughness' only drive Solid viewport shading, not
+        # Cycles/Eevee rendering (the emission branch below overrides this).
+        if self.emission is None:
+            material = self.mesh_material[idx] if list_material else self.mesh_material[0]
+            node_bsdf = material.node_tree.nodes.get('Principled BSDF')
+            if node_bsdf is not None:
+                node_bsdf.inputs['Base Color'].default_value = tuple(material.diffuse_color)
+                node_bsdf.inputs['Roughness'].default_value = material.roughness
 
         # Set the material emission.
         if self.emission is not None:
