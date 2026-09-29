@@ -37,6 +37,11 @@ def adjust_camera() -> None:
         bpy.ops.object.camera_add()
         blt.house_keeping.camera = bpy.context.object
 
+    # Make sure the camera is registered as the active render camera. Creating
+    # a camera object does not do this automatically, e.g. when the scene's
+    # camera was deleted beforehand (as in --background scripts).
+    bpy.context.scene.camera = blt.house_keeping.camera
+
     # Position the camera.
     blt.house_keeping.camera.location = [x_pos, y_pos, z_pos]
     blt.house_keeping.camera.rotation_euler[0] = 55.5/180*np.pi
