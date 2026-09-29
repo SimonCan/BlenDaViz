@@ -10,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        blender-version: ["4.3.2", "4.4.3", "5.0.1"]
+        blender-version: ["4.4.3", "5.0.1", "5.2.2"]
 
     steps:
       - name: Checkout repository
