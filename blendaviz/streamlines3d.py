@@ -1231,49 +1231,59 @@ class Streamline3dArray(Streamline3d):
         Ly = self._y.max() - self._y.min()
         Lz = self._z.max() - self._z.min()
 
-        # Remove points that lie outside the domain and interpolation on the boundary.
-        cut_mask = ((tracers[:, 0] > Ox+Lx) + \
-                    (tracers[:, 0] < Ox))*(not self.periodic[0]) + \
-                   ((tracers[:, 1] > Oy+Ly) + \
-                    (tracers[:, 1] < Oy))*(not self.periodic[1]) + \
-                   ((tracers[:, 2] > Oz+Lz) + \
-                    (tracers[:, 2] < Oz))*(not self.periodic[2])
-        if np.sum(cut_mask) > 0:
-            # Find the first point that lies outside.
-            idx_outside = np.min(np.where(cut_mask))
-            # Interpolate.
-            p0 = tracers[idx_outside-1, :]
-            p1 = tracers[idx_outside, :]
-            lam = np.zeros([6])
-            if p0[0] == p1[0]:
-                lam[0] = np.inf
-                lam[1] = np.inf
-            else:
+        def boundary_point(p0, p1):
+            """
+            Interpolate the point where the segment p0-p1 crosses the domain boundary.
+            """
+
+            lam = np.full(6, np.inf)
+            if p0[0] != p1[0]:
                 lam[0] = (Ox + Lx - p0[0])/(p1[0] - p0[0])
                 lam[1] = (Ox - p0[0])/(p1[0] - p0[0])
-            if p0[1] == p1[1]:
-                lam[2] = np.inf
-                lam[3] = np.inf
-            else:
+            if p0[1] != p1[1]:
                 lam[2] = (Oy + Ly - p0[1])/(p1[1] - p0[1])
                 lam[3] = (Oy - p0[1])/(p1[1] - p0[1])
-            if p0[2] == p1[2]:
-                lam[4] = np.inf
-                lam[5] = np.inf
-            else:
+            if p0[2] != p1[2]:
                 lam[4] = (Oz + Lz - p0[2])/(p1[2] - p0[2])
                 lam[5] = (Oz - p0[2])/(p1[2] - p0[2])
-            lam_min = np.min(lam[lam >= 0])
-            if abs(lam_min) == np.inf:
-                lam_min = 0
-            tracers[idx_outside, :] = p0 + lam_min*(p1-p0)
-            # We don't want to cut the interpolated point (was first point outside).
-            cut_mask[idx_outside] = False
-            cut_mask[idx_outside+1:] = True
-            # Remove outside points.
-            tracers = tracers[~cut_mask, :].copy()
+            valid_lam = lam[(lam >= 0) & (lam <= 1)]
+            lam_min = valid_lam.min() if valid_lam.size > 0 else 0
+            return p0 + lam_min*(p1 - p0)
 
-        return tracers
+        # Mark points that lie outside the (non-periodic) domain.
+        outside = np.zeros(tracers.shape[0], dtype=bool)
+        if not self.periodic[0]:
+            outside |= (tracers[:, 0] > Ox+Lx) | (tracers[:, 0] < Ox)
+        if not self.periodic[1]:
+            outside |= (tracers[:, 1] > Oy+Ly) | (tracers[:, 1] < Oy)
+        if not self.periodic[2]:
+            outside |= (tracers[:, 2] > Oz+Lz) | (tracers[:, 2] < Oz)
+
+        if not np.any(outside):
+            return tracers
+
+        # Keep only the contiguous run of points inside the domain (the tracer
+        # can start and/or end outside the domain, e.g. with integration_direction
+        # 'both' and a long integration_time), interpolating the boundary crossing
+        # at either end as needed.
+        inside_idx = np.where(~outside)[0]
+        if inside_idx.size == 0:
+            return tracers[:0, :]
+
+        first_inside = inside_idx[0]
+        last_inside = inside_idx[-1]
+
+        result = tracers[first_inside:last_inside+1, :].copy()
+
+        if first_inside > 0:
+            entry_point = boundary_point(tracers[first_inside-1, :], tracers[first_inside, :])
+            result = np.vstack([entry_point, result])
+
+        if last_inside < tracers.shape[0]-1:
+            exit_point = boundary_point(tracers[last_inside, :], tracers[last_inside+1, :])
+            result = np.vstack([result, exit_point])
+
+        return result
 
 
     def time_handler(self, scene, depsgraph):
