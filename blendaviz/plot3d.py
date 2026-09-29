@@ -384,6 +384,9 @@ class Quiver3d(GenericPlot):
         # Cycles/Eevee rendering (the emission branch below overrides this).
         if self.emission is None:
             material = self.mesh_material[idx] if list_material else self.mesh_material[0]
+            # 'use_nodes' defaults to True from Blender 5.0 onwards but to False
+            # before that, in which case 'node_tree' is None until enabled here.
+            material.use_nodes = True
             node_bsdf = material.node_tree.nodes.get('Principled BSDF')
             if node_bsdf is not None:
                 node_bsdf.inputs['Base Color'].default_value = tuple(material.diffuse_color)
@@ -840,6 +843,9 @@ class Contour3d(GenericPlot):
         # Cycles/Eevee rendering (the emission branch below overrides this).
         if self.emission is None:
             material = self.mesh_material[idx] if list_material else self.mesh_material[0]
+            # 'use_nodes' defaults to True from Blender 5.0 onwards but to False
+            # before that, in which case 'node_tree' is None until enabled here.
+            material.use_nodes = True
             node_bsdf = material.node_tree.nodes.get('Principled BSDF')
             if node_bsdf is not None:
                 node_bsdf.inputs['Base Color'].default_value = tuple(material.diffuse_color)
