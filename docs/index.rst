@@ -307,7 +307,6 @@ You then need to run the script using
 It should be evident that using a loop you can generate animations through a sequence of images. You can use ffmpeg to put the images into a video file.
 
 .. code:: python
-
    # line_plot_background.py
    '''
    Plotting example for a line plot in the background.
@@ -318,6 +317,7 @@ It should be evident that using a loop you can generate animations through a seq
    import blendaviz as blt
    import numpy as np
    import bpy
+   import os
 
    # Delete all existing objects, like the default cube, light and camera.
    bpy.ops.object.select_all(action='SELECT')
@@ -348,6 +348,5 @@ It should be evident that using a loop you can generate animations through a seq
    pl = blt.plot(x, y, z, radius=0.5)
 
    # Render the image.
-   bpy.data.scenes['Scene'].render.filepath = 'line_plot.png'
+   bpy.data.scenes['Scene'].render.filepath = os.path.join(os.getcwd(), 'line_plot.png')
    bpy.ops.render.render(write_still=True)
-
