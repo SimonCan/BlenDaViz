@@ -19,6 +19,7 @@ authors:
 affiliations:
  - name: High-Performance Scientific Computing, University of Augsburg, Universitätsstra\ss e 12a, Augsburg, 86159, Germany
    index: 1
+   ror: 03p14d497
  - name: BergTop fusion, Rochussenstraat 281B, 3023DE Rotterdam, Netherlands
    index: 2
 date: 20 May 2026
