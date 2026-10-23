@@ -69,7 +69,7 @@ where the interpretation is made easier.
 # State of the field
 
 So far Blender has seen only limited use in 3D data visualization.
-[Bioblender](http://www.bioblender.org) has been developed specifically
+[Bioblender](http://www.bioblender.org)\ [@andrei2012] has been developed specifically
 for biological data and requires significant Blender knowledge.
 Similarly, suggestions to use Blender in Astrophysics [@Kent-2015]
 require the generation of the geometry by hand.
