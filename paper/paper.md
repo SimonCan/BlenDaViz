@@ -101,22 +101,24 @@ That way, the user can modify their plots and replot them.
 An example is shown here where we generate a simple line plot,
 change the data of the resulting plot object and replot it:
 
-    import blendaviz as blt
-    import numpy as np
+```python
+import blendaviz as blt
+import numpy as np
 
-    # Generate the data.
-    y = np.linspace(0, 6*np.pi, 400)
-    x = 2*np.cos(y)
-    z = 2*np.sin(y)
+# Generate the data.
+y = np.linspace(0, 6*np.pi, 400)
+x = 2*np.cos(y)
+z = 2*np.sin(y)
 
-    # Generate the line plot.
-    pl = blt.plot(x, y, z, radius=0.5)
+# Generate the line plot.
+pl = blt.plot(x, y, z, radius=0.5)
 
-    # Change the data.
-    pl.x = 2*pl.x
+# Change the data.
+pl.x = 2*pl.x
 
-    # Replot the data.
-    pl.plot()
+# Replot the data.
+pl.plot()
+```
 
 Each of our plotting functions follows a similar pipeline.
 As the plotting function is called, the input is checked for consistency.
