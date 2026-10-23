@@ -165,7 +165,8 @@ results in an update of all present plots.
 # Research impact statement
 
 In @vortex_braids it was used to visualize the vortex field of
-a turbulent finite difference simulation using the Pencil Code.
+a turbulent finite difference simulation using the 
+Pencil Code\ [@PencilCodeCollaboration-2021-58-2807-JOpSoSoft].
 Later @israeli2023euv and @TwistedFields2023 used it to
 visualize magnetic field configurations obtained from simulations.
 The former also uses BlenDaViz to present particle trajectories.
