@@ -28,11 +28,13 @@ bibliography: paper.bib
 
 # Summary
 
-BlenDaViz is a 3D plotting library for the visualization tool Blender\ [@blender], written in Python.
+[BlenDaViz](https://github.com/SimonCan/BlenDaViz)\ [@candelaresi_2025_15988189]
+is a 3D plotting library for the visualization tool Blender\ [@blender], written in Python.
 It is able to visualize line plots, scatter plots, surfaces,
-iso-surfaces, glyphs (arrows) and streamlines from Numpy arrays.
+iso-surfaces, glyphs (arrows) and streamlines from Numpy\ [@harris2020] arrays.
 The user can load BlenDaViz within a Blender Python console as any other library.
-Its design is close to other plotting libraries, especially Matplotlib, which means that
+Its design is close to other plotting libraries, especially
+[Matplotlib](https://matplotlib.org)\ [@Hunter2007; @matplotlib], which means that
 every part of a plot is treated as an object that can be changed when updating the plot
 with new parameters or data.
 Compared to other 3D visualization software, we achieve higher image quality, thanks to Blender's
@@ -83,10 +85,9 @@ Perhaps [BVtkNodes](https://github.com/simboden/BVtkNodes) and
 [SciBlend](https://extensions.blender.org/add-ons/sciblend/) [@SciBlend] stand out,
 as they are able to load VTK data and apply filters on it.
 
-With [BlenDaViz](https://github.com/SimonCan/BlenDaViz) [@candelaresi_2025_15988189]
-we give the users all the rendering and ray tracing
+With BlendaViz we give the users all the rendering and ray tracing
 capabilities of Blender, combined with the ease of use and modularity we know
-from libraries like [Matplotlib](https://matplotlib.org) [@Hunter2007; @matplotlib].
+from libraries like Matplotlib.
 It is general purpose, thanks to the implementation of some of the most
 used 3D plotting methods.
 
