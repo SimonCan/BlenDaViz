@@ -45,8 +45,8 @@ ray tracing capabilities.
 
 In scientific fields, like structure mechanics, computational fluid dynamics,
 astrophysics, or molecular dynamics, it is common to use 3D visualization tools
-like [Paraview](https://www.paraview.org) [@Ahrens2005],
-[Vapor](https://www.vapor.ucar.edu) [@vapor],
+like [Paraview](https://www.paraview.org)\ [@Ahrens2005],
+[Vapor][vapor]\ [@vapor],
 [Mayavi](https://pypi.org/project/mayavi)\ [@ramachandran2011mayavi] or
 [Visit](https://wci.llnl.gov/simulation/computer-codes/visit)\ [@childs2012visit].
 They are capable to load a variety of data formats and visualize different
@@ -71,18 +71,18 @@ where the interpretation is made easier.
 So far Blender has seen only limited use in 3D data visualization.
 [Bioblender](http://www.bioblender.org)\ [@andrei2012] has been developed specifically
 for biological data and requires significant Blender knowledge.
-Similarly, suggestions to use Blender in Astrophysics [@Kent-2015]
+Similarly, suggestions to use Blender in Astrophysics\ [@Kent-2015]
 require the generation of the geometry by hand.
 High quality plots by the Oak [Ridge National Laboratory](https://www.olcf.ornl.gov/2011/08/03/ornl-animations-garner-peer-praise-and-prizes)
 shows that to achieve high quality a collaboration between Blender experts and
 scientists is sometimes required.
 
 Attempts at creating libraries were made with
-[AstroBlend](https://www.astroblend.com) [@NAIMAN201650]
+[AstroBlend](https://www.astroblend.com)\ [@NAIMAN201650]
 and [BlenderSciViz](https://github.com/zeffii/BlenderSciViz),
 but their applications are relatively limited and they have not been maintained in years.
 Perhaps [BVtkNodes](https://github.com/simboden/BVtkNodes) and
-[SciBlend](https://extensions.blender.org/add-ons/sciblend/) [@SciBlend] stand out,
+[SciBlend](https://extensions.blender.org/add-ons/sciblend/)\ [@SciBlend] stand out,
 as they are able to load VTK data and apply filters on it.
 
 With BlendaViz we give the users all the rendering and ray tracing
@@ -193,3 +193,6 @@ Heterogeneous Models (SNuBIC)" (project number 463312734).
 
 
 # References
+
+
+[vapor]: https://www.vapor.ucar.edu
