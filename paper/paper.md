@@ -73,7 +73,7 @@ So far Blender has seen only limited use in 3D data visualization.
 for biological data and requires significant Blender knowledge.
 Similarly, suggestions to use Blender in Astrophysics\ [@Kent-2015]
 require the generation of the geometry by hand.
-High quality plots by the Oak [Ridge National Laboratory](https://www.olcf.ornl.gov/2011/08/03/ornl-animations-garner-peer-praise-and-prizes)
+High quality plots by the [Oak Ridge National Laboratory](https://www.olcf.ornl.gov/2011/08/03/ornl-animations-garner-peer-praise-and-prizes)
 shows that to achieve high quality a collaboration between Blender experts and
 scientists is sometimes required.
 
