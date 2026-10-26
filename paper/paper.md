@@ -174,7 +174,7 @@ The former also uses BlenDaViz to present particle trajectories.
 # AI usage disclosure
 
 We used Claude Sonnet 4.6 for some code debugging and to help write the majority of tests.
-All changed made by Claude were verified by hand.
+All changes made by Claude were verified by hand.
 
 
 # Acknowledgements
