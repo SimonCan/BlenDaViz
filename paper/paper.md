@@ -134,7 +134,7 @@ if not already present.
 
 An example is shown in \autoref{fig: mesh_plot} where
 we plot a two-dimensional array as a surface with the values
-used as $z$-coordinates as colors.
+used as $z$-coordinates and as colors.
 To highlight its geometry we added a plane with a checkerboard
 texture in the background and readjusted the camera.
 Such manual adjustments can be done directly in Blender
