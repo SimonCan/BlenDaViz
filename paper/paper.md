@@ -45,7 +45,7 @@ ray tracing capabilities.
 
 In scientific fields, like structural mechanics, computational fluid dynamics,
 astrophysics, or molecular dynamics, it is common to use 3D visualization tools
-like [Paraview](https://www.paraview.org)\ [@Ahrens2005],
+like [ParaView](https://www.paraview.org)\ [@Ahrens2005],
 [Vapor][vapor]\ [@vapor],
 [Mayavi](https://pypi.org/project/mayavi)\ [@ramachandran2011mayavi] or
 [VisIt](https://wci.llnl.gov/simulation/computer-codes/visit)\ [@childs2012visit].
