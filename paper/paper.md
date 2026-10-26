@@ -126,7 +126,7 @@ As the plotting function is called, the input is checked for consistency.
 Then any existing geometry or materials for this plot are deleted.
 Depending on the plotting function, different kinds
 of meshes are generated (lines, surfaces, arrows, etc.).
-To finalize the plot object a texture is added.
+To finalize the plot object a material is added.
 Geometry and material are then part of the plotting object
 and can, in principle, be accessed.
 After the geometry generation we add lights and a camera,
