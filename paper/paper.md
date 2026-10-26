@@ -123,7 +123,7 @@ pl.plot()
 
 Each of our plotting functions follows a similar pipeline.
 As the plotting function is called, the input is checked for consistency.
-Then any existing geometry or textures for this plot are deleted.
+Then any existing geometry or materials for this plot are deleted.
 Depending on the plotting function, different kinds
 of meshes are generated (lines, surfaces, arrows, etc.).
 To finalize the plot object a texture is added.
