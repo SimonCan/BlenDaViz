@@ -127,7 +127,7 @@ Then any existing geometry or textures for this plot are deleted.
 Depending on the plotting function, different kinds
 of meshes are generated (lines, surfaces, arrows, etc.).
 To finalize the plot object a texture is added.
-Geometry and texture are then part of the plotting object
+Geometry and material are then part of the plotting object
 and can, in principle, be accessed.
 After the geometry generation we add lights and a camera,
 if not already present.
