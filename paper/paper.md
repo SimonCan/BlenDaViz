@@ -48,7 +48,7 @@ astrophysics, or molecular dynamics, it is common to use 3D visualization tools
 like [Paraview](https://www.paraview.org)\ [@Ahrens2005],
 [Vapor][vapor]\ [@vapor],
 [Mayavi](https://pypi.org/project/mayavi)\ [@ramachandran2011mayavi] or
-[Visit](https://wci.llnl.gov/simulation/computer-codes/visit)\ [@childs2012visit].
+[VisIt](https://wci.llnl.gov/simulation/computer-codes/visit)\ [@childs2012visit].
 They can load a variety of data formats and visualize different
 aspects of the data using filters.
 However, they often lack the image quality needed to make the data easier to understand.
