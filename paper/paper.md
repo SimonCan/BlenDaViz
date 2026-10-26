@@ -31,7 +31,7 @@ bibliography: paper.bib
 [BlenDaViz](https://github.com/SimonCan/BlenDaViz)\ [@candelaresi_2025_15988189]
 is a 3D plotting library for the visualization tool Blender\ [@blender], written in Python.
 It is able to visualize line plots, scatter plots, surfaces,
-iso-surfaces, glyphs (arrows) and streamlines from Numpy\ [@harris2020] arrays.
+iso-surfaces, glyphs (arrows) and streamlines from NumPy\ [@harris2020] arrays.
 The user can load BlenDaViz within a Blender Python console as any other library.
 Its design is close to other plotting libraries, especially
 [Matplotlib](https://matplotlib.org)\ [@Hunter2007; @matplotlib], which means that
