@@ -12,7 +12,7 @@ authors:
     corresponding: true
     equal-contrib: true
     affiliation: 1
-  - name: Christopher Berg Smiet
+  - name: Christopher {Berg Smiet}
     orcid: 0000-0002-7803-7685
     equal-contrib: true
     affiliation: 2
