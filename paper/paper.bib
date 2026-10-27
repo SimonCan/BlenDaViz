@@ -1,6 +1,6 @@
-@book{Ahrens2005,
+@incollection{Ahrens2005,
   author    = {James Ahrens and Berk Geveci and Charles Law},
-  title     = {ParaView: An End-User Tool for Large Data Visualization},
+  title     = {{ParaView}: An End-User Tool for Large-Data Visualization},
   booktitle = {The Visualization Handbook},
   publisher = {Elsevier},
   address   = {Burlington, MA},
@@ -32,46 +32,48 @@ DOI="10.1007/978-3-642-03915-7_28"
 }
 
 @Article{Hunter2007,
-  Author    = {Hunter, J. D.},
-  Title     = {Matplotlib: A 2D graphics environment},
+  Author    = {Hunter, John D.},
+  Title     = {{Matplotlib}: A {2D} graphics environment},
   Journal   = {Computing in Science \& Engineering},
   Volume    = {9},
+  Number    = {3},
   Pages     = {90--95},
   abstract  = {Matplotlib is a 2D graphics package used for Python for
   application development, interactive scripting, and publication-quality
   image generation across user interfaces and operating systems.},
-  publisher = {IEEE COMPUTER SOC},
+  publisher = {IEEE},
   doi       = {10.1109/MCSE.2007.55},
   year      = 2007
 }
 
-@article{matplotlib,
-title={matplotlib/matplotlib: REL: v3.2.1},
-DOI={10.5281/zenodo.3714460},
+@software{matplotlib,
+title={{matplotlib/matplotlib}: {REL}: {v3.11.2}},
+DOI={10.5281/zenodo.22700776},
 publisher={Zenodo},
-author={Thomas A Caswell and Michael Droettboom and Antony Lee and John Hunter and Eric Firing and David Stansby and Jody Klymak and Tim Hoffmann and Elliott Sales de Andrade and Nelle Varoquaux and others},
-year={2020},
-month={Mar}
+author={The Matplotlib Development Team},
+year={2026},
+version={v3.11.2},
+month={Sep}
 }
 
 @article{NAIMAN201650,
-title = "AstroBlend: An astrophysical visualization package for Blender",
+title = "{AstroBlend}: An astrophysical visualization package for {Blender}",
 journal = "Astronomy and Computing",
 volume = "15",
-pages = "50 - 60",
+pages = "50--60",
 year = "2016",
 issn = "2213-1337",
 doi = "10.1016/j.ascom.2016.02.002",
-author = "J.P. Naiman",
+author = "Naiman, J. P.",
 keywords = "Miscellaneous, Methods: numerical"
 }
 
 @book{Kent-2015,
-author = {Kent, Brian R},
-title = {3D Scientific Visualization with Blender},
+author = {Kent, Brian R.},
+title = {{3D} Scientific Visualization with {Blender}},
 publisher = {Morgan \& Claypool Publishers},
 year = {2015},
-series = {2053-2571},
+series = {IOP Concise Physics},
 isbn = {978-1-6270-5612-0},
 abstract = {This is the first book written on using Blender (an open source visualization suite widely used in the entertainment and gaming industries) for scientific visualization. It is a practical and interesting introduction to Blender for understanding key parts of 3D rendering and animation that pertain to the sciences via step-by-step guided tutorials. 3D Scientific Visualization with Blender takes you through an understanding of 3D graphics and modelling for different visualization scenarios in the physical sciences.},
 doi = {10.1088/978-1-6270-5612-0},
@@ -79,26 +81,31 @@ address={San Rafael, CA}
 }
 
 @misc{adelson1995checker,
-  title={Checker-Shadow Illusion},
-  author={Adelson, EH},
-  year={1995}
+  title={Checker Shadow Illusion},
+  author={Adelson, Edward H.},
+  year={1995},
+  howpublished={Massachusetts Institute of Technology},
+  url={https://web.archive.org/web/20250118020628/https://persci.mit.edu/gallery/checkershadow},
+  urldate={2026-10-23}
 }
 
 @article{chetverikov2016seeing,
-  title={Seeing “the Dress” in the right light: Perceived colors and inferred light sources},
+  title={Seeing “the {Dress}” in the right light: Perceived colors and inferred light sources},
   author={Chetverikov, Andrey and Ivanchei, Ivan},
   journal={Perception},
   volume={45},
+  number={8},
   pages={910--930},
   year={2016},
-  publisher={Sage Publications Sage UK: London, England},
+  publisher={SAGE Publications},
   DOI={10.1177/0301006616643664}
 }
 @article{kedia2013tying,
   title={Tying knots in light fields},
-  author={Kedia, Hridesh and Bialynicki-Birula, Iwo and Peralta-Salas, Daniel and Irvine, William TM},
+  author={Kedia, Hridesh and Bialynicki-Birula, Iwo and Peralta-Salas, Daniel and Irvine, William T. M.},
   journal={Phys. Rev. Lett.},
   volume={111},
+  number={15},
   pages={150404},
   year={2013},
   publisher={APS},
@@ -107,13 +114,14 @@ address={San Rafael, CA}
 
 @article{smiet2019mapping,
   title={Mapping the sawtooth},
-  author={Smiet, CB and Kramer, GJ and Hudson, SR},
-  journal={Plasma Phys. Contr. F.},
+  author={Smiet, C. B. and Kramer, G. J. and Hudson, S. R.},
+  journal={Plasma Physics and Controlled Fusion},
   volume={62},
+  number={2},
   pages={025007},
-  year={2019},
+  year={2020},
   publisher={IOP Publishing},
-  DOI={10.1088/1741-4326/ab9a0d}
+  DOI={10.1088/1361-6587/ab5073}
 }
 
 @article{TwistedFields2023,
@@ -121,13 +129,14 @@ address={San Rafael, CA}
     title = {Twisted magnetic knots and links},
     journal = {Physics of Plasmas},
     volume = {30},
+    number = {8},
     pages = {082102},
     year = {2023},
     doi = {10.1063/5.0148156}
 }
 
 @Software{Brandenburg-2020-Zenodo,
-  author    = {A. Brandenburg},
+  author    = {Brandenburg, Axel},
   title     = {{Scientific usage of the Pencil Code}},
   month     = jul,
   year      = {2020},
@@ -137,20 +146,60 @@ address={San Rafael, CA}
 }
 
 @Article{PencilCodeCollaboration-2021-58-2807-JOpSoSoft,
-  author    = {The Pencil Code Collaboration},
+  author    = {{The Pencil Code Collaboration} and
+               Brandenburg, Axel and
+               Johansen, Anders and
+               Bourdin, Philippe A. and
+               Dobler, Wolfgang and
+               Lyra, Wladimir and
+               Rheinhardt, Matthias and
+               Bingert, Sven and
+               Haugen, Nils Erland L. and
+               Mee, Antony and
+               Gent, Frederick and
+               Babkovskaia, Natalia and
+               Yang, Chao-Chin and
+               Heinemann, Tobias and
+               Dintrans, Boris and
+               Mitra, Dhrubaditya and
+               Candelaresi, Simon and
+               Warnecke, Jörn and
+               Käpylä, Petri J. and
+               Schreiber, Andreas and
+               Chatterjee, Piyali and
+               Käpylä, Maarit J. and
+               Li, Xiang-Yu and
+               Krüger, Jonas and
+               Aarnes, Jørgen R. and
+               Sarson, Graeme R. and
+               Oishi, Jeffrey S. and
+               Schober, Jennifer and
+               Plasson, Raphaël and
+               Sandin, Christer and
+               Karchniwy, Ewa and
+               Rodrigues, Luiz Felippe S. and
+               Hubbard, Alexander and
+               Guerrero, Gustavo and
+               Snodin, Andrew and
+               Losada, Illa R. and
+               Pekkilä, Johannes and
+               Qian, Chengeng},
   title     = {{The Pencil Code, a modular MPI code for partial differential equations and particles: multipurpose and multiuser-maintained}},
   journal   = {Journal of Open Source Software},
   year      = {2021},
   volume    = {6},
+  number    = {58},
   pages     = {2807},
   doi       = {10.21105/joss.02807}
 }
 
 @article{israeli2023euv,
-  title={EUV debris mitigation using magnetic nulls},
-  author={Israeli, Ben Y and Smiet, Christopher Berg and Simeni Simeni, Marien and Diallo, Ahmed},
+  title={{EUV} debris mitigation using magnetic nulls},
+  author={Israeli, Ben Y. and {Berg Smiet}, Christopher and Simeni Simeni, Marien and Diallo, Ahmed},
   journal={Applied Physics Letters},
   volume={123},
+  number={4},
+  pages={043507},
   year={2023},
   publisher={AIP Publishing},
   doi={10.1063/5.0152083}
@@ -158,10 +207,10 @@ address={San Rafael, CA}
 
 @software{candelaresi_2025_15988189,
   author       = {Candelaresi, Simon and
-                  Berg Smiet, Christopher},
-  title        = {Reproducibility repository for BlenDaViz,
-                   scientific visualization library for Blender in
-                   Python
+                  {Berg Smiet}, Christopher},
+  title        = {Reproducibility repository for {BlenDaViz},
+                   scientific visualization library for {Blender} in
+                   {Python}
                   },
   year         = 2025,
   publisher    = {Zenodo},
@@ -169,14 +218,14 @@ address={San Rafael, CA}
 }
 
 @article{SciBlend,
-title = {SciBlend: Advanced data visualization workflows within Blender},
-journal = {Comput. Graphics},
+title = {{SciBlend}: Advanced data visualization workflows within {Blender}},
+journal = {Computers \& Graphics},
 volume = {130},
 pages = {104264},
 year = {2025},
 issn = {0097-8493},
 doi = {10.1016/j.cag.2025.104264},
-url = {https://www.sciencedirect.com/science/article/pii/S0097849325001050},
+url = {https://doi.org/10.1016/j.cag.2025.104264},
 author = {José Marín and Tiffany M.G. Baptiste and Cristobal Rodero and Steven E. Williams and Steven A. Niederer and Ignacio García-Fernández},
 }
 
@@ -189,4 +238,91 @@ author = {José Marín and Tiffany M.G. Baptiste and Cristobal Rodero and Steven
     pages = {056101},
     year = {2021},
     doi = {10.1063/5.0047033},
+}
+
+@article{ramachandran2011mayavi,
+  title     = {{Mayavi}: {3D} Visualization of Scientific Data},
+  author    = {Ramachandran, P. and Varoquaux, G.},
+  journal   = {Computing in Science \& Engineering},
+  year      = {2011},
+  publisher = {IEEE},
+  volume    = {13},
+  number    = {2},
+  pages     = {40--51},
+  issn      = {1521-9615}
+}
+
+@incollection{childs2012visit,
+  title     = {{VisIt}: An End-User Tool For Visualizing and Analyzing Very
+               Large Data},
+  author    = {Hank Childs and Eric Brugger and Brad Whitlock and
+               Jeremy Meredith and Sean Ahern and David Pugmire and
+               Kathleen Biagas and Mark Miller and Cyrus Harrison and
+               Gunther H. Weber and Hari Krishnan and Thomas Fogal and
+               Allen Sanderson and Christoph Garth and E. Wes Bethel and
+               David Camp and Oliver R\"{u}bel and Marc Durant and Jean M. Favre and
+               Paul Navr\'{a}til},
+  editor    = {E. Wes Bethel and Hank Childs and Charles Hansen},
+  booktitle = {High Performance Visualization--Enabling Extreme-Scale Scientific
+               Insight},
+  year      = {2012},
+  month     = {October},
+  pages     = {357-372},
+  doi       = {10.1201/b12985}
+}
+
+@online{blender,
+  title   = {{Blender}},
+  author  = {{Blender Development Team}},
+  date    = {2025-07-15},
+  url     = {https://www.blender.org/},
+  urldate = {2026-10-23}
+}
+
+@article{harris2020,
+  title        = {Array Programming with {{NumPy}}},
+  author       = {Harris, Charles R. and Millman, K. Jarrod and
+                  family=Walt, given=Stéfan J., prefix=van der, useprefix=true and
+                  Gommers, Ralf and Virtanen, Pauli and Cournapeau, David and
+                  Wieser, Eric and Taylor, Julian and Berg, Sebastian and
+                  Smith, Nathaniel J. and Kern, Robert and Picus, Matti and
+                  Hoyer, Stephan and
+                  family=Kerkwijk, given=Marten H., prefix=van, useprefix=true and
+                  Brett, Matthew and Haldane, Allan and
+                  family=Río, given=Jaime Fernández, prefix=del, useprefix=true and
+                  Wiebe, Mark and Peterson, Pearu and Gérard-Marchant, Pierre and
+                  Sheppard, Kevin and Reddy, Tyler and Weckesser, Warren and
+                  Abbasi, Hameer and Gohlke, Christoph and Oliphant, Travis E.},
+  journaltitle = {Nature},
+  date         = {2020-09},
+  publisher    = {Nature Publishing Group},
+  volume       = {585},
+  number       = {7825},
+  pages        = {357--362},
+  doi          = {10.1038/s41586-020-2649-2},
+  issn         = {1476-4687},
+  url          = {https://www.nature.com/articles/s41586-020-2649-2},
+  urldate      = {2026-10-23},
+  langid       = {english}
+}
+
+@article{andrei2012,
+  title        = {Intuitive Representation of Surface Properties of Biomolecules
+                  Using {{BioBlender}}},
+  author       = {Andrei, Raluca Mihaela and Callieri, Marco and
+                  Zini, Maria Francesca and Loni, Tiziana and Maraziti, Giuseppe and
+                  Pan, Mike Chen and Zoppè, Monica},
+  journaltitle = {BMC Bioinformatics},
+  shortjournal = {BMC Bioinformatics},
+  date         = {2012-03-28},
+  volume       = {13},
+  issue        = {Suppl 4},
+  pages        = {S16},
+  doi          = {10.1186/1471-2105-13-S4-S16},
+  eprint       = {22536962},
+  eprinttype   = {pubmed},
+  issn         = {1471-2105},
+  url          = {https://pmc.ncbi.nlm.nih.gov/articles/PMC3434447/},
+  urldate      = {2026-10-23},
+  pmcid        = {PMC3434447}
 }
