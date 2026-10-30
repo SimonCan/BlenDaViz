@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "blendaviz"
-version = "0.1.0"
+version = "1.0.0"
 description = "A tool for data visualization inside Blender using Python."
 authors = [
     { name="Christopher berg-Smiet", email="christopher.smiet@epfl.ch" },
