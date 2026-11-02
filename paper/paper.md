@@ -94,7 +94,7 @@ used 3D plotting methods.
 # Software design
 
 With BlenDaViz we keep the design very close to Matplotlib.
-The user supplies the input data in the form of Numpy arrays and the
+The user supplies the input data in the form of NumPy arrays and the
 resulting plots are objects that can be freely modified.
 These objects contain members, such as the data and parameters
 (e.g.\ color), and methods, like the plotting function.
@@ -163,7 +163,7 @@ results in an update of all present plots.
 
 # Research impact statement
 
-In @vortex_braids it was used to visualize the vortex field of
+In @vortex_braids BlenDaViz was used to visualize the vortex field of
 a turbulent finite-difference simulation using the 
 Pencil Code\ [@PencilCodeCollaboration-2021-58-2807-JOpSoSoft].
 Later @israeli2023euv and @TwistedFields2023 used it to
