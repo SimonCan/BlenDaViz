@@ -80,7 +80,11 @@ scientists is sometimes required.
 Attempts at creating libraries were made with
 [AstroBlend](https://www.astroblend.com)\ [@NAIMAN201650]
 and [BlenderSciViz](https://github.com/zeffii/BlenderSciViz),
-but their applications are relatively limited and they have not been maintained in years.
+but their applications are relatively limited and, as of November 2026, neither
+appears to be maintained:
+the last commit to BlenderSciViz dates from 24 December 2015 (commit 51535b3),
+while the AstroBlend documentation covers Blender versions up to 2.76b (2015)
+and its source repository is no longer available.
 Perhaps [BVtkNodes](https://github.com/simboden/BVtkNodes) and
 [SciBlend](https://extensions.blender.org/add-ons/sciblend/)\ [@SciBlend] stand out,
 as they are able to load VTK data and apply filters to it.
