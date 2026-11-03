@@ -12,7 +12,8 @@ authors:
     corresponding: true
     equal-contrib: true
     affiliation: 1
-  - name: Christopher {Berg Smiet}
+  - given-names: Christopher Berg
+    surname: Smiet
     orcid: 0000-0002-7803-7685
     equal-contrib: true
     affiliation: 2
@@ -20,7 +21,7 @@ affiliations:
  - name: High-Performance Scientific Computing, University of Augsburg, Universitätsstra\ss e 12a, Augsburg, 86159, Germany
    index: 1
    ror: 03p14d497
- - name: BergTop fusion, Rochussenstraat 281B, 3023DE Rotterdam, Netherlands
+ - name: BergTop Fusion, Rochussenstraat 281B, 3023DE Rotterdam, Netherlands
    index: 2
 date: 20 May 2026
 bibliography: paper.bib
@@ -28,7 +29,7 @@ bibliography: paper.bib
 
 # Summary
 
-[BlenDaViz](https://github.com/SimonCan/BlenDaViz)\ [@candelaresi_2025_15988189]
+[BlenDaViz](https://github.com/SimonCan/BlenDaViz)\ [@candelaresi_2026_23810340]
 is a 3D plotting library for the visualization tool Blender\ [@blender], written in Python.
 It is able to visualize line plots, scatter plots, surfaces,
 iso-surfaces, glyphs (arrows) and streamlines from NumPy\ [@harris2020] arrays.
@@ -46,7 +47,7 @@ ray tracing capabilities.
 In scientific fields, like structural mechanics, computational fluid dynamics,
 astrophysics, or molecular dynamics, it is common to use 3D visualization tools
 like [ParaView](https://www.paraview.org)\ [@Ahrens2005],
-[Vapor][vapor]\ [@vapor],
+[VAPOR][vapor]\ [@vapor],
 [Mayavi](https://pypi.org/project/mayavi)\ [@ramachandran2011mayavi] or
 [VisIt](https://wci.llnl.gov/simulation/computer-codes/visit)\ [@childs2012visit].
 They can load a variety of data formats and visualize different
@@ -68,11 +69,11 @@ that are easier to interpret.
 # State of the field
 
 So far Blender has seen only limited use in 3D data visualization.
-[Bioblender](http://www.bioblender.org)\ [@andrei2012] has been developed specifically
+[BioBlender](https://www.bioblender.org)\ [@andrei2012] has been developed specifically
 for biological data and requires significant Blender knowledge.
 Similarly, suggestions to use Blender in astrophysics\ [@Kent-2015]
 require the generation of the geometry by hand.
-High-quality plots by the [Oak Ridge National Laboratory](https://www.olcf.ornl.gov/2011/08/03/ornl-animations-garner-peer-praise-and-prizes)
+High-quality plots by the [Oak Ridge National Laboratory](https://www.olcf.ornl.gov/2011/08/03/ornl-animations-garner-peer-praise-and-prizes/)
 show that to achieve high quality a collaboration between Blender experts and
 scientists is sometimes required.
 
@@ -157,7 +158,7 @@ follow the same structure.
 BlenDaViz recognizes the data and input parameters as time dependent.
 It then adds the plotting method of this plot object
 to the `bpy.app.handlers.frame_change_pre` handler of Blender.
-That way, any change in the time via e.g.\ the slider,
+That way, any change in the time via, e.g.\ the slider,
 results in an update of all present plots.
 
 

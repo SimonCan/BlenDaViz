@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: BlenDaViz
+title: BlenDaViz, scientific visualization library for Blender in Python
 message: >-
   If you use this software, please cite it using the
   metadata from this file.
@@ -12,14 +12,11 @@ authors:
     orcid: 'https://orcid.org/0000-0002-7666-8504'
   - given-names: Christopher Berg
     family-names: Smiet
-    email: christopher.smiet@epfl.ch
-    affiliation: >-
-      Swiss Plasma Center, École Polytechnique Fédérale de
-      Lausanne (EPFL)
+    affiliation: BergTop Fusion
     orcid: 'https://orcid.org/0000-0002-7803-7685'
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.15988189
+    value: 10.5281/zenodo.23810340
     description: Zenodo archive
 repository-code: 'https://github.com/SimonCan/BlenDaViz'
 url: 'https://blendaviz.readthedocs.io/'
@@ -39,4 +36,4 @@ keywords:
   - 3D plotting
 license: LGPL-3.0
 version: 1.0.0
-date-released: '2025-09-20'
+date-released: '2026-10-30'
